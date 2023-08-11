@@ -3430,13 +3430,12 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
   
     // Test input
     RDK_CPUS index = HOST_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo = NULL;
   
     // Call the API
-    INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL");
+    INT result = platform_hal_GetMemoryPaths(index, NULL);
   
     // Check the results
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL");
     UT_LOG("Return status = %d", result);
 
     UT_ASSERT_EQUAL(result, RETURN_ERR);
