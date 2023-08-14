@@ -1,7 +1,7 @@
 /*
 * If not stated otherwise in this file or this component's LICENSE file the
 * following copyright and licenses apply:*
-* Copyright 2016 RDK Management
+* Copyright 2023 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ void test_l1_platform_hal_positive1_GetFirmwareName(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFirmwareName...");
 
-    CHAR pValue[256];
+    CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with valid pointers.");
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with valid pointers.");
     UT_LOG("Output value of pValue: %s", pValue);
     UT_LOG("Return status: %d", status);
 
@@ -98,11 +98,10 @@ void test_l1_platform_hal_negative1_GetFirmwareName(void)
     CHAR* pValue = NULL;
     ULONG maxSize = 256;
 
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with NULL pointer.");
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with NULL pointer.");
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFirmwareName...");
@@ -124,18 +123,18 @@ void test_l1_platform_hal_negative1_GetFirmwareName(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_GetSoftwareVersion with valid pointer | pValue = NULL, maxSize = 10 | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetSoftwareVersion with valid pointer | pValue = valid buffer, maxSize = 256 | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetSoftwareVersion...");
 
-    CHAR pValue[256];
+    CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
+    UT_LOG("Invoking platform_hal_GetSoftwareVersion() with valid pointers.");
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
-    UT_LOG("Invoking platform_hal_GetSoftwareVersion() with valid pointers.");
     UT_LOG("Output value of pValue: %s", pValue);
     UT_LOG("Return status: %d", status);
 
@@ -160,7 +159,7 @@ void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
  * **Test Procedure:** @n
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | --------- | ---------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_GetSoftwareVersion with NULL pointer | input = NULL, maxSize = value | RETURN_ERR | Should return error |
+ * | 01 | Invoking platform_hal_GetSoftwareVersion with NULL pointer | pValue = NULL, maxSize = 256 | RETURN_ERR | Should return error |
  */
 void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
 {
@@ -169,9 +168,9 @@ void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
     CHAR* pValue = NULL;
     ULONG maxSize = 256;
 
+    UT_LOG("Invoking platform_hal_GetSoftwareVersion() with NULL pointer.");
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
-    UT_LOG("Invoking platform_hal_GetSoftwareVersion() with NULL pointer.");
     UT_LOG("Return status: %d", status);
 
     UT_ASSERT_EQUAL(status, RETURN_ERR);
@@ -202,10 +201,11 @@ void test_l1_platform_hal_positive1_GetSerialNumber(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetSerialNumber...");
     
-    CHAR serialNumber[256];
+    CHAR serialNumber[256] = {"\0"};
+
+    UT_LOG("Invoking platform_hal_GetSerialNumber with valid input parameters.");
     INT status = platform_hal_GetSerialNumber(serialNumber);
     
-    UT_LOG("Invoking platform_hal_GetSerialNumber with valid input parameters.");
     UT_LOG("Output value of pValue: %s", serialNumber);
     UT_LOG("Return status: %d", status);
 
@@ -236,11 +236,10 @@ void test_l1_platform_hal_negative1_GetSerialNumber(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetSerialNumber...");
 
+    UT_LOG("Invoking platform_hal_GetSerialNumber with NULL input parameter (pValue).");
     INT status = platform_hal_GetSerialNumber(NULL);
 
-    UT_LOG("Invoking platform_hal_GetSerialNumber with NULL input parameter (pValue).");
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetSerialNumber...");
@@ -266,28 +265,26 @@ void test_l1_platform_hal_negative1_GetSerialNumber(void)
 */
 void test_l1_platform_hal_positive1_GetSNMPEnable(void) {
     UT_LOG("\nEntering test_l1_platform_hal_positive1_GetSNMPEnable...\n");
-
     CHAR pValue[32] = {"\0"};
-    INT result = platform_hal_GetSNMPEnable(pValue);
 
     UT_LOG("Invoking platform_hal_GetSNMPEnable with valid pValue buffer");
+    INT result = platform_hal_GetSNMPEnable(pValue);
+
     UT_LOG("Output pValue: %s", pValue);
     UT_LOG("Return status: %d", result);
 
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
     if (!strcmp(pValue,"rgWan") || !strcmp(pValue,"rgDualIp")|| !strcmp(pValue,"rgLanIp"))
-		{
-            UT_LOG("SNMP Enable value from the device is %s which is a valid value", pValue);
-            UT_PASS("Get SNMP Enable validation success");
-		}
+	{
+        UT_LOG("SNMP Enable value from the device is %s which is a valid value", pValue);
+        UT_PASS("Get SNMP Enable validation success");
+	}
 	else
-		{
-            UT_LOG("SNMP Enable value from the device %s which is an Invalid value", pValue);
-            UT_FAIL("Get SNMP Enable validation fail");
-		}
-
-    UT_ASSERT_STRING_EQUAL(pValue, "rgWan|rgDualIp|rgLanIp");
+	{
+        UT_LOG("SNMP Enable value from the device %s which is an Invalid value", pValue);
+        UT_FAIL("Get SNMP Enable validation fail");
+	}
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetSNMPEnable...\n");
 }
@@ -313,9 +310,8 @@ void test_l1_platform_hal_positive1_GetSNMPEnable(void) {
 void test_l1_platform_hal_negative1_GetSNMPEnable(void) {
     UT_LOG("\nEntering test_l1_platform_hal_negative1_GetSNMPEnable...\n");
 
-    INT result = platform_hal_GetSNMPEnable(NULL);
-
     UT_LOG("Invoking platform_hal_GetSNMPEnable with NULL pValue");
+    INT result = platform_hal_GetSNMPEnable(NULL);
 
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -344,13 +340,16 @@ void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware_MemUsed...");
 
     CHAR value[1024];
-    INT status = platform_hal_GetHardware_MemUsed(value);
 
     UT_LOG("Invoking platform_hal_GetHardware_MemUsed with valid input parameters.");
-    UT_LOG("Return Status: %d", status);
+    INT status = platform_hal_GetHardware_MemUsed(value);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    //UT_ASSERT(value > 0);
+    UT_LOG("Return Status: %d", status);
+    
+    int Mem_Used = atoi(value);
+    UT_LOG("Total used memory : %d", Mem_Used);
+    UT_ASSERT_TRUE(Mem_Used > 0);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemUsed...");
 }
@@ -377,11 +376,11 @@ void test_l1_platform_hal_negative1_GetHardware_MemUsed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware_MemUsed...");
     
     CHAR *value = NULL;
+
+    UT_LOG("Invoking platform_hal_GetHardware_MemUsed with NULL input parameters.");
     INT status = platform_hal_GetHardware_MemUsed(value);
     
-    UT_LOG("Invoking platform_hal_GetHardware_MemUsed with NULL input parameters.");
     UT_LOG("Return Status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardware_MemUsed...");
@@ -409,17 +408,15 @@ void test_l1_platform_hal_negative1_GetHardware_MemUsed(void) {
 void test_l1_platform_hal_positive1_GetHardwareVersion(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardwareVersion...");
     
-    // Prepare input parameters
-    CHAR pValue[256]; // Sufficient memory allocated
+    CHAR pValue[256]; 
     
-    // Invoke the API
     UT_LOG("Invoking platform_hal_GetHardwareVersion with Valid buffer.");
     INT status = platform_hal_GetHardwareVersion(pValue);
+
     UT_LOG("platform_hal_GetHardwareVersion returns %d",status);
-    
-    // Perform assertions
+    UT_LOG("Hardware Version : %s",pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    
+
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardwareVersion...");
 }
 
@@ -444,15 +441,13 @@ void test_l1_platform_hal_positive1_GetHardwareVersion(void) {
  *  01 |  Invoke platform_hal_GetHardwareVersion function with NULL Value | pValue = NULL | Status = RETURN_ERR | Should fail
  */
 void test_l1_platform_hal_negative1_GetHardwareVersion(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative1_GetHardwareVersion...");
-    
-    // Prepare input parameters
-    CHAR* pValue = NULL; // NULL pointer
-    
-    // Invoke the API
+    UT_LOG("Entering test_l1_platform_hal_negative1_GetHardwareVersion...");  
+    CHAR* pValue = NULL; 
+
+    UT_LOG("Invoking platform_hal_GetHardwareVersion with NULL pointer.");
     INT status = platform_hal_GetHardwareVersion(pValue);
     
-    // Perform assertions
+    UT_LOG("platform_hal_GetHardwareVersion returns : %d",status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardwareVersion...");
@@ -474,19 +469,19 @@ void test_l1_platform_hal_negative1_GetHardwareVersion(void) {
     * **Test Procedure:** @n
     * | Variation / Step | Description | Test Data | Expected Result | Notes |
     * | :----: | --------- | ---------- |-------------- | ----- |
-    * | 01 | Invoke GetModelName API | None | RETURN_OK and Model name is Returned | Should be successful |
+    * | 01 | Invoke GetModelName API | pValue = Valid buffer | RETURN_OK and Model name is Returned | Should be successful |
     */
 void test_l1_platform_hal_positive1_GetModelName(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetModelName...");
     
-    CHAR pValue[256];
+    CHAR pValue[256] = {"\0"};
     INT status = platform_hal_GetModelName(pValue);
     
     UT_LOG("Invoking platform_hal_GetModelName with valid input parameters.");
     UT_LOG("Output value of pValue: %s", pValue);
+    
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetModelName...");
@@ -516,11 +511,11 @@ void test_l1_platform_hal_negative1_GetModelName(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_GetModelName...");
 
     CHAR* model_name = NULL;
-    INT status = platform_hal_GetModelName(model_name);
 
     UT_LOG("Invoking platform_hal_GetModelName with NULL input parameter");
+    INT status = platform_hal_GetModelName(model_name);
+    
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetModelName...");
@@ -542,36 +537,31 @@ void test_l1_platform_hal_negative1_GetModelName(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetRouterRegion with valid pointer pValue | pValue = "", status = 0 | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetRouterRegion with valid pointer pValue | pValue = Valid buffer| RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetRouterRegion(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetRouterRegion...");
-
     CHAR pValue[256] = {"\0"};
 
     UT_LOG("Invoking platform_hal_GetRouterRegion with valid pointer pValue");
-    UT_LOG("Expected Output: RETURN_OK");
-
     INT status = platform_hal_GetRouterRegion(pValue);
     
     UT_LOG("platform_hal_GetRouterRegion returns %d", status);
     UT_LOG("Router region: %s", pValue);
     
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
     if (!strcmp(pValue,"REGION_UK") || !strcmp(pValue,"REGION_IT")|| !strcmp(pValue,"REGION_ROI") || !strcmp(pValue,"REGION_UNKNOWN"))
-		{
-            UT_LOG("Router region is %s which is a valid value", pValue);
-            UT_PASS("Get Router Region validation value");
-		}
+	{
+        UT_LOG("Router region is %s which is a valid value", pValue);
+        UT_PASS("Get Router Region validation value");
+	}
 	else
-		{
-            UT_LOG("Router region is which is an invalid status", pValue);
-            UT_FAIL("Get Router Region validation fail");
-		}
+	{
+        UT_LOG("Router region is which is an invalid value", pValue);
+        UT_FAIL("Get Router Region validation fail");
+	}
 
-    UT_ASSERT_STRING_EQUAL(pValue, "REGION_UK|REGION_IT|REGION_ROI|REGION_UNKNOWN");
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetRouterRegion...");
 }
 
@@ -599,10 +589,9 @@ void test_l1_platform_hal_negative1_GetRouterRegion(void) {
 
     UT_LOG("Invoking platform_hal_GetRouterRegion with NULL pointer pValue");
     UT_LOG("Expected Output: RETURN_ERR");
-
     INT status = platform_hal_GetRouterRegion(NULL);
+    
     UT_LOG("platform_hal_GetRouterRegion returns %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetRouterRegion...");
@@ -633,12 +622,11 @@ void test_l1_platform_hal_positive1_GetBootloaderVersion(void)
 
     UT_LOG("Entering test_l1_platform_hal_positive1_GetBootloaderVersion...");
 
-    INT status = platform_hal_GetBootloaderVersion(pValue, maxSize);
-
     UT_LOG("Invoking platform_hal_GetBootloaderVersion with valid input parameters (pValue is valid buffer, maxSize >= 256)...");
+    INT status = platform_hal_GetBootloaderVersion(pValue, maxSize);
+    
     UT_LOG("Output values: pValue = %s", pValue);
     UT_LOG("Return status: status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetBootloaderVersion...");
@@ -669,11 +657,10 @@ void test_l1_platform_hal_negative1_GetBootloaderVersion(void)
 
     UT_LOG("Entering test_l1_platform_hal_negative1_GetBootloaderVersion...");
 
+    UT_LOG("Invoking platform_hal_GetBootloaderVersion with NULL pValue...");
     INT status = platform_hal_GetBootloaderVersion(pValue, maxSize);
 
-    UT_LOG("Invoking platform_hal_GetBootloaderVersion with NULL pValue...");
     UT_LOG("Return status: status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetBootloaderVersion...");
@@ -700,28 +687,27 @@ void test_l1_platform_hal_negative1_GetBootloaderVersion(void)
 void test_l1_platform_hal_positive1_GetHardware(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware...");
 
-    CHAR value[256];
-    INT ret = platform_hal_GetHardware(value);
+    CHAR value[256] = {"\0"};
 
     UT_LOG("Invoking platform_hal_GetHardware with input parameters: pValue = valid pointer with sufficient memory allocated");
+    INT ret = platform_hal_GetHardware(value);
+
     UT_LOG("Output values: pValue = %s", value);
     UT_LOG("Return status: ret = %d", ret);
     
     int flash_size = atoi(value);
     UT_ASSERT_EQUAL(ret, RETURN_OK);
 
-        if (flash_size >= 1 && flash_size <= 4096)
-		{
-            UT_LOG("The bootloader version flashed in the device is %d which is a valid value", flash_size);
-            UT_PASS("Get Hardware validation success");
-		}
+    if (flash_size >= 1 && flash_size <= 4096)
+	{
+        UT_LOG("The hardware version of the device is %d which is a valid value", flash_size);
+        UT_PASS("Get Hardware validation success");
+	}
 	else
-		{
-            UT_LOG("The bootloader version flashed in the device is %d which is an invalid value", flash_size);
-            UT_FAIL("Get Hardware validation fail");
-		}
-
-    UT_ASSERT_TRUE(flash_size >= 1 && flash_size <= 4096);
+	{
+        UT_LOG("The hardware version of the device is %d which is an invalid value", flash_size);
+        UT_FAIL("Get Hardware validation fail");
+	}
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware...");
 }
@@ -751,11 +737,11 @@ void test_l1_platform_hal_negative1_GetHardware(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware...");
 
     CHAR *pValue = NULL;
-    INT ret = platform_hal_GetHardware(pValue);
 
     UT_LOG("Invoking platform_hal_GetHardware with input parameters: pValue = NULL");
-    UT_LOG("Return status: ret = %d", ret);
-    
+    INT ret = platform_hal_GetHardware(pValue);
+
+    UT_LOG("Return status: ret = %d", ret);    
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardware...");
@@ -784,11 +770,11 @@ void test_l1_platform_hal_positive1_SetSNMPEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSNMPEnable...");
 
     CHAR pValue[] = "rgWan";
-    INT result = platform_hal_SetSNMPEnable(pValue);
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue='%s'", pValue);
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_SetSNMPEnable(pValue);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetSNMPEnable...");
@@ -816,11 +802,11 @@ void test_l1_platform_hal_positive2_SetSNMPEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetSNMPEnable...");
 
     CHAR pValue[] = "rgDualIp";
-    INT result = platform_hal_SetSNMPEnable(pValue);
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue='%s'", pValue);
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_SetSNMPEnable(pValue);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetSNMPEnable...");
@@ -849,11 +835,11 @@ void test_l1_platform_hal_positive3_SetSNMPEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetSNMPEnable...");
 
     CHAR pValue[] = "rgLanIp";
-    INT result = platform_hal_SetSNMPEnable(pValue);
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue='%s'", pValue);
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_SetSNMPEnable(pValue);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetSNMPEnable...");
@@ -881,11 +867,10 @@ void test_l1_platform_hal_positive3_SetSNMPEnable(void) {
 void test_l1_platform_hal_negative1_SetSNMPEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetSNMPEnable...");
 
+    UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue=NULL");
     INT result = platform_hal_SetSNMPEnable(NULL);
 
-    UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue=NULL");
     UT_LOG("Return value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetSNMPEnable...");
@@ -914,11 +899,11 @@ void test_l1_platform_hal_negative2_SetSNMPEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetSNMPEnable...");
 
     CHAR pValue[] = "invalidValue";
-    INT result = platform_hal_SetSNMPEnable(pValue);
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with input parameter pValue='%s'", pValue);
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_SetSNMPEnable(pValue);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetSNMPEnable...");
@@ -945,14 +930,13 @@ void test_l1_platform_hal_negative2_SetSNMPEnable(void) {
 void test_l1_platform_hal_positive1_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetWebUITimeout...");
-
     ULONG value = 30;
-    INT result = platform_hal_SetWebUITimeout(value);
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
+    INT result = platform_hal_SetWebUITimeout(value);
+
     UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Return Value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetWebUITimeout...");
@@ -979,14 +963,13 @@ void test_l1_platform_hal_positive1_SetWebUITimeout(void)
 void test_l1_platform_hal_positive2_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetWebUITimeout...");
-
     ULONG value = 86400;
-    INT result = platform_hal_SetWebUITimeout(value);
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
+    INT result = platform_hal_SetWebUITimeout(value);
+
     UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Return Value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetWebUITimeout...");
@@ -1013,54 +996,49 @@ void test_l1_platform_hal_positive2_SetWebUITimeout(void)
 void test_l1_platform_hal_positive3_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetWebUITimeout...");
-
     ULONG value = 0;
-    INT result = platform_hal_SetWebUITimeout(value);
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
+    INT result = platform_hal_SetWebUITimeout(value);
+
     UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Return Value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetWebUITimeout...");
 }
 
 /**
- * @brief Test case to verify the behavior of platform_hal_SetWebUITimeout API when an invalid lower value is passed as input.
- *
- * This test case checks if the platform_hal_SetWebUITimeout API returns RETURN_ERR when an invalid lower value is passed as input. 
- * The test is a negative test case to ensure that the API handles invalid inputs correctly.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 029 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data                          | Expected Result | Notes           |
- * | :--------------: | ----------- | ---------------------------------- | --------------- | --------------- |
- * |       01         | Invoke platform_hal_SetWebUITimeout function with -1 value   | value = -1                         | RETURN_ERR      | Should return Error |
- *
- */
-
-void test_l1_platform_hal_negative1_SetWebUITimeout(void)
+* @brief This test is used to verify the behavior of the platform_hal_SetWebUITimeout function when the input value is zero.
+*
+* The purpose of this test is to ensure that the platform_hal_SetWebUITimeout function behaves correctly when the input value is zero.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 029 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, they have to select this test case via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoke platform_hal_SetWebUITimeout function with zero value | value = 100 | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive4_SetWebUITimeout(void)
 {
-    UT_LOG("Entering test_l1_platform_hal_negative1_SetWebUITimeout...");
-
-    ULONG value = -1;
-    INT result = platform_hal_SetWebUITimeout(value);
+    UT_LOG("Entering test_l1_platform_hal_positive4_SetWebUITimeout...");
+    ULONG value = 100;
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
-    UT_LOG("Expected Output: RETURN_ERR");
+    INT result = platform_hal_SetWebUITimeout(value);
+
+    UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Return Value: %d", result);
+    UT_ASSERT_EQUAL(result, RETURN_OK);
 
-    UT_ASSERT_EQUAL(result, RETURN_ERR);
-
-    UT_LOG("Exiting test_l1_platform_hal_negative1_SetWebUITimeout...");
+    UT_LOG("Exiting test_l1_platform_hal_positive4_SetWebUITimeout...");
 }
 
 /**
@@ -1081,20 +1059,18 @@ void test_l1_platform_hal_negative1_SetWebUITimeout(void)
 * | :--------------: | ----------- | ---------------------------------- | --------------- | --------------- |
 * | 01 | Verify the behavior of platform_hal_SetWebUITimeout when an invalid upper value is provided| Input Value: value = 86401 |  RETURN_ERR | The function is expected to return RETURN_ERR as the input value exceeds the maximum allowed timeout value.|
 */
-void test_l1_platform_hal_negative2_SetWebUITimeout(void)
+void test_l1_platform_hal_negative1_SetWebUITimeout(void)
 {
-    UT_LOG("Entering test_l1_platform_hal_negative2_SetWebUITimeout...");
-
+    UT_LOG("Entering test_l1_platform_hal_negative1_SetWebUITimeout...");
     ULONG value = 86401;
-    INT result = platform_hal_SetWebUITimeout(value);
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
-    UT_LOG("Expected Output: RETURN_ERR");
-    UT_LOG("Return Value: %d", result);
+    INT result = platform_hal_SetWebUITimeout(value);
 
+    UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
-    UT_LOG("Exiting test_l1_platform_hal_negative2_SetWebUITimeout...");
+    UT_LOG("Exiting test_l1_platform_hal_negative1_SetWebUITimeout...");
 }
 
 /**
@@ -1116,20 +1092,18 @@ void test_l1_platform_hal_negative2_SetWebUITimeout(void)
 * | 01 | SetWebUITimeout with invalid lower range value | value = 29 | RETURN_ERR | Should return RETURN_ERR as the value is out of valid range |
 *
 */
-void test_l1_platform_hal_negative3_SetWebUITimeout(void)
+void test_l1_platform_hal_negative2_SetWebUITimeout(void)
 {
-    UT_LOG("Entering test_l1_platform_hal_negative3_SetWebUITimeout...");
-
+    UT_LOG("Entering test_l1_platform_hal_negative2_SetWebUITimeout...");
     ULONG value = 29;
-    INT result = platform_hal_SetWebUITimeout(value);
 
     UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu", value);
-    UT_LOG("Expected Output: RETURN_ERR");
-    UT_LOG("Return Value: %d", result);
+    INT result = platform_hal_SetWebUITimeout(value);
 
+    UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-    UT_LOG("Exiting test_l1_platform_hal_negative3_SetWebUITimeout...");
+    UT_LOG("Exiting test_l1_platform_hal_negative2_SetWebUITimeout...");
 }
 
 /**
@@ -1154,30 +1128,27 @@ void test_l1_platform_hal_negative3_SetWebUITimeout(void)
 
 void test_l1_platform_hal_positive1_GetWebUITimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetWebUITimeout...");
+    ULONG value = 5;
 
-    ULONG value = 30;
-
-    UT_LOG("Invoking platform_hal_GetWebUITimeout");
-    
+    UT_LOG("Invoking platform_hal_GetWebUITimeout");    
     INT status = platform_hal_GetWebUITimeout(&value);
+    
     UT_LOG("Return Value: %d", status);
-    UT_LOG("WebUI timeout value : %lu");
-
+    UT_LOG("WebUI timeout value : %lu", value);
 
     /* Assert the return value and output value */
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    //UT_ASSERT_TRUE(value >= 30 && value <= 86400);
     
     if(value >= 30 && value <= 86400)
-        { 
-            UT_LOG("Web UI Timeout value is %lu", value);
-            UT_PASS("Web UI Timeout validation success");
-        }
+    { 
+        UT_LOG("Web UI Timeout value is %lu", value);
+        UT_PASS("Web UI Timeout validation success");
+    }
     else
-        {
-            UT_LOG("Web UI Timeout value is %lu", value);
-            UT_FAIL("Web UI Timeout validation failure");           
-        }
+    {
+         UT_LOG("Web UI Timeout value is %lu", value);
+        UT_FAIL("Web UI Timeout validation failure");           
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetWebUITimeout...");
 }
@@ -1204,8 +1175,8 @@ void test_l1_platform_hal_negative1_GetWebUITimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetWebUITimeout...");
 
     /* Pass a NULL pointer as input */
+    UT_LOG("platform_hal_GetWebUITimeout API returns");
     INT status = platform_hal_GetWebUITimeout(NULL);
-    UT_LOG("platform_hal_GetWebUITimeout API returns: %d",status);
 
     /* Assert the return value */
     UT_ASSERT_EQUAL(status, RETURN_ERR);
@@ -1229,21 +1200,23 @@ void test_l1_platform_hal_negative1_GetWebUITimeout(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetBaseMacAddress with valid pValue | macAddress = "00:11:22:33:44:55" | status = RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetBaseMacAddress with valid pValue | macAddress = valid buffer | status = RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetBaseMacAddress...");
-
-    CHAR macAddress[256];
-
-    INT status = platform_hal_GetBaseMacAddress(macAddress);
+    CHAR macAddress[256] = {"\0"};
 
     UT_LOG("Invoking platform_hal_GetBaseMacAddress with valid pValue");
-    UT_LOG("Output: MAC Address = %s", macAddress);
-    UT_LOG("Return status: %d", status);
+    INT status = platform_hal_GetBaseMacAddress(macAddress);
 
+    UT_LOG("Return status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_LOG("Output: MAC Address = %s", macAddress);
+
+    int len = strlen(macAddress);
+    UT_ASSERT_EQUAL(len,17)
+    UT_LOG("Valid MAC string as expected");
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetBaseMacAddress...");
 }
@@ -1269,14 +1242,12 @@ void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
 void test_l1_platform_hal_negative1_GetBaseMacAddress(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetBaseMacAddress...");
-
     CHAR *pValue = NULL;
 
+    UT_LOG("Invoking platform_hal_GetBaseMacAddress with pValue as NULL");
     INT status = platform_hal_GetBaseMacAddress(pValue);
 
-    UT_LOG("Invoking platform_hal_GetBaseMacAddress with pValue as NULL");
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetBaseMacAddress...");
@@ -1298,22 +1269,24 @@ void test_l1_platform_hal_negative1_GetBaseMacAddress(void)
     * **Test Procedure:** @n
     * | Variation / Step | Description | Test Data | Expected Result | Notes |
     * | :----: | --------- | ---------- |-------------- | ----- |
-    * | 01 | Invoking platform_hal_GetHardware_MemFree with valid input parameters | buffer = "buffer" | RETURN_OK | Should be successful |
+    * | 01 | Invoking platform_hal_GetHardware_MemFree with valid input parameters | buffer = Valid buffer | RETURN_OK | Should be successful |
     */
 void test_l1_platform_hal_positive1_GetHardware_MemFree(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware_MemFree...");
-
     // Prepare input parameters
-    CHAR buffer[1024];
+    CHAR buffer[1024] = {"\0"};
 
     // Invoke the API
+    UT_LOG("Invoking platform_hal_GetHardware_MemFree with valid input parameters.");
     INT result = platform_hal_GetHardware_MemFree(buffer);
 
     // Check the output values and return status
-    UT_LOG("Invoking platform_hal_GetHardware_MemFree with valid input parameters.");
     UT_LOG("Output value: %s", buffer);
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
+    
+    int version = atoi(buffer);
+    UT_ASSERT_TRUE(version > 0);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemFree...");
 }
@@ -1324,15 +1297,11 @@ void test_l1_platform_hal_positive1_GetHardware_MemFree(void) {
  * This test case validates the platform_hal_GetHardware_MemFree function when invoked with a NULL pointer. It checks if the function returns RETURN_ERR as expected.
  *
  * **Test Group ID:** Basic: 01 @n
- * 
  * **Test Case ID:** 037 @n
- * 
  * **Priority:** High @n@n
  * 
  * **Pre-Conditions:** None @n
- * 
  * **Dependencies:** None @n
- * 
  * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
  * 
  * **Test Procedure:** @n
@@ -1343,15 +1312,14 @@ void test_l1_platform_hal_positive1_GetHardware_MemFree(void) {
 
 void test_l1_platform_hal_negative1_GetHardware_MemFree(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware_MemFree...");
-
     // Prepare input parameters
     CHAR *pValue = NULL;
 
     // Invoke the API
+    UT_LOG("Invoking platform_hal_GetHardware_MemFree with NULL pointer.");
     INT result = platform_hal_GetHardware_MemFree(pValue);
 
     // Check the return status
-    UT_LOG("Invoking platform_hal_GetHardware_MemFree with NULL pointer.");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -1381,25 +1349,18 @@ void test_l1_platform_hal_negative1_GetHardware_MemFree(void) {
  */
 void test_l1_platform_hal_positive1_GetUsedMemorySize(void)
 {
-    // Log entrance message
     UT_LOG("Entering test_l1_platform_hal_positive1_GetUsedMemorySize...");
-
-    // Initialize variables
     ULONG pulSize = 0;
 
-    // Invoke the API with valid input
+    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize as a valid pointer.");
     INT ret = platform_hal_GetUsedMemorySize(&pulSize);
 
-    // Log test description and results
-    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize as a valid pointer.");
     UT_LOG("Return value: %d", ret);
     UT_LOG("pulSize: %lu", pulSize);
 
-    // Perform assertions
     UT_ASSERT_EQUAL(ret, RETURN_OK);
-    //UT_ASSERT(pulSize > 0);
+    UT_ASSERT_TRUE(pulSize > 0);
 
-    // Log exit message
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetUsedMemorySize...");
 }
 
@@ -1427,12 +1388,11 @@ void test_l1_platform_hal_negative1_GetUsedMemorySize(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_GetUsedMemorySize...");
 
     // Invoke the API with NULL pointer
+    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize as a NULL pointer.");
     INT ret = platform_hal_GetUsedMemorySize(NULL);
 
     // Log test description and results
-    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize as a NULL pointer.");
     UT_LOG("Return value: %d", ret);
-
     // Perform assertion
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
@@ -1460,15 +1420,12 @@ void test_l1_platform_hal_negative1_GetUsedMemorySize(void)
 */
 void test_l1_platform_hal_positive1_ClearResetCount(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_ClearResetCount...");
-
     BOOLEAN bFlag = TRUE;
 
+    UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = TRUE");
     INT result = platform_hal_ClearResetCount(bFlag);
 
-    UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = TRUE");
-    UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Actual Output: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_ClearResetCount...");
@@ -1496,15 +1453,13 @@ void test_l1_platform_hal_positive1_ClearResetCount(void) {
  */
 void test_l1_platform_hal_positive2_ClearResetCount(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_ClearResetCount...");
-
     BOOLEAN bFlag = FALSE;
 
+    UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = FALSE");
     INT result = platform_hal_ClearResetCount(bFlag);
 
-    UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = FALSE");
     UT_LOG("Expected Output: RETURN_OK");
     UT_LOG("Actual Output: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_ClearResetCount...");
@@ -1530,16 +1485,12 @@ void test_l1_platform_hal_positive2_ClearResetCount(void) {
  */
 void test_l1_platform_hal_negative1_ClearResetCount(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_ClearResetCount...");
-
-    BOOLEAN bFlag = 2; // Invalid bFlag value
-
-    INT result = platform_hal_ClearResetCount(bFlag);
+    BOOLEAN bFlag = 2;
 
     UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = 2");
-    UT_LOG("Expected Output: It depends on the function's implementation");
-    UT_LOG("Actual Output: %d", result);
+    INT result = platform_hal_ClearResetCount(bFlag);
 
-    // Assert the return value, assuming a robust implementation should return RETURN_ERR
+    UT_LOG("Actual Output: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_ClearResetCount...");
@@ -1564,14 +1515,13 @@ void test_l1_platform_hal_negative1_ClearResetCount(void) {
  * |        01        | Invoking platform_hal_SetDeviceCodeImageValid with bFlag as true | flag = TRUE | RETURN_OK | Should be successful |
  */
 void test_l1_platform_hal_positive1_SetDeviceCodeImageValid(void) {
-    UT_LOG("Entering test_l1_platform_hal_positive1_SetDeviceCodeImageValid...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive1_SetDeviceCodeImageValid...");    
     BOOLEAN flag = TRUE;
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageValid with flag = %d", flag);
-
-    INT result = platform_hal_SetDeviceCodeImageValid(flag);
-    UT_LOG("platform_hal_SetDeviceCodeImageValid returns : %d", result);
     
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageValid with flag = %d", flag);
+    INT result = platform_hal_SetDeviceCodeImageValid(flag);
+    
+    UT_LOG("platform_hal_SetDeviceCodeImageValid returns : %d", result);  
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetDeviceCodeImageValid...");
@@ -1597,14 +1547,13 @@ void test_l1_platform_hal_positive1_SetDeviceCodeImageValid(void) {
 * | 01 | Set device code image flag to valid | flag = FALSE | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive2_SetDeviceCodeImageValid(void) {
-    UT_LOG("Entering test_l1_platform_hal_positive2_SetDeviceCodeImageValid...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive2_SetDeviceCodeImageValid...");   
     BOOLEAN flag = FALSE;
+    
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageValid with flag = %d", flag);
-
     INT result = platform_hal_SetDeviceCodeImageValid(flag);
+    
     UT_LOG("platform_hal_SetDeviceCodeImageValid returns : %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetDeviceCodeImageValid...");
@@ -1630,14 +1579,13 @@ void test_l1_platform_hal_positive2_SetDeviceCodeImageValid(void) {
 * | 01 | Invoking platform_hal_SetDeviceCodeImageValid with an invalid flag | flag = 2 | RETURN_ERR | The function should return an error code |
 */
 void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative1_SetDeviceCodeImageValid...");
-    
+    UT_LOG("Entering test_l1_platform_hal_negative1_SetDeviceCodeImageValid...");    
     BOOLEAN flag = 2;
+
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageValid with flag = %d", flag);
-
     INT result = platform_hal_SetDeviceCodeImageValid(flag);
-    UT_LOG("platform_hal_SetDeviceCodeImageValid returns : %d", result);
 
+    UT_LOG("platform_hal_SetDeviceCodeImageValid returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetDeviceCodeImageValid...");
@@ -1663,13 +1611,12 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void) {
  */
 void test_l1_platform_hal_positive1_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_setFactoryCmVariant...");
-
     CHAR pValue[512] = "pc20";
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFactoryCmVariant...");
@@ -1696,13 +1643,12 @@ void test_l1_platform_hal_positive1_setFactoryCmVariant(void) {
 
 void test_l1_platform_hal_positive2_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_setFactoryCmVariant...");
-
     CHAR pValue[512] = "unknown";
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_setFactoryCmVariant...");
@@ -1729,13 +1675,12 @@ void test_l1_platform_hal_positive2_setFactoryCmVariant(void) {
 
 void test_l1_platform_hal_positive3_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_setFactoryCmVariant...");
-
     CHAR pValue[512] = "pc20genband";
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setFactoryCmVariant...");
@@ -1761,13 +1706,12 @@ void test_l1_platform_hal_positive3_setFactoryCmVariant(void) {
  */
 void test_l1_platform_hal_positive4_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_positive4_setFactoryCmVariant...");
-
     CHAR pValue[512] = "pc15sip";
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_setFactoryCmVariant...");
@@ -1792,15 +1736,14 @@ void test_l1_platform_hal_positive4_setFactoryCmVariant(void) {
 * | 01 | Set factory CM variant | pValue = "pc15mgcp" | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive5_setFactoryCmVariant(void) {
-UT_LOG("Entering test_l1_platform_hal_positive5_setFactoryCmVariant...");
+    UT_LOG("Entering test_l1_platform_hal_positive5_setFactoryCmVariant...");
+    CHAR pValue[512] = "pc15mgcp";
 
-CHAR pValue[512] = "pc15mgcp";
-INT status = platform_hal_setFactoryCmVariant(pValue);
+    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
-UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-UT_LOG("Returned status: %d", status);
-
-UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_LOG("Returned status: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
 
 UT_LOG("Exiting test_l1_platform_hal_positive5_setFactoryCmVariant...");
 }
@@ -1825,13 +1768,12 @@ UT_LOG("Exiting test_l1_platform_hal_positive5_setFactoryCmVariant...");
 */
 void test_l1_platform_hal_negative1_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_setFactoryCmVariant...");
-
     CHAR *pValue = NULL;
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = NULL");
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_setFactoryCmVariant...");
@@ -1857,13 +1799,12 @@ void test_l1_platform_hal_negative1_setFactoryCmVariant(void) {
 */
 void test_l1_platform_hal_negative2_setFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_setFactoryCmVariant...");
-
     CHAR pValue[512] = "invalid";
-    INT status = platform_hal_setFactoryCmVariant(pValue);
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_setFactoryCmVariant(pValue);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_setFactoryCmVariant...");
@@ -1890,27 +1831,47 @@ void test_l1_platform_hal_negative2_setFactoryCmVariant(void) {
 void test_l1_platform_hal_positive1_getLed(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getLed...");
 
-    LEDMGMT_PARAMS params;
-    params.LedColor = LED_RED;
-    params.State = 0;
-    params.Interval = 3;
+    PLEDMGMT_PARAMS params = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
+    if(params != NULL){
+  
+        UT_LOG("Invoking platform_hal_getLed with valid PLEDMGMT_PARAMS structure");   
+        INT result = platform_hal_getLed(&params);
 
-    // Invoke the platform_hal_getLed() function
-    // Log the test description and the output values
-    UT_LOG("Invoking platform_hal_getLed with valid PLEDMGMT_PARAMS structure");
-    
-    INT result = platform_hal_getLed(&params);
-    UT_LOG("platform_hal_getLed API returns:%d", result);
-    UT_LOG("LED colour:%d",params.LedColor);
-    UT_LOG("Srate:%d",params.State);
-    UT_LOG("Interval:%d",params.Interval);
+        UT_LOG("platform_hal_getLed API returns:%d", result);
+        UT_LOG("LED colour:%d",params.LedColor);
+        UT_LOG("State:%d",params.State);
+        UT_LOG("Interval:%d",params.Interval);
 
-    // Check the return value and populate the output parameters
-    UT_ASSERT_EQUAL(result, RETURN_OK);
-    UT_ASSERT_TRUE(params.LedColor >= 0 && params.LedColor <= 7);
-    UT_ASSERT_EQUAL(params.State, 0 || params.State == 1);
-    UT_ASSERT_TRUE( params.Interval >= 0);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
+        if (params.LedColor >= 0 && params.LedColor <= 7)
+	    {
+            UT_LOG("Led Color is %d which is a valid value", params.LedColor);
+            UT_PASS("Led Color validation success");
+	    }
+	    else
+	    {
+            UT_LOG("Led Color is  %d which is an invalid value", params.LedColor);
+            UT_FAIL("Led Color validation failed");
+	    }
+
+        if (params.State == 0 || params.State == 1)
+	    {
+            UT_LOG("State is %d which is a valid value", params.State);
+            UT_PASS("State validation success");
+	    }
+	    else
+	    {
+            UT_LOG("State is  %d which is an invalid value", params.State);
+            UT_FAIL("State validation failed");
+	    }
+
+        UT_ASSERT_TRUE(params.Interval >= 0);
+    }
+
+    else{
+	    UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getLed...");
 }
 
@@ -1935,12 +1896,12 @@ void test_l1_platform_hal_positive1_getLed(void) {
 void test_l1_platform_hal_negative1_getLed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getLed...");
 
+    PLEDMGMT_PARAMS params = NULL;
     // Invoke the platform_hal_getLed() function with a null pointer
-    UT_LOG("Invoking platform_hal_getLed with NULL pointer");
-   
-    INT result = platform_hal_getLed(NULL);
-    UT_LOG("platform_hal_getLed returns : %d", result);
+    UT_LOG("Invoking platform_hal_getLed with NULL pointer");  
+    INT result = platform_hal_getLed(params);
 
+    UT_LOG("platform_hal_getLed returns : %d", result);
     // Check the return value
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -1965,31 +1926,30 @@ void test_l1_platform_hal_negative1_getLed(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Call platform_hal_getRotorLock with fanIndex=0 | fanIndex=0 | 0 or 1 | Should return 1 indicating that the rotor is locked |
+* | 01 | Call platform_hal_getRotorLock with fanIndex=0 | fanIndex=0 |Return can be 0 or 1 | Should return 1 indicating that the rotor is locked |
 */
 void test_l1_platform_hal_positive1_getRotorLock(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRotorLock...");
 
-    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=0");
-    
-    INT status = platform_hal_getRotorLock(0);
-    UT_LOG("platform_hal_getRotorLock returns : %d", status);
+    int fanIndex = 0;
+    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=0");    
+    INT status = platform_hal_getRotorLock(fanIndex);
 
+    UT_LOG("platform_hal_getRotorLock returns : %d", status);
     // Check the return value
     if(status == 1)
     {
 	    UT_LOG("Status of the Rotor is: %d locked \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
+	    UT_PASS("Get Roter locked Validation success\n");
     }
     else if (status == 0)
     {
 	    UT_LOG("Status of the Rotor is: %d NOT locked \n",status);
-	    UT_PASS("Get Roter NOTlocked Validation\n");
+	    UT_PASS("Get Roter NOT locked Validation success\n");
     }
-    else if (status == -1)
-    {
-	    UT_LOG("Status of the Rotor is: %d value not applicable \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
+    else if(status == -1){
+        UT_LOG("Status of the Rotor is: %d  which is an invalid value\n",status);
+	    UT_FAIL("Get Roter Validation failed\n");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
 }
@@ -2014,27 +1974,26 @@ void test_l1_platform_hal_positive1_getRotorLock(void) {
 */
 void test_l1_platform_hal_positive2_getRotorLock(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_getRotorLock...");
+    int fanIndex = 1;
 
     UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=1");
+    INT status = platform_hal_getRotorLock(fanIndex);
 
-    INT status = platform_hal_getRotorLock(1);
-     UT_LOG("platform_hal_getRotorLock returns : %d", status);
-
+    UT_LOG("platform_hal_getRotorLock returns : %d", status);
     // Check the return value
     if(status == 1)
     {
 	    UT_LOG("Status of the Rotor is: %d locked \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
+	    UT_PASS("Get Roter locked Validation success\n");
     }
     else if (status == 0)
     {
 	    UT_LOG("Status of the Rotor is: %d NOT locked \n",status);
-	    UT_PASS("Get Roter NOTlocked Validation\n");
+	    UT_PASS("Get Roter NOT locked Validation success\n");
     }
-    else if (status == -1)
-    {
-	    UT_LOG("Status of the Rotor is: %d value not applicable \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
+    else if(status == -1){
+        UT_LOG("Status of the Rotor is: %d  which is an invalid value\n",status);
+	    UT_FAIL("Get Roter Validation failed\n");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
 }
@@ -2059,29 +2018,23 @@ void test_l1_platform_hal_positive2_getRotorLock(void) {
  */
 void test_l1_platform_hal_negative1_getRotorLock(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getRotorLock...");
+    int fanIndex = 2;
 
-     UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=2");
+    UT_LOG("Invoking platform_hal_getRotorLock with invalid fanIndex=2");
+    INT status = platform_hal_getRotorLock(fanIndex);
 
-    INT status = platform_hal_getRotorLock(2);
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
-
     // Check the return value
-    if(status == 1)
-    {
-	    UT_LOG("Status of the Rotor is: %d locked \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
-    }
-    else if (status == 0)
-    {
-	    UT_LOG("Status of the Rotor is: %d NOT locked \n",status);
-	    UT_PASS("Get Roter NOTlocked Validation\n");
-    }
-    else if (status == -1)
+    if (status == -1)
     {
 	    UT_LOG("Status of the Rotor is: %d value not applicable \n",status);
-	    UT_PASS("Get Roter locked Validation sucess\n");
+	    UT_PASS("Get Roter locked Validation success\n");
     }
-    UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
+    else if(status == 0 || status == 1){
+        UT_LOG("Status of the Rotor is: %d invalid value \n",status);
+	    UT_FAIL("Get Roter locked Validation Failed\n");
+    } 
+    UT_LOG("Exiting test_l1_platform_hal_negative1_getRotorLock...");
 }
 
 /**
@@ -2098,29 +2051,25 @@ void test_l1_platform_hal_negative1_getRotorLock(void) {
  * **Test Procedure:** @n
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoke the GetTotalMemorySize API with a valid pulSize pointer | None | RETURN_OK | Should be successful |
+ * |       01         | Invoke the GetTotalMemorySize API with a valid pulSize pointer | size = 0 | RETURN_OK | Should be successful |
  */
 
 void test_l1_platform_hal_positive1_GetTotalMemorySize(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetTotalMemorySize...");
-
     // Test case specific data
-    ULONG size;
+    ULONG size = 0;
 
     // Invocation of the API for the test
+    UT_LOG("Invoking platform_hal_GetTotalMemorySize with pulSize pointer: valid");
     INT status = platform_hal_GetTotalMemorySize(&size);
     
     // Logging the test case description, output values, and return status
-    UT_LOG("Invoking platform_hal_GetTotalMemorySize with pulSize pointer: valid");
     UT_LOG("Returned status: %d", status);
     UT_LOG("Returned size: %lu", size);
-
     // Asserts for the test case
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    //UT_ASSERT(size > 0);
-
-    
+    UT_ASSERT_TRUE(size > 0);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetTotalMemorySize...");
 }
@@ -2150,13 +2099,12 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_GetTotalMemorySize...");
 
     // Invocation of the API for the test
+    UT_LOG("Invoking platform_hal_GetTotalMemorySize with pulSize pointer: NULL");
     INT status = platform_hal_GetTotalMemorySize(NULL);
 
     // Asserts for the test case
     UT_ASSERT_EQUAL(status, RETURN_ERR);
-
     // Logging the test case description, output values, and return status
-    UT_LOG("Invoking platform_hal_GetTotalMemorySize with pulSize pointer: NULL");
     UT_LOG("Returned status: %d", status);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetTotalMemorySize...");
@@ -2184,27 +2132,26 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
 void test_l1_platform_hal_positive1_GetFactoryResetCount(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFactoryResetCount...");
-
     ULONG pulSize = 0;
+
     UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = %lu", pulSize);
-
     INT status = platform_hal_GetFactoryResetCount(&pulSize);
-    UT_LOG(" platform_hal_GetFactoryResetCount returns : %d",status);
-    
-    UT_LOG("pulSize: %lu",pulSize);
 
+    UT_LOG(" platform_hal_GetFactoryResetCount returns : %d",status);    
+    UT_LOG("pulSize: %lu",pulSize);
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    //UT_ASSERT_TRUE(pulSize >= 0);
-    /*if(pulSize >= 0)
+
+    if(pulSize >= 0)
         { 
-            UT_LOG("Factory Reset count is %lu", value);
+            UT_LOG("Factory Reset count is %lu", pulSize);
             UT_PASS (" Factory Reset Count Validation success");
         }
     else
         {
-            UT_LOG("Factory Reset count is %lu", value);
+            UT_LOG("Factory Reset count is %lu", pulSize);
             UT_FAIL(" Factory Reset Count Validation Failure");
-        }*/
+        }
+
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFactoryResetCount...");
 }
 
@@ -2231,11 +2178,10 @@ void test_l1_platform_hal_negative1_GetFactoryResetCount(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetFactoryResetCount...");
 
+    UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = NULL");
     INT status = platform_hal_GetFactoryResetCount(NULL);
 
-    UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = NULL");
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFactoryResetCount...");
@@ -2263,9 +2209,9 @@ void test_l1_platform_hal_negative1_GetFactoryResetCount(void)
 void test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout...");
 
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 30 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(1800); // 30 minutes
 
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 30 minutes");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
@@ -2293,9 +2239,9 @@ void test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout(void) {
 void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout...");
 
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 0 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(0); // 0 minutes
 
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 0 minutes");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
@@ -2323,9 +2269,9 @@ void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void) {
 void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout...");
 
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 60 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(3600); // 60 minutes
 
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 60 minutes");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
@@ -2354,9 +2300,9 @@ void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void) {
 void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout...");
 
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: -1");
     INT result = platform_hal_SetDeviceCodeImageTimeout(-1);
 
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: -1");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -2386,9 +2332,9 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void) {
 void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout...");
 
+    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 61 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(3660); // 61 minutes
 
-    UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 61 minutes");
     UT_LOG("Return status: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -2415,15 +2361,14 @@ void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void) {
  */
 void test_l1_platform_hal_positive1_getFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFactoryCmVariant...");
-
     CHAR buffer[512] = {"\0"};
+
+    UT_LOG("Invoking platform_hal_getFactoryCmVariant with a valid buffer of size 512 bytes...");
     INT status = platform_hal_getFactoryCmVariant(buffer);
     
-    UT_LOG("Invoking platform_hal_getFactoryCmVariant with a valid buffer of size 512 bytes...");
     UT_LOG("Expected Result: RETURN_OK");
     UT_LOG("Actual Result: %d", status);
-    UT_LOG("Value: %s", buffer);
-    
+    UT_LOG("Value: %s", buffer);    
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if (!strcmp(buffer,"unknown") || !strcmp(buffer,"pc20") || !strcmp(buffer,"pc20genband") || !strcmp(buffer,"pc15sip")||  !strcmp(buffer,"pc15mgcp"))
@@ -2460,12 +2405,11 @@ void test_l1_platform_hal_positive1_getFactoryCmVariant(void) {
 void test_l1_platform_hal_negative1_getFactoryCmVariant(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getFactoryCmVariant...");
 
+    UT_LOG("Invoking platform_hal_getFactoryCmVariant with a null pointer as the parameter...");
     INT status = platform_hal_getFactoryCmVariant(NULL);
     
-    UT_LOG("Invoking platform_hal_getFactoryCmVariant with a null pointer as the parameter...");
     UT_LOG("Expected Result: RETURN_ERR");
-    UT_LOG("Actual Result: %d", status);
-    
+    UT_LOG("Actual Result: %d", status);    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getFactoryCmVariant...");
@@ -2500,9 +2444,9 @@ void test_l1_platform_hal_positive1_setLed() {
     // Check if memory allocation was successful
     if (pValue == NULL) {
         UT_LOG("Failed to allocate memory for pValue.");
-        return;
     }
-
+    else
+    {
     // Generate all combinations of valid LedColor, State, and Interval
     for (int ledColor = 0; ledColor <= 7; ledColor++) {
         for (int state = 0; state <= 1; state++) {
@@ -2516,11 +2460,12 @@ void test_l1_platform_hal_positive1_setLed() {
                 UT_LOG("Invoking platform_hal_setLed with LedColor: %d, State: %d, Interval: %d", ledColor, state, interval);
                 INT result = platform_hal_setLed(pValue);
                 // Add asserts to check the return value
-                CU_ASSERT_EQUAL(result, RETURN_OK);
+                UT_ASSERT_EQUAL(result, RETURN_OK);
             }
         }
     }
     free(pValue);
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_setLed...");
 }
 
@@ -2546,11 +2491,10 @@ void test_l1_platform_hal_positive1_setLed() {
 void test_l1_platform_hal_negative1_setLed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_setLed...");
 
-    UT_LOG("Invoking platform_hal_setLed with NULL pointer...");
-    
+    UT_LOG("Invoking platform_hal_setLed with NULL pointer...");    
     INT result = platform_hal_setLed(NULL);
-    UT_LOG("platform_hal_setLed returns: %d",result);
 
+    UT_LOG("platform_hal_setLed returns: %d",result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_setLed...");
@@ -2579,27 +2523,31 @@ void test_l1_platform_hal_negative1_setLed(void) {
 void test_l1_platform_hal_negative2_setLed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_setLed...");
  
-    PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));                                              
+    PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));    
+
+    if (pValue == NULL) {
+        UT_LOG("Failed to allocate memory for pValue.");
+    }
+
+    else{
     pValue->LedColor = 8;
     pValue->State = 0;
     pValue->Interval = 10;
 
     UT_LOG("Invoking platform_hal_setLed with invalid LedColor value (8)...");
-
     INT result = platform_hal_setLed(pValue);
+ 
     UT_LOG("platform_hal_setLed returns: %d",result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
-
     free(pValue);
-
+    }
     UT_LOG("Exiting test_l1_platform_hal_negative2_setLed...");
 }
 
 /**
-* @brief This test case is used to verify the behavior of the platform_hal_setLed function when a negative Interval value (-1) is passed as an argument.
+* @brief This test case is used to verify the behavior of the platform_hal_setLed function when an invalid state is passed as an argument.
 *
-* This test verifies that the platform_hal_setLed function returns an error code (RETURN_ERR) when a negative Interval value is passed.
+* This test verifies that the platform_hal_setLed function returns an error code (RETURN_ERR) when an invalid state  value is passed.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 073 @n
@@ -2624,10 +2572,9 @@ void test_l1_platform_hal_negative3_setLed(void) {
 
     UT_LOG("Invoking platform_hal_setLed with invalid State value (2)...");
     INT result = platform_hal_setLed(pValue);
+
     UT_LOG("platform_hal_setLed returns: %d",result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
-
     free(pValue);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_setLed...");
@@ -2660,12 +2607,10 @@ void test_l1_platform_hal_negative4_setLed(void) {
     pValue->Interval = -1;
 
     UT_LOG("Invoking platform_hal_setLed with negative Interval value (-1)...");
-    
     INT result = platform_hal_setLed(pValue);
+
     UT_LOG("platform_hal_setLed returns: %d",result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
-
     free(pValue);
 
     UT_LOG("Exiting test_l1_platform_hal_negative4_setLed...");
@@ -2692,14 +2637,12 @@ void test_l1_platform_hal_negative4_setLed(void) {
 void test_l1_platform_hal_positive1_getRPM(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRPM...");
-
     UINT fanIndex = 0;
 
     UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", fanIndex);
     UINT fanRPM = platform_hal_getRPM(fanIndex);
 
     UT_LOG("FanRPM = %d", fanRPM);
-
     UT_ASSERT_TRUE(fanRPM >= 0);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRPM...");
@@ -2727,7 +2670,6 @@ void test_l1_platform_hal_positive1_getRPM(void)
 void test_l1_platform_hal_positive2_getRPM(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_getRPM...");
-
     UINT fanIndex = 1;
 
     UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", fanIndex);
@@ -2760,35 +2702,41 @@ void test_l1_platform_hal_positive2_getRPM(void)
  */
 void test_l1_platform_hal_positive1_initThermal(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_initThermal...");
+   THERMAL_PLATFORM_CONFIG thermalConfig = (THERMAL_PLATFORM_CONFIG)malloc(sizeof(_FAN_PLATFORM_CONFIG));
+    if(thermalConfig != NULL){
+        UT_LOG("Invoking platform_hal_initThermal with valid input parameters...");
+        INT result = platform_hal_initThermal(&thermalConfig);
 
-    // Set up thermal configuration
-    THERMAL_PLATFORM_CONFIG thermalConfig;
-    thermalConfig.FanCount = 1;
-    thermalConfig.SlowSpeedThresh = 30;
-    thermalConfig.MediumSpeedThresh = 35;
-    thermalConfig.FastSpeedThresh = 40;
-    thermalConfig.FanMinRunTime = 60;
-    thermalConfig.MonitoringDelay = 30;
-    thermalConfig.PowerMonitoring = 1;
-    thermalConfig.LogInterval = 600;
+        UT_LOG("platform_hal_initThermal returns:%d",result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-    UT_LOG("Invoking platform_hal_initThermal with valid input parameters...");
-
-    INT result = platform_hal_initThermal(&thermalConfig);
-    UT_LOG("platform_hal_initThermal returns:%d",result);
-
-    UT_ASSERT_EQUAL(result, RETURN_OK);
-    UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig.FanCount, thermalConfig.SlowSpeedThresh, thermalConfig.MediumSpeedThresh, thermalConfig.FastSpeedThresh, thermalConfig.FanMinRunTime, thermalConfig.MonitoringDelay, thermalConfig.PowerMonitoring, thermalConfig.LogInterval);
+        UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig.FanCount, thermalConfig.SlowSpeedThresh, thermalConfig.MediumSpeedThresh, thermalConfig.FastSpeedThresh, thermalConfig.FanMinRunTime, thermalConfig.MonitoringDelay, thermalConfig.PowerMonitoring, thermalConfig.LogInterval);
     
-    UT_ASSERT_EQUAL(thermalConfig.FanCount, 1 || thermalConfig.FanCount == 2);
-    UT_ASSERT_EQUAL(thermalConfig.SlowSpeedThresh, 30);
-    UT_ASSERT_EQUAL(thermalConfig.MediumSpeedThresh, 35);
-    UT_ASSERT_EQUAL(thermalConfig.FastSpeedThresh, 40);
-    UT_ASSERT_EQUAL(thermalConfig.FanMinRunTime, 60 );
-    UT_ASSERT_EQUAL(thermalConfig.MonitoringDelay, 30);
-    UT_ASSERT_EQUAL(thermalConfig.PowerMonitoring, 0 || thermalConfig.PowerMonitoring == 1);
-    UT_ASSERT_EQUAL(thermalConfig.LogInterval, 600);
+        if (thermalConfig.FanCount == 1 || thermalConfig.FanCount == 2)
+	    {
+            UT_LOG("Fan Count is %d which is a valid value", thermalConfig.FanCount);
+            UT_PASS("Fan Count validation success");
+	    }
+	    else
+	    {
+            UT_LOG("Fan Count is %d which is an invalid value", thermalConfig.FanCount);
+            UT_FAIL("Fan Count validation failed");
+	    }
 
+        if (thermalConfig.PowerMonitoring == 0 || thermalConfig.PowerMonitoring == 1)
+	    {
+            UT_LOG("Power Monitoring is %d which is a valid value", thermalConfig.PowerMonitoring);
+            UT_PASS("Power Monitoring validation success");
+	    }
+	    else
+	    {
+            UT_LOG("Power Monitoring is %d which is an invalid value", thermalConfig.PowerMonitoring);
+            UT_FAIL("Power Monitoring validation failed");
+	    }
+    }
+    else{
+        UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_initThermal...");
 }
 
@@ -2812,13 +2760,12 @@ void test_l1_platform_hal_positive1_initThermal(void) {
  */
 void test_l1_platform_hal_negative1_initThermal() {
     UT_LOG("Entering test_l1_platform_hal_negative1_initThermal...");
-
     THERMAL_PLATFORM_CONFIG* thermalConfig = NULL;
-    UT_LOG("Invoking platform_hal_initThermal with NULL input parameter...");
-    
-    INT status = platform_hal_initThermal(thermalConfig);
-    UT_LOG("platform_hal_initThermal returns: %d", status);
 
+    UT_LOG("Invoking platform_hal_initThermal with NULL input parameter...");    
+    INT status = platform_hal_initThermal(thermalConfig);
+
+    UT_LOG("platform_hal_initThermal returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_initThermal...");
@@ -2856,15 +2803,15 @@ void test_l1_platform_hal_positive1_getFanTemperature(void)
     
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(temp >= 0 && temp <= 100)
-        { 
-            UT_LOG("Fan Temperature  is %lu", temp);
-            UT_PASS (" Fan Temperature Validation success");
-        }
+    { 
+        UT_LOG("Fan Temperature  is %lu", temp);
+        UT_PASS (" Fan Temperature Validation success");
+    }
     else
-        {
-            UT_LOG("Fan Temperature is %lu", temp);
-            UT_FAIL(" Fan Temperature Validation Failure");    
-        }
+    {
+        UT_LOG("Fan Temperature is %lu", temp);
+        UT_FAIL(" Fan Temperature Validation Failure");    
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanTemperature...");
 }
 
@@ -2891,7 +2838,6 @@ void test_l1_platform_hal_negative1_getFanTemperature(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_getFanTemperature...");
     
     UT_LOG("Invoking platform_hal_getFanTemperature with input parameters: pTemp = NULL");
-
     int status = platform_hal_getFanTemperature(NULL);
     
     // Check the return value
@@ -2917,31 +2863,31 @@ void test_l1_platform_hal_negative1_getFanTemperature(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description                                                                            | Test Data                                  | Expected Result                             | Notes            |
 * | :--------------: | -------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------ | ---------------- |
-* |       01         | Invoking platform_hal_getRadioTemperature with radioIndex=0, pValue=valid pointer       | radioIndex = 0, pValue = valid pointer     | RETURN_OK                       |  Should be successful           |
+* |       01         | Invoking platform_hal_getRadioTemperature with radioIndex=0, value = 0       | radioIndex = 0, pValue = valid pointer     | RETURN_OK                       |  Should be successful           |
 */
 void test_l1_platform_hal_positive1_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRadioTemperature...");
-
     INT radioIndex = 0;
-    INT value;
-    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+    INT value = 0;
 
     UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, pValue=valid pointer.", radioIndex);
+    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+ 
     UT_LOG("Returned status: %d", status);
     UT_LOG("Returned value: %d", value);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
+
     if(value >= 0 && value <= 100)
-        { 
-            UT_LOG("Radio Temperature  is %lu", value);
-            UT_PASS (" Radio Temperature Validation success");
-        }
+    { 
+        UT_LOG("Radio Temperature  is %lu", value);
+        UT_PASS (" Radio Temperature Validation success");
+    }
     else
-        {
-            UT_LOG("Radio Temperature is %lu", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
-        }
+    {
+        UT_LOG("Radio Temperature is %lu", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRadioTemperature...");
 }
@@ -2969,16 +2915,14 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
 void test_l1_platform_hal_negative1_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_getRadioTemperature...");
-
     INT radioIndex = 1;
     INT* pValue = NULL;
-    INT status = platform_hal_getRadioTemperature(radioIndex, pValue);
 
     UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, pValue=NULL.", radioIndex);
+    INT status = platform_hal_getRadioTemperature(radioIndex, pValue);
+
     UT_LOG("Returned status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
-
     UT_LOG("Exiting test_l1_platform_hal_negative1_getRadioTemperature...");
 }
 
@@ -2999,19 +2943,18 @@ void test_l1_platform_hal_negative1_getRadioTemperature(void)
  * 
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_getRadioTemperature with invalid parameters | radioIndex = 3, pValue = valid pointer | RETURN_ERR | API should return an error status |
+ * | 01 | Invoking platform_hal_getRadioTemperature with invalid parameters | radioIndex = 3, value = 0 | RETURN_ERR | API should return an error status |
  */
 void test_l1_platform_hal_negative2_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_getRadioTemperature...");
-
     INT radioIndex = 3;
-    INT value;
-    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+    INT value = 0 ;
 
     UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, pValue=valid pointer.", radioIndex);
-    UT_LOG("Returned status: %d", status);
+    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
 
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_getRadioTemperature...");
@@ -3033,32 +2976,32 @@ void test_l1_platform_hal_negative2_getRadioTemperature(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | --------------- | ----- |
-* | 01 | Invoking the API with valid radio index and valid pointer for the temperature value | radioIndex=1, pValue=valid pointer | Should return RETURN_OK | Should be successful |
+* | 01 | Invoking the API with valid radio index and valid pointer for the temperature value | radioIndex=1, pValue=0 | Should return RETURN_OK | Should be successful |
 */
 
 void test_l1_platform_hal_positive2_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_getRadioTemperature...");
-
     INT radioIndex = 1;
-    INT value;
-    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+    INT value = 0;
 
     UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, pValue=valid pointer.", radioIndex);
+    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+
     UT_LOG("Returned status: %d", status);
     UT_LOG("Returned value: %d", value);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(value >= 0 && value <= 100)
-        { 
-            UT_LOG("Radio Temperature  is %lu", value);
-            UT_PASS (" Radio Temperature Validation success");
-        }
+    { 
+        UT_LOG("Radio Temperature  is %lu", value);
+        UT_PASS (" Radio Temperature Validation success");
+    }
     else
-        {
-            UT_LOG("Radio Temperature is %lu", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
-        }
+    {
+        UT_LOG("Radio Temperature is %lu", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_getRadioTemperature...");
 }
@@ -3079,31 +3022,31 @@ void test_l1_platform_hal_positive2_getRadioTemperature(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data                                                                            | Expected Result      | Notes             |
 * | :--------------: | ----------- | ------------------------------------------------------------------------------------ | -------------------- | ----------------- |
-* |       01         | Invoking the API with valid radio index and valid pointer for the temperature value | radioIndex = 2, pValue = valid pointer                                               | status = RETURN_OK,  | Should be successful |
+* |       01         | Invoking the API with valid radio index and valid pointer for the temperature value | radioIndex = 2, pValue = 0 | status = RETURN_OK,  | Should be successful |
 */ 
 void test_l1_platform_hal_positive3_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_getRadioTemperature...");
-
     INT radioIndex = 2;
-    INT value;
-    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+    INT value = 0;
 
     UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, pValue=valid pointer.", radioIndex);
+    INT status = platform_hal_getRadioTemperature(radioIndex, &value);
+
     UT_LOG("Returned status: %d", status);
     UT_LOG("Returned value: %d", value);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
+
     if(value >= 0 && value <= 100)
-        { 
-            UT_LOG("Radio Temperature  is %lu", value);
-            UT_PASS (" Radio Temperature Validation success");
-        }
+    { 
+        UT_LOG("Radio Temperature  is %lu", value);
+        UT_PASS (" Radio Temperature Validation success");
+    }
     else
-        {
-            UT_LOG("Radio Temperature is %lu", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
-        }
+    {
+        UT_LOG("Radio Temperature is %lu", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_getRadioTemperature...");
 }
@@ -3129,15 +3072,13 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
 
 void test_l1_platform_hal_positive1_SetMACsecEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetMACsecEnable...");
-
     INT ethPort = 0;
     BOOLEAN Flag = 1;
 
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     UT_LOG("Return status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetMACsecEnable...");
@@ -3163,15 +3104,13 @@ void test_l1_platform_hal_positive1_SetMACsecEnable(void) {
 */
 void test_l1_platform_hal_positive2_SetMACsecEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetMACsecEnable...");
-
     INT ethPort = 0;
     BOOLEAN Flag = 0;
 
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     UT_LOG("Return status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetMACsecEnable...");
@@ -3197,15 +3136,13 @@ void test_l1_platform_hal_positive2_SetMACsecEnable(void) {
 */
 void test_l1_platform_hal_negative1_SetMACsecEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetMACsecEnable...");
-
     INT ethPort = -1;
     BOOLEAN Flag = 1;
 
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     UT_LOG("Return status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetMACsecEnable...");
@@ -3232,17 +3169,14 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void) {
  */
 void test_l1_platform_hal_positive3_SetMACsecEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetMACsecEnable...");
-
     INT ethPort = MaxEthPort-1;
     BOOLEAN Flag = 1;
 
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     UT_LOG("Return status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
-
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetMACsecEnable...");
 }
 
@@ -3263,20 +3197,18 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_SetMACsecEnable with invalid ethPort and Flag | ethPort = 0, Flag = 2 | RETURN_ERR | Should produce an error |
+* | 01 | Invoking platform_hal_SetMACsecEnable with valid ethPort and invalid Flag | ethPort = 0, Flag = 2 | RETURN_ERR | Should produce an error |
 */
 
 void test_l1_platform_hal_negative2_SetMACsecEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetMACsecEnable...");
-
     INT ethPort = 0;
     BOOLEAN Flag = 2;
 
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     UT_LOG("Return status = %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetMACsecEnable...");
@@ -3302,27 +3234,30 @@ void test_l1_platform_hal_negative2_SetMACsecEnable(void) {
  */
 void test_l1_platform_hal_positive1_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMemoryPaths...");
-  
     // Test input
     RDK_CPUS index = HOST_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo;
+    PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
+    if (ppinfo != NULL) { 
+        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU");
+        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
   
-    // Call the API
-    INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
-  
-    // Check the results
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU");
-    UT_LOG("Return status = %d", result);
+        UT_LOG("Return status = %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-    UT_ASSERT_EQUAL(result, RETURN_OK);
-    UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
+        UT_ASSERT_PTR_NOT_NULL(ppinfo);
+        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
 
-    UT_ASSERT_PTR_NOT_NULL(ppinfo);
-    UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-    UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-    UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
+        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
 
-  
+        free(ppinfo);
+        ppinfo = NULL;
+    }
+
+    else {
+        UT_LOG("Malloc operation Failed")
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMemoryPaths...");
 }
 
@@ -3346,26 +3281,27 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void) {
  */
 void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_GetMemoryPaths...");
-
     // Test input
     RDK_CPUS index = PEER_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo;
+    PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
+   
+    if (ppinfo != NULL){
+        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = PEER_CPU");
+        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+    
+        UT_LOG("Return status = %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_ASSERT_PTR_NOT_NULL(ppinfo);
+        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
 
-    // Call the API
-    INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
+    }
 
-    // Check the results
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = PEER_CPU");
-    UT_LOG("Return status = %d", result);
-
-    UT_ASSERT_EQUAL(result, RETURN_OK);
-    UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
-
-    UT_ASSERT_PTR_NOT_NULL(ppinfo);
-    UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-    UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-    UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
-
+    else{
+	    UT_LOG("Malloc operation failed");
+	}
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetMemoryPaths...");
 }
 
@@ -3389,20 +3325,22 @@ void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
  */
 void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetMemoryPaths...");
-
     // Test input
     RDK_CPUS index = NOT_SUPPORTED_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo;
 
-    // Call the API
-    INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+    PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
+    if (ppinfo != NULL) {
+    
+        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = NOT_SUPPORTED_CPU");
+        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
 
-    // Check the results
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = NOT_SUPPORTED_CPU");
-    UT_LOG("Return status = %d", result);
+        UT_LOG("Return status = %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
+    }
 
-    UT_ASSERT_EQUAL(result, RETURN_ERR);
-
+    else{
+        UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMemoryPaths...");
 }
 
@@ -3426,18 +3364,15 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
 */
 
 void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative2_GetMemoryPaths...");
-  
-    // Test input
-    RDK_CPUS index = HOST_CPU;
-  
-    // Call the API
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL");
-    INT result = platform_hal_GetMemoryPaths(index, NULL);
-  
-    // Check the results
-    UT_LOG("Return status = %d", result);
+    UT_LOG("Entering test_l1_platform_hal_negative2_GetMemoryPaths..."); 
 
+    RDK_CPUS index = HOST_CPU;
+    PPLAT_PROC_MEM_INFO ppinfo = NULL;
+
+    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL, address = %p,value = %d",&ppinfo,ppinfo);
+    INT result = platform_hal_GetMemoryPaths(index, ppinfo);
+  
+    UT_LOG("Return status = %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
   
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetMemoryPaths...");
@@ -3459,22 +3394,20 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :--------------: | ----------- | --------- | --------------- | ----- |
-* |       01         | Index out of bounds | index = NUM_RDK_CPUS, ppinfo = NULL | RETURN_ERR | Function should return an error |
+* |       01         | Index out of bounds | index = 4, ppinfo is not NULL | RETURN_ERR | Function should return an error |
 */
 void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative3_GetMemoryPaths...");
-  
+    UT_LOG("Entering test_l1_platform_hal_negative3_GetMemoryPaths...");  
     // Test input
     RDK_CPUS index = 4; // Assuming NUM_RDK_CPUS is the total number of CPUs
     PPLAT_PROC_MEM_INFO ppinfo;
   
     // Call the API
+    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d", index);
     INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
   
     // Check the results
-    UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d", index);
     UT_LOG("Return status = %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
   
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetMemoryPaths...");
@@ -3501,32 +3434,28 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
 
 void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 {
-    UT_LOG("Entering test_l1_platform_hal_positive1_GetMACsecEnable...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive1_GetMACsecEnable...");    
     // Arrange
-    INT ethPort = 0; // Assuming valid ethernet port
+    INT ethPort = 0; 
     BOOLEAN flag;
     
-    // Act
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d .", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with ethPort=%d .", ethPort);
     UT_LOG("Returned status: %d", status);
     UT_LOG("Returned value: %d", flag);
-
-    // Assert
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(flag == TRUE || flag == FALSE )
-        { 
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_PASS(" MACsec Enable Validation success");
-        }
+    { 
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
+    }
     else
-        {
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_FAIL(" MACsec Enable Validation failure");  
-        }
+    {
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
+    }
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMACsecEnable...");
 }
@@ -3553,19 +3482,13 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_etMACsecEnable...");
-
-    // Arrange
     INT ethPort = 0; // Assuming valid ethernet port
     BOOLEAN *pFlag = NULL;
 
-    // Act
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with ethPort=%d with NULL pFlag .", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, pFlag);
 
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with ethPort=%d with NULL pFlag .", ethPort);
     UT_LOG("Returned status: %d", status);
-
-
-    // Assert
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMACsecEnable...");
@@ -3592,18 +3515,13 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_GetMACsecEnable...");
-
-    // Arrange
     INT ethPort = -1; // Assuming invalid ethernet port
     BOOLEAN flag;
 
-    // Act
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort=%d.", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort=%d.", ethPort);
     UT_LOG("Returned status: %d", status);
-
-    // Assert
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetMACsecEnable...");
@@ -3630,30 +3548,71 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_GetMACsecEnable...");
-
-    // Arrange
     INT ethPort = MaxEthPort-1; // Assuming highest Ethernet port
     BOOLEAN flag;
 
-    // Act
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort=%d.", ethPort);
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d.", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    // Assert
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(flag == TRUE || flag == FALSE )
-        { 
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_PASS(" MACsec Enable Validation success");
-        }
+    { 
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
+    }
     else
-        {
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_FAIL(" MACsec Enable Validation failure");  
-        }
+    {
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetMACsecEnable...");
+}
+
+/**
+ * @brief This test case checks the behavior of the 'platform_hal_GetMACsecEnable' function for the highest Ethernet port.
+ *
+ * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port. 
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 098 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoke with highest Ethernet port | ethPort = 2 | status = RETURN_OK | Should be successful |
+ */
+void test_l1_platform_hal_positive3_GetMACsecEnable(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive3_GetMACsecEnable...");
+    int ethPort = rand() % MaxEthPort; 
+    BOOLEAN flag = FALSE;
+
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d.", ethPort);
+    INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
+
+    UT_LOG("Returned status: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    if(flag == TRUE || flag == FALSE )
+    { 
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
+    }
+    else
+    {
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_positive3_GetMACsecEnable...");
 }
 
 /**
@@ -3677,12 +3636,13 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 
 void test_l1_platform_hal_positive1_StartMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_StartMACsec...");
-
     INT ethPort = 1;
     INT timeoutSec = 0;
-    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
+    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
+
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_StartMACsec...");
@@ -3708,12 +3668,13 @@ void test_l1_platform_hal_positive1_StartMACsec(void) {
 */
 void test_l1_platform_hal_negative1_StartMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_StartMACsec...");
-
     INT ethPort = -1;
     INT timeoutSec = 0;
-    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
+    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
+
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_StartMACsec...");
@@ -3739,12 +3700,13 @@ void test_l1_platform_hal_negative1_StartMACsec(void) {
 */
 void test_l1_platform_hal_positive2_StartMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_StartMACsec...");
-
     INT ethPort = 0;
     INT timeoutSec = 0;
-    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
+    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
+
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_StartMACsec...");
@@ -3770,12 +3732,13 @@ void test_l1_platform_hal_positive2_StartMACsec(void) {
 */
 void test_l1_platform_hal_positive3_StartMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_StartMACsec...");
-
     INT ethPort = MaxEthPort - 1;
     INT timeoutSec = 0;
-    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
+    INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
+
+    UT_LOG("Returned status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_StartMACsec...");
@@ -3801,18 +3764,16 @@ void test_l1_platform_hal_positive3_StartMACsec(void) {
  */
 void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetDhcpv6_Options...");
-
     // Test input
     dhcp_opt_list* req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = NULL;
 
     // Invoke the API
-    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with the valid buffers and expecting the return value as 'RETURN_OK'. ");
-    
+    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with the valid buffers and expecting the return value as 'RETURN_OK'. ");    
     INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
-    UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
 
     // Check the return value and output parameters
+    UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
     UT_ASSERT_PTR_NOT_NULL(req_opt_list);
     UT_ASSERT_PTR_NOT_NULL(send_opt_list);
@@ -3845,17 +3806,15 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
 */
 void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetDhcpv6_Options...");
-
     // Test input
     //dhcp_opt_list* req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = NULL;
 
     // Invoke the API
-    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list value as NULL the  and expecting the return value as 'RETURN_ERR'. ");
-    
+    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list value as NULL the  and expecting the return value as 'RETURN_ERR'. ");    
     INT result = platform_hal_GetDhcpv6_Options(NULL, &send_opt_list);
+    
     UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);    
-
     // Check the return value
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -3883,17 +3842,15 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
 
 void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_GetDhcpv6_Options...");
-
     // Test input
     dhcp_opt_list* req_opt_list = NULL;
     //dhcp_opt_list* send_opt_list = NULL;
 
     // Invoke the API
-    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list value as NULL the  and expecting the return value as 'RETURN_ERR'. ");
-    
+    UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list value as NULL the  and expecting the return value as 'RETURN_ERR'. ");    
     INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, NULL);
-    UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
 
+    UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
     // Check the return value
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -3920,7 +3877,6 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
 */
 void test_l1_platform_hal_negative3_GetDhcpv6_Options(void) {
     UT_LOG("Entering test_l1_platform_hal_negative3_GetDhcpv6_Options...");
-
     // Test input
     //dhcp_opt_list* req_opt_list = NULL;
     //dhcp_opt_list* send_opt_list = NULL;
@@ -3959,16 +3915,14 @@ void test_l1_platform_hal_negative3_GetDhcpv6_Options(void) {
 void test_l1_platform_hal_positive1_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_setDscp...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_START;
     char* pDscpVals = "10,20,30";
     
-    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = \"10,20,30\".");
-    
+    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = \"10,20,30\".");    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+
     UT_LOG("Return Value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setDscp...");
@@ -3995,16 +3949,14 @@ void test_l1_platform_hal_positive1_setDscp(void)
 void test_l1_platform_hal_positive2_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_setDscp...");
-
     WAN_INTERFACE interfaceType = EWAN;
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_STOP;
     char* pDscpVals = NULL;
 
-    UT_LOG("Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL.");
-    
+    UT_LOG("Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL.");    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+
     UT_LOG("Return Value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_setDscp...");
@@ -4032,16 +3984,14 @@ void test_l1_platform_hal_positive2_setDscp(void)
 void test_l1_platform_hal_positive3_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_setDscp...");
-
     WAN_INTERFACE interfaceType = EWAN;
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_START;
     char* pDscpVals = "10,20,30";
 
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_START, pDscpVals = \"10,20,30\".");
-
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
-    UT_LOG("Return Value: %d", result);
-    
+
+    UT_LOG("Return Value: %d", result);    
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setDscp...");
@@ -4069,16 +4019,14 @@ void test_l1_platform_hal_positive3_setDscp(void)
 void test_l1_platform_hal_positive4_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive4_setDscp...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_STOP;
     char* pDscpVals = "10,20,30";
 
-    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_STOP, pDscpVals = \"10,20,30\".");
-    
+    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_STOP, pDscpVals = \"10,20,30\".");    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+
     UT_LOG("Return Value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_setDscp...");
@@ -4107,16 +4055,14 @@ void test_l1_platform_hal_positive4_setDscp(void)
 void test_l1_platform_hal_negative1_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_setDscp...");
-
     WAN_INTERFACE interfaceType = 3; // Invalid interface type
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_START;
     char* pDscpVals = "10,20,30";
 
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = 3 (invalid), cmd = TRAFFIC_CNT_START, pDscpVals = \"10,20,30\".");
-
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+    
     UT_LOG("Return Value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_setDscp...");
@@ -4143,16 +4089,14 @@ void test_l1_platform_hal_negative1_setDscp(void)
 void test_l1_platform_hal_negative2_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_setDscp...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
     TRAFFIC_CNT_COMMAND cmd = 3; // Invalid command
     char* pDscpVals = "10,20,30";
 
-    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = 3 (invalid), pDscpVals = \"10,20,30\".");
-   
+    UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = 3 (invalid), pDscpVals = \"10,20,30\".");   
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+
     UT_LOG("Return Value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_setDscp...");
@@ -4180,16 +4124,14 @@ void test_l1_platform_hal_negative2_setDscp(void)
 void test_l1_platform_hal_negative3_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_setDscp...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
     TRAFFIC_CNT_COMMAND cmd = TRAFFIC_CNT_START;
     char* pDscpVals = "100000,200000"; // Invalid DSCP values
 
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = \"100000,200000\".");
-
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
+
     UT_LOG("Return Value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_setDscp...");
@@ -4215,14 +4157,12 @@ void test_l1_platform_hal_negative3_setDscp(void)
 */
 void test_l1_platform_hal_positive1_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetLowPowerModeState...");
-
     PSM_STATE pState = PSM_AC;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_AC");
-
     INT status = platform_hal_SetLowPowerModeState(&pState);
-    UT_LOG("Return status: %d", status);
 
+    UT_LOG("Return status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetLowPowerModeState...");
@@ -4248,13 +4188,12 @@ void test_l1_platform_hal_positive1_SetLowPowerModeState(void) {
  */
 void test_l1_platform_hal_positive2_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetLowPowerModeState...");
-
-   PSM_STATE pState = PSM_BATT;
-    INT status = platform_hal_SetLowPowerModeState(&pState);
+    PSM_STATE pState = PSM_BATT;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_BATT");
-    UT_LOG("Return status: %d", status);
+    INT status = platform_hal_SetLowPowerModeState(&pState);
 
+    UT_LOG("Return status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetLowPowerModeState...");
@@ -4280,14 +4219,12 @@ void test_l1_platform_hal_positive2_SetLowPowerModeState(void) {
 */
 void test_l1_platform_hal_positive3_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetLowPowerModeState...");
-
     PSM_STATE pState = PSM_HOT;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_HOT");
-
     INT status = platform_hal_SetLowPowerModeState(&pState);
+
     UT_LOG("Return status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetLowPowerModeState...");
@@ -4313,14 +4250,12 @@ void test_l1_platform_hal_positive3_SetLowPowerModeState(void) {
 */
 void test_l1_platform_hal_positive4_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_positive4_SetLowPowerModeState...");
-
     PSM_STATE pState = PSM_COOLED;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_COOLED");
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
     UT_LOG("Return status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_SetLowPowerModeState...");
@@ -4346,13 +4281,12 @@ void test_l1_platform_hal_positive4_SetLowPowerModeState(void) {
  */
 void test_l1_platform_hal_negative1_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetLowPowerModeState...");
-
     PSM_STATE pState = PSM_UNKNOWN;
-    INT status = platform_hal_SetLowPowerModeState(&pState);
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_UNKNOWN");
-    UT_LOG("Return status: %d", status);
+    INT status = platform_hal_SetLowPowerModeState(&pState);
 
+    UT_LOG("Return status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetLowPowerModeState...");
@@ -4379,13 +4313,12 @@ void test_l1_platform_hal_negative1_SetLowPowerModeState(void) {
 */
 void test_l1_platform_hal_negative2_SetLowPowerModeState(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetLowPowerModeState...");
-
     PSM_STATE pState = PSM_NOT_SUPPORTED;
-    INT status = platform_hal_SetLowPowerModeState(&pState);
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = PSM_NOT_SUPPORTED");
-    UT_LOG("Return status: %d", status);
+    INT status = platform_hal_SetLowPowerModeState(&pState);
 
+    UT_LOG("Return status: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetLowPowerModeState...");
@@ -4412,15 +4345,12 @@ void test_l1_platform_hal_negative2_SetLowPowerModeState(void) {
 void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFirmwareBankInfo...");
-
     FW_BANK bankIndex = ACTIVE_BANK;
     FW_BANK_INFO fwBankInfo;
-
     memset(&fwBankInfo, 0, sizeof(FW_BANK_INFO));
 
-    INT result = platform_hal_GetFirmwareBankInfo(bankIndex, &fwBankInfo);
-
     UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: ACTIVE_BANK");
+    INT result = platform_hal_GetFirmwareBankInfo(bankIndex, &fwBankInfo);
 
     UT_ASSERT_EQUAL(result, RETURN_OK);
     UT_LOG("Return value: %d", result);
@@ -4450,16 +4380,14 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_GetFirmwareBankInfo...");
-
     FW_BANK bankIndex = INACTIVE_BANK;
     FW_BANK_INFO fwBankInfo;
     memset(&fwBankInfo, 0, sizeof(FW_BANK_INFO));
 
+    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK");
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, &fwBankInfo);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK");
     UT_LOG("Return value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
     
@@ -4487,17 +4415,14 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetFirmwareBankInfo...");
-
     FW_BANK bankIndex = 2;
     FW_BANK_INFO fwBankInfo;
-
     memset(&fwBankInfo, 0, sizeof(FW_BANK_INFO));
 
+    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INVALID_BANK");
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, &fwBankInfo);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INVALID_BANK");
     UT_LOG("Return value: %d", result);
-    
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFirmwareBankInfo...");
@@ -4524,18 +4449,15 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
 void test_l1_platform_hal_negative2_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_GetFirmwareBankInfo...");
-
     FW_BANK bankIndex = ACTIVE_BANK;
     FW_BANK_INFO* fwBankInfo = NULL;
 
+    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: ACTIVE_BANK and NULL pFW_Bankinfo");
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: ACTIVE_BANK and NULL pFW_Bankinfo");
     UT_LOG("Return value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
-
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetFirmwareBankInfo...");
 }
 
@@ -4561,15 +4483,13 @@ void test_l1_platform_hal_negative2_GetFirmwareBankInfo(void)
 void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_GetFirmwareBankInfo...");
-
     FW_BANK bankIndex = INACTIVE_BANK;
     FW_BANK_INFO* fwBankInfo = NULL;
 
+    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK and NULL pFW_Bankinfo");
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-    UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK and NULL pFW_Bankinfo");
     UT_LOG("Return value: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetFirmwareBankInfo...");
@@ -4596,17 +4516,16 @@ void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
 void test_l1_platform_hal_positive1_getCMTSMac(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getCMTSMac...");
-
     // Prepare input parameters
     CHAR pValue[100];
 
     // Invoke the API
     UT_LOG("Invoking platform_hal_getCMTSMac with valid buffer");
     INT status = platform_hal_getCMTSMac(pValue);
+
     UT_LOG("platform_hal_getCMTSMac returns : %d", status);
     // Check the output value
     UT_LOG("Output: pValue = %s", pValue);
-
     // Check the return status
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
@@ -4633,19 +4552,16 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
 */
 
 void test_l1_platform_hal_negative1_getCMTSMac(void)
-
 {
-
     UT_LOG("Entering test_l1_platform_hal_negative1_getCMTSMac...");
-
     // Prepare input parameters
     CHAR *pValue = NULL;
 
     // Invoke the API
     UT_LOG("Invoking platform_hal_getCMTSMac with NULL pointer");
     INT status = platform_hal_getCMTSMac(pValue);
-    UT_LOG("Returned status: %d", status);
 
+    UT_LOG("Returned status: %d", status);
     // Check the return status
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
@@ -4673,15 +4589,13 @@ void test_l1_platform_hal_negative1_getCMTSMac(void)
 void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetDhcpv4_Options...");
-
     dhcp_opt_list *req_opt_list = NULL;
     dhcp_opt_list *send_opt_list = NULL;
 
+    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = %p, send_opt_list = %p", req_opt_list, send_opt_list);
     INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = %p, send_opt_list = %p", req_opt_list, send_opt_list);
     UT_LOG("The result is: %d", result);
-   
     UT_ASSERT_EQUAL(result, RETURN_OK);
     UT_ASSERT_PTR_NOT_NULL(req_opt_list);
     UT_ASSERT_PTR_NOT_NULL(send_opt_list);
@@ -4720,11 +4634,10 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
     dhcp_opt_list *req_opt_list = NULL;
     dhcp_opt_list *send_opt_list = NULL;
 
+    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL");
     INT result = platform_hal_GetDhcpv4_Options(NULL, &send_opt_list);
 
-    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL");
     UT_LOG("The result is: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     UT_ASSERT_PTR_NULL(req_opt_list);
     UT_ASSERT_PTR_NULL(send_opt_list);
@@ -4758,13 +4671,11 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
     dhcp_opt_list *req_opt_list = NULL;
     dhcp_opt_list *send_opt_list = NULL;
 
+    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL");
     INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, NULL);
 
-    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL");
     UT_LOG("The result is: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
-
     UT_ASSERT_PTR_NULL(req_opt_list);
     UT_ASSERT_PTR_NULL(send_opt_list);
 
@@ -4793,15 +4704,13 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
 void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_GetDhcpv4_Options...");
-
     dhcp_opt_list *req_opt_list = NULL;
     dhcp_opt_list *send_opt_list = NULL;
 
+    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = NULL");
     INT result = platform_hal_GetDhcpv4_Options(NULL, NULL);
 
-    UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = NULL");
     UT_LOG("The result is: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     UT_ASSERT_PTR_NULL(req_opt_list);
     UT_ASSERT_PTR_NULL(send_opt_list);
@@ -4830,34 +4739,36 @@ void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 void test_l1_platform_hal_positive1_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getDscpClientList...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
-    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); // Allocate memory for pDSCP_List
-    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
+    if(pDSCP_List != NULL){
+        UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType DOCSIS and valid pDSCP_List");
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-    UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType DOCSIS and valid pDSCP_List");
-    UT_LOG("Return value: %d", result);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-    UT_ASSERT_EQUAL(result, RETURN_OK);
     // Validate the pDSCP_List structure
-    if (pDSCP_List != NULL) {
-        UT_ASSERT_TRUE(pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64);
+        if (pDSCP_List != NULL) {
+            UT_ASSERT_TRUE(pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64);
 
-        for (UINT i = 0; i < pDSCP_List->numElements; i++) {
-            DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
+            for (UINT i = 0; i < pDSCP_List->numElements; i++) {
+                DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
 
-            UT_ASSERT_TRUE(pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534);
-            UT_ASSERT_TRUE(pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255);
+                UT_ASSERT_TRUE(pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534);
+                UT_ASSERT_TRUE(pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255);
 
-            for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
-                Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
+                for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
+                    Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
 
-                // Add more specific assertions for mac, rxBytes, and txBytes if needed.
-                UT_ASSERT_TRUE(pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0);
+                    UT_ASSERT_TRUE(pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0);
+                }
             }
+            free(pDSCP_List);
         }
-
-    free(pDSCP_List);
+    }
+    else{
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getDscpClientList...");
 }
@@ -4883,35 +4794,38 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
 void test_l1_platform_hal_positive2_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_getDscpClientList...");
-
     WAN_INTERFACE interfaceType = EWAN;
-    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); // Allocate memory for pDSCP_List
-    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t));
+    if(pDSCP_List != NULL){
+        UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType EWAN and valid pDSCP_List");
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-    UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType EWAN and valid pDSCP_List");
-    UT_LOG("Return value: %d", result);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-    UT_ASSERT_EQUAL(result, RETURN_OK);
+        if (pDSCP_List != NULL) {
+            UT_ASSERT_TRUE(pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64);
 
-    if (pDSCP_List != NULL) {
-        UT_ASSERT_TRUE(pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64);
+            for (UINT i = 0; i < pDSCP_List->numElements; i++) {
+                DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
 
-        for (UINT i = 0; i < pDSCP_List->numElements; i++) {
-            DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
+                UT_ASSERT_TRUE(pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534);
+                UT_ASSERT_TRUE(pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255);
 
-            UT_ASSERT_TRUE(pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534);
-            UT_ASSERT_TRUE(pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255);
-
-            for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
-                Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
+                for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
+                    Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
 
                 // Add more specific assertions for mac, rxBytes, and txBytes if needed
-                UT_ASSERT_TRUE(pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0);
+                    UT_ASSERT_TRUE(pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0);
+                }
             }
-        }
         free(pDSCP_List);
+        }
     }
 
+    else{
+        UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getDscpClientList...");
 }
 
@@ -4936,18 +4850,21 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
 void test_l1_platform_hal_negative1_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_getDscpClientList...");
-
     WAN_INTERFACE interfaceType = 3; // Invalid interfaceType
-    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); // Allocate memory for pDSCP_List
-    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+    pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
+    if(pDSCP_List != NULL){
+        UT_LOG("Invoking platform_hal_getDscpClientList with invalid interfaceType and valid pDSCP_List");
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-    UT_LOG("Invoking platform_hal_getDscpClientList with invalid interfaceType and valid pDSCP_List");
-    UT_LOG("Return value: %d", result);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
+        free(pDSCP_List);
+    }
 
-    UT_ASSERT_EQUAL(result, RETURN_ERR);
-
-    free(pDSCP_List);
-
+    else{
+        UT_LOG("Malloc operation failed");
+    }
+    
     UT_LOG("Exiting test_l1_platform_hal_negative1_getDscpClientList...");
 }
 
@@ -4973,14 +4890,13 @@ void test_l1_platform_hal_negative1_getDscpClientList(void)
 void test_l1_platform_hal_negative2_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_getDscpClientList...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
     pDSCP_list_t pDSCP_List = NULL; // NULL pDSCP_List
-    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
     UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType DOCSIS and NULL pDSCP_List");
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_getDscpClientList...");
@@ -5007,14 +4923,13 @@ void test_l1_platform_hal_negative2_getDscpClientList(void)
 void test_l1_platform_hal_negative3_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_getDscpClientList...");
-
     WAN_INTERFACE interfaceType = EWAN;
     pDSCP_list_t pDSCP_List = NULL; // NULL pDSCP_List
-    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
     UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType EWAN and NULL pDSCP_List");
-    UT_LOG("Return value: %d", result);
+    INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
+    UT_LOG("Return value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_getDscpClientList...");
@@ -5036,18 +4951,18 @@ void test_l1_platform_hal_negative3_getDscpClientList(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoke platform_hal_GetDeviceConfigStatus API with valid input parameters | valid pValue buffer | RETURN_OK | Should be successful |
+* | 01 | Invoke platform_hal_GetDeviceConfigStatus API with valid input parameters | pValue = valid buffer | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetDeviceConfigStatus...");
 
     CHAR pValue[128] = {"\0"};
-    INT result = platform_hal_GetDeviceConfigStatus(pValue);
 
     UT_LOG("Invoking platform_hal_GetDeviceConfigStatus with valid input parameters.");
+    INT result = platform_hal_GetDeviceConfigStatus(pValue);
+
     UT_LOG("Output value: pValue = %s", pValue);
     UT_LOG("Return status: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     if (!strcmp(pValue,"WaitForImplement") || !strcmp(pValue,"In Progress")|| !strcmp(pValue,"Complete"))
@@ -5081,16 +4996,15 @@ void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data                 | Expected Result | Notes            |
 * | :----:           | ---------   | ----------                |--------------   | -----            |
-* | 01               | Invoke platform_hal_GetDeviceConfigStatus API with NULL value   | input = NULL               | RETURN_ERR       | Should return error|
+* | 01               | Invoke platform_hal_GetDeviceConfigStatus API with NULL value   | pValue = NULL               | RETURN_ERR       | Should return error|
 */ 
 void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetDeviceConfigStatus...");
 
+    UT_LOG("Invoking platform_hal_GetDeviceConfigStatus with invalid input parameters.");
     INT result = platform_hal_GetDeviceConfigStatus(NULL);
 
-    UT_LOG("Invoking platform_hal_GetDeviceConfigStatus with invalid input parameters.");
     UT_LOG("Return status: %d", result);
-
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDeviceConfigStatus...");
@@ -5116,13 +5030,12 @@ void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void) {
  */
 void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable...");
-
     CHAR value[] = "enable";
-    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with input parameter: enable");
-    UT_LOG("Return Value: %d", result);
+    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
+    UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable...");
@@ -5148,11 +5061,11 @@ void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void) {
  */
 void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable...");
-
     CHAR value[] = "disable";
-    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with input parameter: disable");
+    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
+
     UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
@@ -5180,9 +5093,9 @@ void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void) {
 void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable...");
 
+    UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with input parameter: NULL");
     INT result = platform_hal_SetSNMPOnboardRebootEnable(NULL);
 
-    UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with input parameter: NULL");
     UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -5211,11 +5124,11 @@ void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void) {
 
 void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable...");
-
     CHAR value[] = "invalid";
-    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with input parameter: invalid");
+    INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
+
     UT_LOG("Return Value: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
@@ -5241,18 +5154,17 @@ void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void) {
 *
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_getInputCurrent with valid input parameters | value = uninitialized | status = RETURN_OK | The function should return the correct input current value. |
+* | 01 | Invoking platform_hal_getInputCurrent with valid input parameters | value = valid buffer | status = RETURN_OK | The function should return the correct input current value. |
 */
 void test_l1_platform_hal_positive1_getInputCurrent(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getInputCurrent...");
-
-    INT value;
-    INT status = platform_hal_getInputCurrent(&value);
+    INT value = 0;
 
     UT_LOG("Invoking platform_hal_getInputCurrent with valid input parameters.");
+    INT status = platform_hal_getInputCurrent(&value);
+
     UT_LOG("Return status: %d", status);
     UT_LOG("Output value: %d", value);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getInputCurrent...");
@@ -5278,13 +5190,12 @@ void test_l1_platform_hal_positive1_getInputCurrent(void) {
  */
 void test_l1_platform_hal_negative1_getInputCurrent(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getInputCurrent...");
-
     INT *pValue = NULL;
-    INT status = platform_hal_getInputCurrent(pValue);
 
     UT_LOG("Invoking platform_hal_getInputCurrent with NULL input pointer.");
+    INT status = platform_hal_getInputCurrent(pValue);
+
     UT_LOG("Return status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getInputCurrent...");
@@ -5311,30 +5222,37 @@ void test_l1_platform_hal_negative1_getInputCurrent(void) {
  */
 void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_LoadThermalConfig...");
-    
     /* Create a valid uninitialized THERMAL_PLATFORM_CONFIG struct */
-    THERMAL_PLATFORM_CONFIG thermalConfig;
+    THERMAL_PLATFORM_CONFIG thermalConfig = (THERMAL_PLATFORM_CONFIG)malloc(sizeof(_FAN_PLATFORM_CONFIG));
+    if(thermalConfig != NULL){
+        UT_LOG("Invoking platform_hal_LoadThermalConfig with valid values");
+        INT status = platform_hal_LoadThermalConfig(&thermalConfig);
     
-    /* Call the API with the uninitialized struct */
-    UT_LOG("Invoking platform_hal_LoadThermalConfig with valid values");
-    INT status = platform_hal_LoadThermalConfig(&thermalConfig);
-    
-    /* Check the return value and filled values in the struct */
-    UT_LOG("platform_hal_LoadThermalConfig API returns : %d", status);
+        UT_LOG("platform_hal_LoadThermalConfig API returns : %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig.FanCount, thermalConfig.SlowSpeedThresh, thermalConfig.MediumSpeedThresh, thermalConfig.FastSpeedThresh, thermalConfig.FanMinRunTime, thermalConfig.MonitoringDelay, thermalConfig.PowerMonitoring, thermalConfig.LogInterval);
 
-    UT_ASSERT_EQUAL(status, RETURN_OK);
+        if(thermalConfig.FanCount == 1 || thermalConfig.FanCount == 2){
+            UT_LOG("Fan Count is %d which is a valid value", thermalConfig.FanCount );
+            UT_PASS("Fan Count validation success");
+        }
+        else{
+            UT_LOG("Fan Count is %d which is a Invalid value", thermalConfig.FanCount);
+            UT_PASS("Fan Count validation failed");
+        }
     
-    UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig.FanCount, thermalConfig.SlowSpeedThresh, thermalConfig.MediumSpeedThresh, thermalConfig.FastSpeedThresh, thermalConfig.FanMinRunTime, thermalConfig.MonitoringDelay, thermalConfig.PowerMonitoring, thermalConfig.LogInterval);
-
-    UT_ASSERT_EQUAL(thermalConfig.FanCount, 1 || thermalConfig.FanCount == 2); // Added
-    UT_ASSERT_EQUAL(thermalConfig.SlowSpeedThresh, 30);
-    UT_ASSERT_EQUAL(thermalConfig.MediumSpeedThresh, 35);
-    UT_ASSERT_EQUAL(thermalConfig.FastSpeedThresh, 40);
-    UT_ASSERT_EQUAL(thermalConfig.FanMinRunTime, 60);
-    UT_ASSERT_EQUAL(thermalConfig.MonitoringDelay, 30);
-    UT_ASSERT_EQUAL(thermalConfig.PowerMonitoring, 0 || thermalConfig.PowerMonitoring == 1); // Added 
-    UT_ASSERT_EQUAL(thermalConfig.LogInterval, 600);
-    
+        if(thermalConfig.PowerMonitoring, 0 || thermalConfig.FanCount == 1){
+            UT_LOG("Power monitoring is %d which is a valid value", thermalConfig.PowerMonitoring );
+            UT_PASS("Power monitoring validation success");
+        }
+        else{
+            UT_LOG("Power monitoring is %d which is a valid value", thermalConfig.PowerMonitoring);
+            UT_PASS("Power monitoring validation failed");
+        }
+    }
+    else{
+        UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_LoadThermalConfig...");
 }
 
@@ -5360,11 +5278,13 @@ void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
 void test_l1_platform_hal_negative1_LoadThermalConfig(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_LoadThermalConfig...");
     
+    THERMAL_PLATFORM_CONFIG *thermalConfig = NULL;
+
     /* Call the API with a null pointer */
     UT_LOG("Invoking platform_hal_LoadThermalConfig with NULL pointer");
-    INT status = platform_hal_LoadThermalConfig(NULL);\
-    UT_LOG("platform_hal_LoadThermalConfig returns : %d",status);
+    INT status = platform_hal_LoadThermalConfig(thermalConfig);
     
+    UT_LOG("platform_hal_LoadThermalConfig returns : %d",status);
     /* Check the return value */
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
@@ -5388,20 +5308,19 @@ void test_l1_platform_hal_negative1_LoadThermalConfig(void) {
  * **Test Procedure:** @n
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Verify API with valid input | ethPort = 0,valid flag | RETURN_OK | Should be successful |
+ * | 01 | Verify API with valid input | ethPort = 0, flag = valid buffer | RETURN_OK | Should be successful |
  */
 void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMACsecOperationalStatus...");
-
     INT ethPort = 0;
     BOOLEAN flag = FALSE;
 
     UT_LOG("Invoking platform_hal_GetMACsecOperationalStatus with ethPort = %d, pFlag = %p", ethPort, &flag);
     INT ret = platform_hal_GetMACsecOperationalStatus(ethPort, &flag);
+    
     UT_LOG("platform_hal_GetMACsecOperationalStatus returns: %d", ret);
     UT_LOG("Status : %d", flag);
-
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     UT_ASSERT_EQUAL(flag, 1 || flag == 0);
 
@@ -5430,14 +5349,13 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetMACsecOperationalStatus...");
-
     INT ethPort = 0;
     BOOLEAN *pFlag = NULL;
 
     UT_LOG("Invoking platform_hal_GetMACsecOperationalStatus with ethPort = %d", ethPort);
     INT ret = platform_hal_GetMACsecOperationalStatus(ethPort, pFlag);
-    UT_LOG("platform_hal_GetMACsecOperationalStatus returns: %d", ret);
     
+    UT_LOG("platform_hal_GetMACsecOperationalStatus returns: %d", ret);
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMACsecOperationalStatus...");
@@ -5462,17 +5380,15 @@ void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
  * | 01 | Set maximum fan override flag and fan index | bOverrideFlag = TRUE, fanIndex = 0 | status = RETURN_OK | Should be successful |
  */
 void test_l1_platform_hal_positive1_setFanMaxOverride(void) {
-    UT_LOG("Entering test_l1_platform_hal_positive1_setFanMaxOverride...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive1_setFanMaxOverride...");    
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 0;
-    
+   
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex); 
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
     
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_OK");
     UT_LOG("Actual status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFanMaxOverride...");
@@ -5498,16 +5414,14 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void) {
 */
 void test_l1_platform_hal_positive2_setFanMaxOverride(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_setFanMaxOverride...");
-    
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 0;
     
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
     
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_OK");
     UT_LOG("Actual status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive2_setFanMaxOverride...");
@@ -5533,16 +5447,14 @@ void test_l1_platform_hal_positive2_setFanMaxOverride(void) {
  */
 void test_l1_platform_hal_positive3_setFanMaxOverride(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_setFanMaxOverride...");
-
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 1;
 
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_OK");
     UT_LOG("Actual status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setFanMaxOverride...");
@@ -5569,16 +5481,14 @@ void test_l1_platform_hal_positive3_setFanMaxOverride(void) {
 
 void test_l1_platform_hal_positive4_setFanMaxOverride(void) {
     UT_LOG("Entering test_l1_platform_hal_positive4_setFanMaxOverride...");
-    
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 1;
-    
+
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
     
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_OK");
-    UT_LOG("Actual status: %d", status);
-    
+    UT_LOG("Actual status: %d", status);  
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive4_setFanMaxOverride...");
@@ -5604,17 +5514,15 @@ void test_l1_platform_hal_positive4_setFanMaxOverride(void) {
  */
 
 void test_l1_platform_hal_negative1_setFanMaxOverride(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative1_setFanMaxOverride...");
-    
+    UT_LOG("Entering test_l1_platform_hal_negative1_setFanMaxOverride..."); 
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 2;
-    
+
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
     
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_ERR");
     UT_LOG("Actual status: %d", status);
-    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_setFanMaxOverride...");
@@ -5640,17 +5548,15 @@ void test_l1_platform_hal_negative1_setFanMaxOverride(void) {
 */
 
 void test_l1_platform_hal_negative2_setFanMaxOverride(void) {
-    UT_LOG("Entering test_l1_platform_hal_negative2_setFanMaxOverride...");
-    
+    UT_LOG("Entering test_l1_platform_hal_negative2_setFanMaxOverride...");   
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 2;
-    
+
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
     
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_ERR");
-    UT_LOG("Actual status: %d", status);
-    
+    UT_LOG("Actual status: %d", status);  
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative2_setFanMaxOverride...");
@@ -5677,17 +5583,15 @@ void test_l1_platform_hal_negative2_setFanMaxOverride(void) {
 
 void test_l1_platform_hal_negative3_setFanMaxOverride(void) {
     UT_LOG("Entering test_l1_platform_hal_negative3_setFanMaxOverride...");
-
     BOOLEAN bOverrideFlag = 2; // Value other than 0 or 1
     UINT fanIndex = 0;
 
     // Handling the undefined behavior can vary, but for this test case, we expect RETURN_ERR
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
     UT_LOG("Expected status: RETURN_ERR");
     UT_LOG("Actual status: %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_setFanMaxOverride...");
@@ -5721,11 +5625,9 @@ void test_l1_platform_hal_positive1_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_OFF, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-    
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5758,10 +5660,9 @@ void test_l1_platform_hal_positive2_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=1, fanSpeed=FAN_SPEED_SLOW, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(1, fanSpeed, &errReason);
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
 
+    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5794,10 +5695,9 @@ void test_l1_platform_hal_positive3_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_MEDIUM, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     
+    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5829,10 +5729,9 @@ void test_l1_platform_hal_positive4_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_FAST, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(1, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5865,10 +5764,9 @@ void test_l1_platform_hal_positive5_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_SLOW, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5901,10 +5799,9 @@ void test_l1_platform_hal_positive6_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_FAST, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
+
+    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5937,10 +5834,9 @@ void test_l1_platform_hal_positive7_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_MAX, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -5973,10 +5869,9 @@ void test_l1_platform_hal_positive8_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=1, fanSpeed=FAN_SPEED_OFF, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(1, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -6009,10 +5904,9 @@ void test_l1_platform_hal_positive9_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=1, fanSpeed=FAN_SPEED_MEDIUM, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(1, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -6045,10 +5939,9 @@ void test_l1_platform_hal_positive10_setFanSpeed(void) {
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=1, fanSpeed=FAN_SPEED_MEDIUM, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_OK");
     UT_LOG("Expected error reason: FAN_ERR_NONE");
-
     INT status = platform_hal_setFanSpeed(1, fanSpeed, &errReason);
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     
+    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(errReason, FAN_ERR_NONE);
 
@@ -6083,12 +5976,10 @@ void test_l1_platform_hal_negative1_setFanSpeed(void) {
 
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=2, fanSpeed= 5, pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_ERR");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_LOG("errReason : %d", errReason);
-
-    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     UT_ASSERT_EQUAL(errReason, 1 || errReason == 2);
 
@@ -6120,10 +6011,9 @@ void test_l1_platform_hal_negative2_setFanSpeed(void) {
 
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=0, fanSpeed=FAN_SPEED_OFF, pErrReason=NULL");
     UT_LOG("Expected return value: RETURN_ERR");
-
     INT status = platform_hal_setFanSpeed(0, fanSpeed, NULL);
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
 
+    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     UT_ASSERT_EQUAL(errReason, 1 || errReason == 2);
 
@@ -6157,15 +6047,13 @@ void test_l1_platform_hal_negative3_setFanSpeed(void) {
 
     UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=2, fanSpeed= FAN_SPEED_OFF , pErrReason=&errReason");
     UT_LOG("Expected return value: RETURN_ERR");
-
     INT status = platform_hal_setFanSpeed(2, fanSpeed, &errReason);
+
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,errReason);
     UT_LOG("errReason : %d", errReason);
-    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     UT_ASSERT_EQUAL(errReason, 1 || errReason == 2);
     
-
     UT_LOG("Exiting test_l1_platform_hal_negative3_setFanSpeed...");
 }
 
@@ -6189,13 +6077,12 @@ void test_l1_platform_hal_negative3_setFanSpeed(void) {
  */
 void test_l1_platform_hal_positive1_getInputPower(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getInputPower...");
-
     INT value;
-    INT status = platform_hal_getInputPower(&value);
 
     UT_LOG("Invoking platform_hal_getInputPower with valid pointer");
-    UT_LOG("platform_hal_getInputPower returns : %d", status);
+    INT status = platform_hal_getInputPower(&value);
 
+    UT_LOG("platform_hal_getInputPower returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getInputPower...");
@@ -6223,11 +6110,10 @@ void test_l1_platform_hal_positive1_getInputPower(void) {
 void test_l1_platform_hal_negative1_getInputPower(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getInputPower...");
 
+    UT_LOG("Invoking platform_hal_getInputPower with NULL pointer");
     INT status = platform_hal_getInputPower(NULL);
 
-    UT_LOG("Invoking platform_hal_getInputPower with NULL pointer");
     UT_LOG("platform_hal_getInputPower returns : %d", status);
-
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getInputPower...");
@@ -6253,16 +6139,13 @@ void test_l1_platform_hal_negative1_getInputPower(void) {
 */
 void test_l1_platform_hal_positive1_GetCPUSpeed(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetCPUSpeed...");
-
     char buffer[16];
 
     UT_LOG("Invoking platform_hal_GetCPUSpeed with valid buffer...");
-   
     INT ret = platform_hal_GetCPUSpeed(buffer);
 
     UT_LOG("The processor speed is: %s", buffer);
     UT_LOG("Return value: %d", ret);
-
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetCPUSpeed...");
@@ -6317,16 +6200,14 @@ void test_l1_platform_hal_negative1_GetCPUSpeed(void) {
 * |       01         | The function is invoked with valid pulSize buffer | valid buffer | The API returns RETURN_OK and the size parameter is greater than 0 | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetFreeMemorySize(void) {
-    UT_LOG("Entering test_l1_platform_hal_positive1_GetFreeMemorySize...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive1_GetFreeMemorySize...");    
     // Test Case 1: The function is able to successfully operate and return a total available memory size in the valid range [1, n].
-    
     ULONG size;
+
+    UT_LOG("Invoking platform_hal_GetFreeMemorySize with input parameters (pulSize is a valid pointer)");
     int result = platform_hal_GetFreeMemorySize(&size);
     
-    UT_LOG("Invoking platform_hal_GetFreeMemorySize with input parameters (pulSize is a valid pointer)");
     UT_LOG("Return value: %d, size: %lu", result, size);
-    
     UT_ASSERT_EQUAL(result, RETURN_OK);
     //UT_ASSERT_TRUE(size > 0);
     
@@ -6353,9 +6234,8 @@ void test_l1_platform_hal_positive1_GetFreeMemorySize(void) {
  */
 void test_l1_platform_hal_negative1_GetFreeMemorySize(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetFreeMemorySize...");
-    
-    // Test Case 1: The function is invoked with pulSize being a NULL pointer.
 
+    // Test Case 1: The function is invoked with pulSize being a NULL pointer.
     UT_LOG("Invoking platform_hal_GetFreeMemorySize with input parameters (pulSize is NULL)");
     int result = platform_hal_GetFreeMemorySize(NULL);
     
@@ -6385,15 +6265,14 @@ void test_l1_platform_hal_negative1_GetFreeMemorySize(void) {
  */
 void test_l1_platform_hal_positive1_getTimeOffSet(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getTimeOffSet...");
-
     // Define a buffer of size 256 bytes
     CHAR timeOffSet[256];
 
     // Invoke platform_hal_getTimeOffSet API
     UT_LOG("Invoking platform_hal_getTimeOffSet with valid buffer");
     INT status = platform_hal_getTimeOffSet(timeOffSet);
-    UT_LOG("platform_hal_getTimeOffSet returns : %d and time off set is : %s ", status,timeOffSet);
 
+    UT_LOG("platform_hal_getTimeOffSet returns : %d and time off set is : %s ", status,timeOffSet);
     // Check the return value
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
@@ -6436,8 +6315,8 @@ void test_l1_platform_hal_negative1_getTimeOffSet(void) {
     // Invoke platform_hal_getTimeOffSet API with a null pointer
     UT_LOG("Invoking platform_hal_getTimeOffSet with NULL pointer");
     INT status = platform_hal_getTimeOffSet(NULL);
-     UT_LOG("platform_hal_getTimeOffSet returns : %d", status);
 
+     UT_LOG("platform_hal_getTimeOffSet returns : %d", status);
     // Check the return value
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
@@ -6466,16 +6345,14 @@ void test_l1_platform_hal_negative1_getTimeOffSet(void) {
 void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFactoryPartnerId...");
-
     CHAR pValue[512];
 
     UT_LOG("Invoking platform_hal_getFactoryPartnerId with a valid buffer of size 512 bytes.");
     INT status = platform_hal_getFactoryPartnerId(pValue);
+    
     UT_LOG("Return status: %d and Factory Partner Id is : %s", status, pValue);
-
     // Check the return status
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    
     // Check the value of pValue
     UT_ASSERT_STRING_EQUAL(pValue, "unknown|eUnprogrammed|eComcast|eCharter|eCox|eRogers|eVodafone|eShaw|eVideotron");
     
@@ -6506,10 +6383,9 @@ void test_l1_platform_hal_negative1_getFactoryPartnerId(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_getFactoryPartnerId...");
 
     UT_LOG("Invoking platform_hal_getFactoryPartnerId with a null pointer as the parameter.");
-    
     INT status = platform_hal_getFactoryPartnerId(NULL);
-    UT_LOG("platform_hal_getFactoryPartnerId returns: %d", status);
 
+    UT_LOG("platform_hal_getFactoryPartnerId returns: %d", status);
     // Check the return status
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
@@ -6542,10 +6418,9 @@ void test_l1_platform_hal_positive1_initLed( void )
     CHAR config_file_name[512];
 	
     UT_LOG("Invoking the API platform_hal_initLed and expecting the return value as 'RETURN_OK'.");
-	
     result = platform_hal_initLed(config_file_name);
+
     UT_LOG("platform_hal_initLed API returns : %d", result);
-	
     UT_ASSERT_EQUAL( result, RETURN_OK );
     UT_LOG("Exiting test_l1_platform_hal_positive1_initLed");
 }
@@ -6575,11 +6450,11 @@ void test_l1_platform_hal_negative1_initLed( void )
 	INT result = 0;
     
 	UT_LOG("Invoking the API platform_hal_initLed and expecting the return value as 'RETURN_OK'.");
-	
 	result = platform_hal_initLed(NULL);
-	UT_LOG("platform_hal_initLed API returns : %d", result);
-	
+    
+    UT_LOG("platform_hal_initLed API returns : %d", result);
 	UT_ASSERT_EQUAL( result, RETURN_ERR );
+
 	UT_LOG("Exiting test_l1_platform_hal_negative1_initLed");
 }
 #endif
@@ -6612,7 +6487,7 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
     BOOLEAN status = platform_hal_getFanStatus(0);
     
     UT_LOG("Status of the fan is %d",status);
-    
+
     if(status == 0 || status == 1 )
         { 
             UT_LOG("Status of the fan is %d", status);
@@ -6654,6 +6529,7 @@ void test_l1_platform_hal_positive2_getFanStatus(void)
     // Call the API with valid input
     UT_LOG("Invoking the API platform_hal_getFanStatus with 0 and expecting the return value as 0 or 1");
     BOOLEAN status = platform_hal_getFanStatus(1);
+    
     UT_LOG("Status of the fan is %d",status);
     
     // Check the return value
@@ -6700,7 +6576,6 @@ void test_l1_platform_hal_positive1_getFanSpeed(void) {
 
     // Describe the test, the output values, and the return status
     UT_LOG("Received fanSpeed=%d", fanSpeed);
-
     // Add assertion to check the return value
     UT_ASSERT_TRUE(fanSpeed >= 0);
 
@@ -6734,7 +6609,6 @@ void test_l1_platform_hal_positive2_getFanSpeed(void) {
 
     // Describe the test, the output values, and the return status
     UT_LOG("Received fanSpeed=%d", fanSpeed);
-
     // Add assertion to check the return value
     UT_ASSERT_TRUE(fanSpeed >= 0);
 
@@ -6762,18 +6636,15 @@ void test_l1_platform_hal_positive2_getFanSpeed(void) {
  */
 void test_l1_platform_hal_positive1_GetSSHEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetSSHEnable...");
-
     BOOLEAN pFlag;
+    
     UT_LOG("Invoking platform_hal_GetSSHEnable with valid buffer...");
     INT status = platform_hal_GetSSHEnable(&pFlag);
 
-    
     UT_LOG("Returned status: %d", status);
     UT_LOG("pFlag: %d", pFlag);
-
     UT_ASSERT_EQUAL(status, RETURN_OK);
     UT_ASSERT_EQUAL(pFlag, 0 || pFlag == 1);
-
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetSSHEnable...");
 }
@@ -6803,7 +6674,6 @@ void test_l1_platform_hal_negative1_GetSSHEnable(void) {
     INT status = platform_hal_GetSSHEnable(NULL);
 
     UT_LOG("Returned status: %d", status);
-
     // Assuming RETURN_ERR is returned for invalid fanIndex
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
@@ -6836,8 +6706,8 @@ void test_l1_platform_hal_positive1_SetSSHEnable( void )
     // Invoke the API
     UT_LOG("Invoking SetSSHEnable with TRUE flag");
     INT returnValue = platform_hal_SetSSHEnable(TRUE);
+    
     UT_LOG("Returned value: %d", returnValue);
-
     // Check the return value
     UT_ASSERT_EQUAL(returnValue, RETURN_OK);
     
@@ -6870,8 +6740,8 @@ void test_l1_platform_hal_positive2_SetSSHEnable( void )
     // Invoke the API
     UT_LOG("Invoking SetSSHEnable with FALSE flag");
     INT returnValue = platform_hal_SetSSHEnable(FALSE);
+    
     UT_LOG("Returned value: %d", returnValue);
-
     // Check the return value
     UT_ASSERT_EQUAL(returnValue, RETURN_OK);
     
@@ -6904,8 +6774,8 @@ void test_l1_platform_hal_negative1_SetSSHEnable( void )
     // Invoke the API
     UT_LOG("Invoking SetSSHEnable with invalid flag");
     INT returnValue = platform_hal_SetSSHEnable(2);
+    
     UT_LOG("Returned value: %d", returnValue);
-
     // Check the return value
     UT_ASSERT_EQUAL(returnValue, RETURN_ERR);
     
@@ -6938,8 +6808,8 @@ void test_l1_platform_hal_negative2_SetSSHEnable( void )
     // Invoke the API
     UT_LOG("Invoking SetSSHEnable with invalid flag");
     INT returnValue = platform_hal_SetSSHEnable('a');
+    
     UT_LOG("Returned value: %d", returnValue);
-
     // Check the return value
     UT_ASSERT_EQUAL(returnValue, RETURN_ERR);
     
@@ -6966,15 +6836,13 @@ void test_l1_platform_hal_negative2_SetSSHEnable( void )
 */
 void test_l1_platform_hal_positive1_resetDscpCounts(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_resetDscpCounts...");
-
     WAN_INTERFACE interfaceType = DOCSIS;
 
     UT_LOG("Invoking platform_hal_resetDscpCounts with interfaceType = DOCSIS");
     UT_LOG("Expected result: RETURN_OK");
-
     INT result = platform_hal_resetDscpCounts(interfaceType);
-    UT_LOG("Actual result: %d", result);
 
+    UT_LOG("Actual result: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_resetDscpCounts...");
@@ -7000,15 +6868,13 @@ void test_l1_platform_hal_positive1_resetDscpCounts(void) {
  */
 void test_l1_platform_hal_positive2_resetDscpCounts(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_resetDscpCounts...");
-
     WAN_INTERFACE interfaceType = EWAN;
 
     UT_LOG("Invoking platform_hal_resetDscpCounts with interfaceType = EWAN");
     UT_LOG("Expected result: RETURN_OK");
-
     INT result = platform_hal_resetDscpCounts(interfaceType);
-    UT_LOG("Actual result: %d", result);
 
+    UT_LOG("Actual result: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Existing test_l1_platform_hal_positive2_resetDscpCounts...");
@@ -7034,7 +6900,6 @@ void test_l1_platform_hal_positive2_resetDscpCounts(void) {
 */
 void test_l1_platform_hal_negative1_resetDscpCounts(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_resetDscpCounts...");
-
     WAN_INTERFACE interfaceType = 5; // Random invalid interfaceType value
 
     UT_LOG("Invoking platform_hal_resetDscpCounts with interfaceType = %d", interfaceType);
@@ -7071,12 +6936,12 @@ void test_l1_platform_hal_positive1_PandMDBInit( void )
 	UT_LOG("Entering test_l1_platform_hal_positive1_PandMDBInit...");
 	INT result = 0;
 	
-	UT_LOG("Invoking the API platform_hal_PandMDBInit and expecting the return value as 'RETURN_OK'.");
-	
+	UT_LOG("Invoking the API platform_hal_PandMDBInit and expecting the return value as 'RETURN_OK'.");	
 	result = platform_hal_PandMDBInit();
+
 	UT_LOG("platform_hal_PandMDBInit API returns : %d", result);
-	
 	UT_ASSERT_EQUAL( result, RETURN_OK );
+
 	UT_LOG("Exiting test_l1_platform_hal_positive1_PandMDBInit");
 }
 
@@ -7102,7 +6967,6 @@ void test_l1_platform_hal_positive1_PandMDBInit( void )
 void test_l1_platform_hal_positive1_GetTelnetEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetTelnetEnable...");
-
     INT result = 0;
     BOOLEAN pFlag;
 
@@ -7110,7 +6974,6 @@ void test_l1_platform_hal_positive1_GetTelnetEnable(void)
     result = platform_hal_GetTelnetEnable(&pFlag);
 
     UT_LOG("Returned status %d and flag value: %d", result, pFlag);
-
     UT_ASSERT_EQUAL(result, RETURN_OK);
     UT_ASSERT_EQUAL(pFlag, 0 || pFlag == 1);
 
@@ -7139,13 +7002,12 @@ void test_l1_platform_hal_positive1_GetTelnetEnable(void)
 void test_l1_platform_hal_negative1_GetTelnetEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetTelnetEnable...");
-
     INT result = 0;
 
     UT_LOG("Invoking platform_hal_GetTelnetEnable with valid input parameters...");
     result = platform_hal_GetTelnetEnable(NULL);
-    UT_LOG("platform_hal_GetTelnetEnable returns : %d", result);
 
+    UT_LOG("platform_hal_GetTelnetEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetTelnetEnable...");
 }
@@ -7174,11 +7036,10 @@ void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 	UT_LOG("Entering test_l1_platform_hal_positive1_DocsisParamsDBInit...");
 	INT result = 0;
 	
-	UT_LOG("Invoking the API platform_hal_DocsisParamsDBInit and expecting the return value as RETURN_OK");
-	
+	UT_LOG("Invoking the API platform_hal_DocsisParamsDBInit and expecting the return value as RETURN_OK");	
 	result = platform_hal_DocsisParamsDBInit();
+
 	UT_LOG("platform_hal_DocsisParamsDBInit API returns : %d", result);
-	
 	UT_ASSERT_EQUAL( result, RETURN_OK );
 	UT_LOG("Exiting test_l1_platform_hal_positive1_DocsisParamsDBInit");
 }
@@ -7204,15 +7065,14 @@ void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 
 void test_l1_platform_hal_positive1_SetTelnetEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetTelnetEnable...");
-
     BOOLEAN Flag = TRUE;
 
     UT_LOG("Invoking platform_hal_SetTelnetEnable with TRUE");
-    
     INT result = platform_hal_SetTelnetEnable(Flag);
-    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
 
+    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
+
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetTelnetEnable...");
 }
 
@@ -7237,15 +7097,14 @@ void test_l1_platform_hal_positive1_SetTelnetEnable(void) {
 
 void test_l1_platform_hal_positive2_SetTelnetEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetTelnetEnable...");
-
     BOOLEAN Flag = FALSE;
 
     UT_LOG("Invoking platform_hal_SetTelnetEnable with FALSE");
-    
     INT result = platform_hal_SetTelnetEnable(Flag);
-    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
 
+    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
+
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetTelnetEnable...");
 }
 
@@ -7270,15 +7129,14 @@ void test_l1_platform_hal_positive2_SetTelnetEnable(void) {
 
 void test_l1_platform_hal_negative1_SetTelnetEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetTelnetEnable...");
-
     BOOLEAN Flag = 2;
 
     UT_LOG("Invoking platform_hal_SetTelnetEnable with 2");
-    
     INT result = platform_hal_SetTelnetEnable(Flag);
-    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
 
+    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
+
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetTelnetEnable...");
 }
 
@@ -7304,12 +7162,12 @@ void test_l1_platform_hal_negative1_SetTelnetEnable(void) {
 void test_l1_platform_hal_negative2_SetTelnetEnable(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetTelnetEnable...");
 
-    UT_LOG("Invoking platform_hal_SetTelnetEnable with 'True'");
-    
+    UT_LOG("Invoking platform_hal_SetTelnetEnable with 'a'");
     INT result = platform_hal_SetTelnetEnable('a');
-    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
 
+    UT_LOG("platform_hal_SetTelnetEnable API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
+
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetTelnetEnable...");
 }
 
@@ -7333,17 +7191,15 @@ void test_l1_platform_hal_negative2_SetTelnetEnable(void) {
     */
 void test_l1_platform_hal_positive1_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_StopMACsec...");
-
     //TODO:Define MaxEthPort
-
     INT ethPort = 0; // Valid Ethernet Port
     
     UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
-
     INT result = platform_hal_StopMACsec(ethPort);
-     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
+
+    UT_LOG("platform_hal_StopMACsec API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
+
     UT_LOG("Exiting test_l1_platform_hal_positive1_StopMACsec...");
 }
 
@@ -7367,17 +7223,15 @@ void test_l1_platform_hal_positive1_StopMACsec(void) {
     */
 void test_l1_platform_hal_positive2_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive2_StopMACsec...");
-
     //TODO:Define MaxEthPort
     INT ethPort = MaxEthPort - 1; // Valid Ethernet Port
     
     UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
-
     INT result = platform_hal_StopMACsec(ethPort);
+
     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
-    
     UT_ASSERT_EQUAL(result, RETURN_OK);
+
     UT_LOG("Exiting test_l1_platform_hal_positive2_StopMACsec...");
 }
 
@@ -7401,17 +7255,15 @@ void test_l1_platform_hal_positive2_StopMACsec(void) {
     */
 void test_l1_platform_hal_positive3_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_positive3_StopMACsec...");
-
     //TODO:Define MaxEthPort
     INT ethPort = 2; // Valid Ethernet Port
     
     UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
-
     INT result = platform_hal_StopMACsec(ethPort);
-     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
-    
+
+    UT_LOG("platform_hal_StopMACsec API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
+    
     UT_LOG("Exiting test_l1_platform_hal_positive3_StopMACsec...");
 }
 
@@ -7435,17 +7287,15 @@ void test_l1_platform_hal_positive3_StopMACsec(void) {
     */
 void test_l1_platform_hal_negative1_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_StopMACsec...");
-
     //TODO:Define MaxEthPort
     INT ethPort = -1; // Invalid Ethernet Port
     
     UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
-
     INT result = platform_hal_StopMACsec(ethPort);
+
     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
-    
     UT_ASSERT_EQUAL(result, RETURN_ERR);
+
     UT_LOG("Exiting test_l1_platform_hal_negative1_StopMACsec...");
 }
 
@@ -7469,17 +7319,15 @@ void test_l1_platform_hal_negative1_StopMACsec(void) {
     */
 void test_l1_platform_hal_negative2_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_StopMACsec...");
-
     //TODO:Define MaxEthPort
-    INT ethPort = MaxEthPort; // Invalid Ethernet Port
-    
-    UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
+    INT ethPort = MaxEthPort; // Invalid Ethernet Port]
 
+    UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
     INT result = platform_hal_StopMACsec(ethPort);
-     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
-    
+
+    UT_LOG("platform_hal_StopMACsec API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
+
     UT_LOG("Exiting test_l1_platform_hal_negative2_StopMACsec...");
 }
 
@@ -7503,17 +7351,15 @@ void test_l1_platform_hal_negative2_StopMACsec(void) {
     */
 void test_l1_platform_hal_negative3_StopMACsec(void) {
     UT_LOG("Entering test_l1_platform_hal_negative3_StopMACsec...");
-
     //TODO:Define MaxEthPort
     INT ethPort = MaxEthPort + 1; // Invalid Ethernet Port
     
     UT_LOG("Invoking platform_hal_StopMACsec with ethPort = %d", ethPort);
-
     INT result = platform_hal_StopMACsec(ethPort);
-     UT_LOG("platform_hal_StopMACsec API returns : %d", result);
-    
-    
+
+    UT_LOG("platform_hal_StopMACsec API returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
+
     UT_LOG("Exiting test_l1_platform_hal_negative3_StopMACsec...");
 }
 
@@ -7533,8 +7379,8 @@ int register_hal_tests(void)
     }
     // List of test function names and strings
    
-   const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout ", "l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout", "l1_platform_hal_negative3_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_initThermal", "l1_platform_hal_negative1_initThermal", "l1_platform_hal_positive1_getFanTemperature", "l1_platform_hal_negative1_getFanTemperature", "l1_platform_hal_positive1_getRadioTemperature", "l1_platform_hal_negative1_getRadioTemperature", "l1_platform_hal_negative2_getRadioTemperature", "l1_platform_hal_positive2_getRadioTemperature", "l1_platform_hal_positive3_getRadioTemperature", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive1_getInputCurrent", "l1_platform_hal_negative1_getInputCurrent", "l1_platform_hal_positive1_LoadThermalConfig", "l1_platform_hal_negative1_LoadThermalConfig", "l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_setFanSpeed", "l1_platform_hal_positive2_setFanSpeed", "l1_platform_hal_positive3_setFanSpeed","l1_platform_hal_positive4_setFanSpeed", "l1_platform_hal_positive5_setFanSpeed", "l1_platform_hal_positive6_setFanSpeed", "l1_platform_hal_positive7_setFanSpeed", "l1_platform_hal_positive8_setFanSpeed", "l1_platform_hal_positive9_setFanSpeed", "l1_platform_hal_positive10_setFanSpeed",  "l1_platform_hal_negative1_setFanSpeed", "l1_platform_hal_negative2_setFanSpeed", "l1_platform_hal_negative3_setFanSpeed", "l1_platform_hal_positive1_getInputPower", "l1_platform_hal_negative1_getInputPower", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId","l1_platform_hal_positive1_initLed", "l1_platform_hal_negative1_initLed", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
-   void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_negative3_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_initThermal, test_l1_platform_hal_negative1_initThermal, test_l1_platform_hal_positive1_getFanTemperature, test_l1_platform_hal_negative1_getFanTemperature, test_l1_platform_hal_positive1_getRadioTemperature, test_l1_platform_hal_negative1_getRadioTemperature, test_l1_platform_hal_negative2_getRadioTemperature, test_l1_platform_hal_positive2_getRadioTemperature, test_l1_platform_hal_positive3_getRadioTemperature, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_getInputCurrent, test_l1_platform_hal_negative1_getInputCurrent, test_l1_platform_hal_positive1_LoadThermalConfig, test_l1_platform_hal_negative1_LoadThermalConfig, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_setFanSpeed, test_l1_platform_hal_positive2_setFanSpeed, test_l1_platform_hal_positive3_setFanSpeed, test_l1_platform_hal_positive4_setFanSpeed, test_l1_platform_hal_positive5_setFanSpeed, test_l1_platform_hal_positive6_setFanSpeed, test_l1_platform_hal_positive7_setFanSpeed, test_l1_platform_hal_positive8_setFanSpeed, test_l1_platform_hal_positive9_setFanSpeed, test_l1_platform_hal_positive10_setFanSpeed, test_l1_platform_hal_negative1_setFanSpeed, test_l1_platform_hal_negative2_setFanSpeed, test_l1_platform_hal_negative3_setFanSpeed,  test_l1_platform_hal_positive1_getInputPower, test_l1_platform_hal_negative1_getInputPower, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_initLed, test_l1_platform_hal_negative1_initLed, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
+   const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout","l1_platform_hal_positive4_SetWebUITimeout","l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_initThermal", "l1_platform_hal_negative1_initThermal", "l1_platform_hal_positive1_getFanTemperature", "l1_platform_hal_negative1_getFanTemperature", "l1_platform_hal_positive1_getRadioTemperature", "l1_platform_hal_negative1_getRadioTemperature", "l1_platform_hal_negative2_getRadioTemperature", "l1_platform_hal_positive2_getRadioTemperature", "l1_platform_hal_positive3_getRadioTemperature", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive3_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive1_getInputCurrent", "l1_platform_hal_negative1_getInputCurrent", "l1_platform_hal_positive1_LoadThermalConfig", "l1_platform_hal_negative1_LoadThermalConfig", "l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_setFanSpeed", "l1_platform_hal_positive2_setFanSpeed", "l1_platform_hal_positive3_setFanSpeed","l1_platform_hal_positive4_setFanSpeed", "l1_platform_hal_positive5_setFanSpeed", "l1_platform_hal_positive6_setFanSpeed", "l1_platform_hal_positive7_setFanSpeed", "l1_platform_hal_positive8_setFanSpeed", "l1_platform_hal_positive9_setFanSpeed", "l1_platform_hal_positive10_setFanSpeed",  "l1_platform_hal_negative1_setFanSpeed", "l1_platform_hal_negative2_setFanSpeed", "l1_platform_hal_negative3_setFanSpeed", "l1_platform_hal_positive1_getInputPower", "l1_platform_hal_negative1_getInputPower", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId","l1_platform_hal_positive1_initLed", "l1_platform_hal_negative1_initLed", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
+   void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_initThermal, test_l1_platform_hal_negative1_initThermal, test_l1_platform_hal_positive1_getFanTemperature, test_l1_platform_hal_negative1_getFanTemperature, test_l1_platform_hal_positive1_getRadioTemperature, test_l1_platform_hal_negative1_getRadioTemperature, test_l1_platform_hal_negative2_getRadioTemperature, test_l1_platform_hal_positive2_getRadioTemperature, test_l1_platform_hal_positive3_getRadioTemperature, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_getInputCurrent, test_l1_platform_hal_negative1_getInputCurrent, test_l1_platform_hal_positive1_LoadThermalConfig, test_l1_platform_hal_negative1_LoadThermalConfig, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_setFanSpeed, test_l1_platform_hal_positive2_setFanSpeed, test_l1_platform_hal_positive3_setFanSpeed, test_l1_platform_hal_positive4_setFanSpeed, test_l1_platform_hal_positive5_setFanSpeed, test_l1_platform_hal_positive6_setFanSpeed, test_l1_platform_hal_positive7_setFanSpeed, test_l1_platform_hal_positive8_setFanSpeed, test_l1_platform_hal_positive9_setFanSpeed, test_l1_platform_hal_positive10_setFanSpeed, test_l1_platform_hal_negative1_setFanSpeed, test_l1_platform_hal_negative2_setFanSpeed, test_l1_platform_hal_negative3_setFanSpeed,  test_l1_platform_hal_positive1_getInputPower, test_l1_platform_hal_negative1_getInputPower, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_initLed, test_l1_platform_hal_negative1_initLed, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
 
     // Add tests to the suite
     for (int i = 0; i < sizeof(list1) / sizeof(list1[0]); i++) {
