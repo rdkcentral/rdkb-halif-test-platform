@@ -37,23 +37,23 @@
 #include "platform_hal.h"
 
 /**
- * @brief This test case is used to verify the functionality of the get firmware name API.
- * 
- * The objective of this test is to ensure that the get firmware name API returns the firmware name correctly.
-
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 001 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description                                          | Test Data                       | Expected Result                | Notes             |
- * | :--------------: | ---------------------------------------------------- | ------------------------------- | ------------------------------ | ----------------- |
- * |       01         | Invoking platform_hal_GetFirmwareName() with pValue = valid buffer , maxSize=256.    |      pValue = valid buffer , maxSize=256   | RETURN_OK                      | Should be successful |
- */
+* @brief This test case is used to verify the functionality of the get firmware name API.
+* 
+* The objective of this test is to ensure that the get firmware name API returns the firmware name correctly.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 001 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :-----: |------------|----------|----------------|------|
+* |01 | Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize=256|pValue = valid buffer, maxSize=256| RETURN_OK| Should Pass|
+*/
 void test_l1_platform_hal_positive1_GetFirmwareName(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFirmwareName...");
@@ -61,11 +61,11 @@ void test_l1_platform_hal_positive1_GetFirmwareName(void)
     CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = valid buffer , maxSize=256.");
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize=256.");
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
     UT_LOG("Output value of pValue: %s", pValue);
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetFirmwareName API returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFirmwareName...");
@@ -86,8 +86,8 @@ void test_l1_platform_hal_positive1_GetFirmwareName(void)
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01    | Invoking platform_hal_GetFirmwareName with NULL pointer and maxSize = 256| pValue = NULL, maxSize = 256 | RETURN_ERR | Should return an error status |
+* | :----: |----------|----------|--------------|-----|
+* | 01| Invoking platform_hal_GetFirmwareName with pValue = NULL, maxSize = 256| pValue = NULL, maxSize = 256 | RETURN_ERR | Should Fail |
 */
 void test_l1_platform_hal_negative1_GetFirmwareName(void)
 {
@@ -96,10 +96,10 @@ void test_l1_platform_hal_negative1_GetFirmwareName(void)
     CHAR* pValue = NULL;
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with NULL pointer  and maxSize = 256");
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = NULL, maxSize = 256");
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetFirmwareName API returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFirmwareName...");
@@ -121,7 +121,7 @@ void test_l1_platform_hal_negative1_GetFirmwareName(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_GetSoftwareVersion with pValue = valid buffer, maxSize = 256 | pValue = valid buffer, maxSize = 256 | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetSoftwareVersion with pValue = valid buffer, maxSize = 256 | pValue = valid buffer, maxSize = 256 | RETURN_OK | Should Pass |
 */
 void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
 {
@@ -134,7 +134,7 @@ void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
     UT_LOG("Output value of pValue: %s", pValue);
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetSoftwareVersion API returns: %d", status);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
@@ -142,23 +142,23 @@ void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
 }
 
 /**
- * @brief Test the platform_hal_GetSoftwareVersion function with NULL pointer as input parameter.
- *
- * This test case is used to verify the behavior of the platform_hal_GetSoftwareVersion function when a NULL pointer is provided as the input parameter. The function should return RETURN_ERR in this case.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 004 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_GetSoftwareVersion with pValue = NULL, maxSize = 256 | pValue = NULL, maxSize = 256 | RETURN_ERR | Should return error |
- */
+* @brief Test the platform_hal_GetSoftwareVersion function with NULL pointer as input parameter.
+*
+* This test case is used to verify the behavior of the platform_hal_GetSoftwareVersion function when a NULL pointer is provided as the input parameter. The function should return RETURN_ERR in this case.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 004 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetSoftwareVersion with pValue = NULL, maxSize = 256 | pValue = NULL, maxSize = 256 | RETURN_ERR | Should Fail |
+*/
 void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetSoftwareVersion...");
@@ -168,42 +168,40 @@ void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
     UT_LOG("Invoking platform_hal_GetSoftwareVersion with pValue = NULL, maxSize = 256");
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetSoftwareVersion API returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetSoftwareVersion...");
 }
 
 /**
- * @brief Test case to verify the functionality of platform_hal_GetSerialNumber function
- * 
- * This test case is used to validate the behavior of platform_hal_GetSerialNumber function.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 005 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- * 
- * **Test Procedure:** @n
- * 
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | ----------- | --------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_GetSerialNumber function with serialNumber= valid Buffer | serialNumber= valid Buffer | RETURN_OK | Should be successful |
- */
+* @brief Test case to verify the functionality of platform_hal_GetSerialNumber function
+* 
+* This test case is used to validate the behavior of platform_hal_GetSerialNumber function.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 005 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | ----------- | --------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetSerialNumber function with serialNumber = valid Buffer | serialNumber= valid Buffer | RETURN_OK | Should Pass |
+*/
 void test_l1_platform_hal_positive1_GetSerialNumber(void)
 {
-    UT_LOG("Entering test_l1_platform_hal_positive1_GetSerialNumber...");
-    
+    UT_LOG("Entering test_l1_platform_hal_positive1_GetSerialNumber...");   
     CHAR serialNumber[256] = {"\0"};
 
-    UT_LOG("Invoking platform_hal_GetSerialNumber function with serialNumber= valid Buffer");
+    UT_LOG("Invoking platform_hal_GetSerialNumber function with serialNumber = valid Buffer");
     INT status = platform_hal_GetSerialNumber(serialNumber);
     
-    UT_LOG("Output value of pValue: %s", serialNumber);
-    UT_LOG("Return status: %d", status);
+    UT_LOG("Output value of serialNumber : %s", serialNumber);
+    UT_LOG("platform_hal_GetSerialNumber API returns : %d", status);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
@@ -211,31 +209,32 @@ void test_l1_platform_hal_positive1_GetSerialNumber(void)
 }
 
 /**
- * @brief Unit test to verify the behavior of platform_hal_GetSerialNumber when passed NULL input parameter.
- *
- * This test case aims to verify the behavior of platform_hal_GetSerialNumber when it is invoked with a NULL input parameter. It checks if the function returns the expected status code.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 006 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                   | Test Data                 | Expected Result        | Notes                |
- * | :--------------: | ------------------------------------------------------------- | ------------------------- | ---------------------- | -------------------- |
- * |        01        | Invoking platform_hal_GetSerialNumber with serialNumber = NULL | serialNumber = NULL    | RETURN_ERR              | Should fail |
- */
+* @brief Unit test to verify the behavior of platform_hal_GetSerialNumber when passed NULL input parameter.
+*
+* This test case aims to verify the behavior of platform_hal_GetSerialNumber when it is invoked with a NULL input parameter. It checks if the function returns the expected status code.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 006 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result| Notes|
+* | :--------------: |----------| --------|----------|----------------------|
+* |01| Invoking platform_hal_GetSerialNumber with serialNumber = NULL | serialNumber = NULL| RETURN_ERR| Should Fail|
+*/
 void test_l1_platform_hal_negative1_GetSerialNumber(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetSerialNumber...");
     CHAR *serialNumber = NULL;
+
     UT_LOG("Invoking platform_hal_GetSerialNumber with serialNumber = NULL.");
     INT status = platform_hal_GetSerialNumber(serialNumber);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetSerialNumber API returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetSerialNumber...");
@@ -259,27 +258,28 @@ void test_l1_platform_hal_negative1_GetSerialNumber(void)
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_GetSNMPEnable with valid pValue buffer | pValue = Valid Buffer | Return status should be RETURN_OK  | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetSNMPEnable(void) {
+void test_l1_platform_hal_positive1_GetSNMPEnable(void)
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetSNMPEnable...");
     CHAR pValue[32] = {"\0"};
 
     UT_LOG("Invoking platform_hal_GetSNMPEnable with valid pValue buffer");
     INT result = platform_hal_GetSNMPEnable(pValue);
 
-    UT_LOG("Output pValue: %s", pValue);
-    UT_LOG("Return status: %d", result);
+    UT_LOG("Output of pValue: %s", pValue);
+    UT_LOG("platform_hal_GetSNMPEnable API returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
     if (!strcmp(pValue,"rgWan") || !strcmp(pValue,"rgDualIp")|| !strcmp(pValue,"rgLanIp"))
-	{
-            UT_LOG("SNMP Enable value from the device is %s which is a valid value", pValue);
-            UT_PASS("Get SNMP Enable validation success");
-	}
-	else
-	{
-            UT_LOG("SNMP Enable value from the device %s which is an Invalid value", pValue);
-            UT_FAIL("Get SNMP Enable validation fail");
-	}
+    {
+        UT_LOG("SNMP Enable value from the device is %s which is a valid value", pValue);
+        UT_PASS("Get SNMP Enable validation success");
+    }
+    else
+    {
+        UT_LOG("SNMP Enable value from the device %s which is an Invalid value", pValue);
+        UT_FAIL("Get SNMP Enable validation fail");
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetSNMPEnable...");
 }
@@ -315,23 +315,23 @@ void test_l1_platform_hal_negative1_GetSNMPEnable(void) {
 }
 
 /**
- * @brief Unit test for the function platform_hal_GetHardware_MemUsed.
- *
- * This test case is used to validate the functionality of the platform_hal_GetHardware_MemUsed function.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 009 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_GetHardware_MemUsed with value = Valid Buffer  | value = Valid Buffer | RETURN_OK | Should be successful |
- */
+* @brief Unit test for the function platform_hal_GetHardware_MemUsed.
+*
+* This test case is used to validate the functionality of the platform_hal_GetHardware_MemUsed function.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 009 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetHardware_MemUsed with value = Valid Buffer  | value = Valid Buffer | RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware_MemUsed...");
     CHAR value[1024] = {"\0"};
@@ -345,13 +345,13 @@ void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) {
     UT_LOG("Total used memory : %d", Mem_Used);
     if(Mem_Used > 0)
     {
-            UT_LOG("RPM is %d which is a valid value.", Mem_Used);
-            UT_PASS("Get RPM validation success");
+        UT_LOG("RPM is %d which is a valid value.", Mem_Used);
+        UT_PASS("Get RPM validation success");
     }
     else
     {
-            UT_LOG("RPM is %d which is an invalid value.", Mem_Used);
-            UT_FAIL("Get RPM validation failed");
+        UT_LOG("RPM is %d which is an invalid value.", Mem_Used);
+        UT_FAIL("Get RPM validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemUsed...");
 }
@@ -412,7 +412,7 @@ void test_l1_platform_hal_positive1_GetHardwareVersion(void) {
     UT_LOG("Invoking platform_hal_GetHardwareVersion with pValue = Valid Buffer.");
     INT status = platform_hal_GetHardwareVersion(pValue);
 
-    UT_LOG("platform_hal_GetHardwareVersion returns %d",status);
+    UT_LOG("platform_hal_GetHardwareVersion returns :%d",status);
     UT_LOG("Hardware Version : %s",pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
@@ -549,16 +549,16 @@ void test_l1_platform_hal_positive1_GetRouterRegion(void) {
     
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if (!strcmp(pValue,"REGION_UK") || !strcmp(pValue,"REGION_IT")|| !strcmp(pValue,"REGION_ROI") || !strcmp(pValue,"REGION_UNKNOWN"))
-	{
-            UT_LOG("Router region is %s which is a valid value", pValue);
-            UT_PASS("Get Router Region validation value");
-	}
-	else
-	{
-            UT_LOG("Router region is %s which is an invalid value", pValue);
-            UT_FAIL("Get Router Region validation fail");
-	}
-
+    {
+        UT_LOG("Router region is %s which is a valid value", pValue);
+        UT_PASS("Get Router Region validation value");
+    }
+    else
+    {
+        UT_LOG("Router region is %s which is an invalid value", pValue);
+        UT_FAIL("Get Router Region validation fail");
+    }
+    
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetRouterRegion...");
 }
 
@@ -695,15 +695,15 @@ void test_l1_platform_hal_positive1_GetHardware(void) {
     UT_ASSERT_EQUAL(ret, RETURN_OK);
 
     if (flash_size >= 1 && flash_size <= 4096)
-	{
-            UT_LOG("The hardware value of the device is %d which is a valid value", flash_size);
-            UT_PASS("Get Hardware validation success");
-	}
-	else
-	{
-            UT_LOG("The hardware value  of the device is %d which is an invalid value", flash_size);
-            UT_FAIL("Get Hardware validation fail");
-	}
+    {
+        UT_LOG("The hardware value of the device is %d which is a valid value", flash_size);
+        UT_PASS("Get Hardware validation success");
+    }
+    else
+    {
+        UT_LOG("The hardware value  of the device is %d which is an invalid value", flash_size);
+        UT_FAIL("Get Hardware validation fail");
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware...");
 }
@@ -1125,13 +1125,13 @@ void test_l1_platform_hal_positive1_GetWebUITimeout(void) {
     
     if(value >= 30 && value <= 86400)
     { 
-            UT_LOG("Web UI Timeout value is %lu", value);
-            UT_PASS("Web UI Timeout validation success");
+        UT_LOG("Web UI Timeout value is %lu", value);
+        UT_PASS("Web UI Timeout validation success");
     }
     else
     {
-            UT_LOG("Web UI Timeout value is %lu", value);
-            UT_FAIL("Web UI Timeout validation failure");           
+        UT_LOG("Web UI Timeout value is %lu", value);
+        UT_FAIL("Web UI Timeout validation failure");           
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetWebUITimeout...");
@@ -1269,13 +1269,13 @@ void test_l1_platform_hal_positive1_GetHardware_MemFree(void) {
     int version = atoi(buffer);
     if(version > 0)
     {
-            UT_LOG("RPM is %d which is a valid value.", version);
-            UT_PASS("Get RPM validation success");
+        UT_LOG("RPM is %d which is a valid value.", version);
+        UT_PASS("Get RPM validation success");
     }
     else
     {
-            UT_LOG("RPM is %d which is an invalid value.", version);
-            UT_FAIL("Get RPM validation failed");
+        UT_LOG("RPM is %d which is an invalid value.", version);
+        UT_FAIL("Get RPM validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemFree...");
 }
@@ -1346,14 +1346,15 @@ void test_l1_platform_hal_positive1_GetUsedMemorySize(void)
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     if (pulSize > 0 )
     {  
-            UT_LOG("Used Memory size is %lu which is valid value.", pulSize);
-            UT_PASS ("Get Used Memory size validation success ");
+        UT_LOG("Used Memory size is %lu which is valid value.", pulSize);
+        UT_PASS ("Get Used Memory size validation success ");
     }
     else
     {
-            UT_LOG("Used Memory size is %lu which is an invalid value.", pulSize);
-            UT_FAIL ("Get Used Memory size validation failed");
+        UT_LOG("Used Memory size is %lu which is an invalid value.", pulSize);
+        UT_FAIL ("Get Used Memory size validation failed");
     }
+
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetUsedMemorySize...");
 }
 
@@ -1467,7 +1468,7 @@ void test_l1_platform_hal_positive2_ClearResetCount(void) {
  * **Test Procedure:** @n
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | :--------- | :-------- | :-------------- | ----- |
- * | 01 | Verify behavior when passing invalid bFlag = 2 | bFlag = 2 | RETURN_ERR | should return RETURN_ERR |
+ * | 01 | Invoking platform_hal_ClearResetCount with invalid bFlag = 2 | bFlag = 2 | RETURN_ERR | should return RETURN_ERR |
  */
 void test_l1_platform_hal_negative1_ClearResetCount(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_ClearResetCount...");
@@ -1815,8 +1816,8 @@ void test_l1_platform_hal_negative2_setFactoryCmVariant(void) {
 void test_l1_platform_hal_positive1_getLed(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getLed...");
     PLEDMGMT_PARAMS params = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
-    if(params != NULL){
-  
+    if(params != NULL)
+    {  
         UT_LOG("Invoking platform_hal_getLed with params = Valid structure");   
         INT result = platform_hal_getLed(params);
 
@@ -1827,39 +1828,39 @@ void test_l1_platform_hal_positive1_getLed(void) {
 
         UT_ASSERT_EQUAL(result, RETURN_OK);
         if (params->LedColor >= 0 && params->LedColor <= 7)
-	    {
-                UT_LOG("Led Color is %d which is a valid value", params->LedColor);
-                UT_PASS("Led Color validation success");
-	    }
-	    else
-	    {
-                UT_LOG("Led Color is  %d which is an invalid value", params->LedColor);
-                UT_FAIL("Led Color validation failed");
-	    }
+        {
+            UT_LOG("Led Color is %d which is a valid value", params->LedColor);
+            UT_PASS("Led Color validation success");
+        }
+        else
+        {
+            UT_LOG("Led Color is  %d which is an invalid value", params->LedColor);
+            UT_FAIL("Led Color validation failed");
+        }
         if (params->State == 0 || params->State == 1)
-	    {
-                UT_LOG("State is %d which is a valid value", params->State);
-                UT_PASS("State validation success");
-	    }
-	    else
-	    {
-                UT_LOG("State is  %d which is an invalid value", params->State);
-                UT_FAIL("State validation failed");
-	    }
-
+        {
+            UT_LOG("State is %d which is a valid value", params->State);
+            UT_PASS("State validation success");
+        }
+        else
+        {
+            UT_LOG("State is  %d which is an invalid value", params->State);
+            UT_FAIL("State validation failed");
+        }
         if (params->Interval >= 0)
-         {
-                UT_LOG("Interval is %d which is a valid value", params->Interval);
-                UT_PASS("Interval validation success");
-	     }
-	    else
-	    {
-                UT_LOG("Interval is  %d which is an invalid value", params->Interval);
-                UT_FAIL("Interval validation failed");
-	    }
+        {
+            UT_LOG("Interval is %d which is a valid value", params->Interval);
+            UT_PASS("Interval validation success");
+        }
+        else
+        {
+            UT_LOG("Interval is  %d which is an invalid value", params->Interval);
+            UT_FAIL("Interval validation failed");
+        }
     }
-    else{
-	        UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getLed...");
 }
@@ -1925,20 +1926,22 @@ void test_l1_platform_hal_positive1_getRotorLock(void) {
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
     if(status == 1)
     {
-	        UT_LOG("Status of the Rotor is: %d locked ",status);
-	        UT_PASS("Get Rotor locked Validation success");
+        UT_LOG("Status of the Rotor is: %d locked ",status);
+        UT_PASS("Get Rotor locked Validation success");
     }
     else if (status == 0)
     {
-	        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
-	        UT_PASS("Get Rotor NOT locked Validation success");
+        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
+        UT_PASS("Get Rotor NOT locked Validation success");
     }
-    else if(status == -1){
-            UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-	        UT_FAIL("Get Rotor Validation failed");
+    else if(status == -1)
+    {
+        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
+        UT_FAIL("Get Rotor Validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
 }
+
 /**
 * @brief Unit test to verify the functionality of the platform_hal_getRotorLock function
 *
@@ -1968,17 +1971,17 @@ void test_l1_platform_hal_positive2_getRotorLock(void) {
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
     if(status == 1)
     {
-	        UT_LOG("Status of the Rotor is: %d locked ",status);
-	        UT_PASS("Get Rotor locked Validation success");
+        UT_LOG("Status of the Rotor is: %d locked ",status);
+        UT_PASS("Get Rotor locked Validation success");
     }
     else if (status == 0)
     {
-	        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
-	        UT_PASS("Get Rotor NOT locked Validation success");
+        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
+        UT_PASS("Get Rotor NOT locked Validation success");
     }
     else if(status == -1){
             UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-	        UT_FAIL("Get Rotor Validation failed");
+            UT_FAIL("Get Rotor Validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
 }
@@ -2011,12 +2014,13 @@ void test_l1_platform_hal_negative1_getRotorLock(void) {
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
     if (status == -1)
     {
-            UT_LOG("Status of the Rotor is: %d value not applicable ",status);
-	        UT_PASS("Get Rotor lock Validation success");
+        UT_LOG("Status of the Rotor is: %d value not applicable ",status);
+        UT_PASS("Get Rotor lock Validation success");
     }
-    else if(status == 0 || status == 1){
-            UT_LOG("Status of the Rotor is: %d invalid value ",status);
-	        UT_FAIL("Get Rotor lock Validation Failed");
+    else if(status == 0 || status == 1)
+    {
+        UT_LOG("Status of the Rotor is: %d invalid value ",status);
+        UT_FAIL("Get Rotor lock Validation Failed");
     } 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getRotorLock...");
 }
@@ -2051,13 +2055,13 @@ void test_l1_platform_hal_positive1_GetTotalMemorySize(void)
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(size > 0)
     {
-            UT_LOG("Total Memory size is %lu which is a valid value.", size);
-            UT_PASS("Get Total Memory size validation success");
+        UT_LOG("Total Memory size is %lu which is a valid value.", size);
+        UT_PASS("Get Total Memory size validation success");
     }
     else
     {
-            UT_LOG("Total Memory size is %lu which is an invalid value.", size);
-            UT_FAIL("Get Total Memory size validation failed");
+        UT_LOG("Total Memory size is %lu which is an invalid value.", size);
+        UT_FAIL("Get Total Memory size validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetTotalMemorySize...");
 }
@@ -2126,13 +2130,13 @@ void test_l1_platform_hal_positive1_GetFactoryResetCount(void)
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(pulSize >= 0)
     { 
-            UT_LOG("Factory Reset count is %lu", pulSize);
-            UT_PASS (" Factory Reset Count Validation success");
+        UT_LOG("Factory Reset count is %lu", pulSize);
+        UT_PASS (" Factory Reset Count Validation success");
     }
     else
     {
-            UT_LOG("Factory Reset count is %lu", pulSize);
-            UT_FAIL(" Factory Reset Count Validation Failure");
+        UT_LOG("Factory Reset count is %lu", pulSize);
+        UT_FAIL(" Factory Reset Count Validation Failure");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFactoryResetCount...");
 }
@@ -2356,13 +2360,13 @@ void test_l1_platform_hal_positive1_getFactoryCmVariant(void) {
 
     if (!strcmp(buffer,"unknown") || !strcmp(buffer,"pc20") || !strcmp(buffer,"pc20genband") || !strcmp(buffer,"pc15sip")||  !strcmp(buffer,"pc15mgcp"))
     {
-            UT_LOG("FactoryCmVariant %s which is a valid value",buffer);
-            UT_PASS("getFactoryCmVariant validation success");
+        UT_LOG("FactoryCmVariant %s which is a valid value",buffer);
+        UT_PASS("getFactoryCmVariant validation success");
     }
     else
     {
-            UT_LOG("FactoryCmVariant %s which is a Invalid value",buffer);
-            UT_FAIL("getFactoryCmVariantvalidation failed");
+        UT_LOG("FactoryCmVariant %s which is a Invalid value",buffer);
+        UT_FAIL("getFactoryCmVariantvalidation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFactoryCmVariant...");
 }
@@ -2419,10 +2423,14 @@ void test_l1_platform_hal_negative1_getFactoryCmVariant(void) {
 void test_l1_platform_hal_positive1_setLed() {
     UT_LOG("Entering test_l1_platform_hal_positive1_setLed...");
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
-    if (pValue != NULL) {
-        for (int ledColor = 0; ledColor <= 7; ledColor++) {
-            for (int state = 0; state <= 1; state++) {
-                for (int interval = 0; interval <= 5; interval++) {
+    if (pValue != NULL) 
+    {
+        for (int ledColor = 0; ledColor <= 7; ledColor++) 
+        {
+            for (int state = 0; state <= 1; state++) 
+            {
+                for (int interval = 0; interval <= 5; interval++) 
+                {
                     if(interval == 0 || interval == 1 ||interval == 3 || interval == 5)
                     {
                         pValue->LedColor = ledColor;
@@ -2439,8 +2447,9 @@ void test_l1_platform_hal_positive1_setLed() {
         free(pValue);
         pValue = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_setLed...");
 }
@@ -2499,20 +2508,23 @@ void test_l1_platform_hal_negative2_setLed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_setLed...");
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));    
 
-    if (pValue != NULL) {
-            pValue->LedColor = 8;
-            pValue->State = 0;
-            pValue->Interval = 10;
-            UT_LOG("Invoking platform_hal_setLed with invalid LedColor value = 8");
-            INT result = platform_hal_setLed(pValue);
+    if (pValue != NULL) 
+    {
+        pValue->LedColor = 8;
+        pValue->State = 0;
+        pValue->Interval = 10;
+        UT_LOG("Invoking platform_hal_setLed with invalid LedColor value = 8");
+        INT result = platform_hal_setLed(pValue);
  
-            UT_LOG("platform_hal_setLed returns: %d",result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
-            free(pValue);
-            pValue=NULL;
+        UT_LOG("platform_hal_setLed returns: %d",result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
+            
+        free(pValue);
+        pValue=NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_setLed...");
 }
@@ -2553,8 +2565,9 @@ void test_l1_platform_hal_negative3_setLed(void) {
         free(pValue);
         pValue=NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative3_setLed...");
 }
@@ -2581,7 +2594,8 @@ void test_l1_platform_hal_negative4_setLed(void) {
     UT_LOG("Entering test_l1_platform_hal_negative4_setLed...");
 
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
-    if(pValue != NULL){
+    if(pValue != NULL)
+    {
         pValue->LedColor = 1;
         pValue->State = 0;
         pValue->Interval = -1;
@@ -2594,8 +2608,9 @@ void test_l1_platform_hal_negative4_setLed(void) {
         free(pValue);
         pValue=NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative4_setLed...");
 }
@@ -2629,13 +2644,13 @@ void test_l1_platform_hal_positive1_getRPM(void)
     UT_LOG("FanRPM = %d", fanRPM);
     if(fanRPM >= 0)
     {
-            UT_LOG("RPM is %d which is a valid value.", fanRPM);
-            UT_PASS("Get RPM validation success");
+        UT_LOG("RPM is %d which is a valid value.", fanRPM);
+        UT_PASS("Get RPM validation success");
     }
     else
     {
-            UT_LOG("RPM is %d which is an invalid value.", fanRPM);
-            UT_FAIL("Get RPM validation failed");
+        UT_LOG("RPM is %d which is an invalid value.", fanRPM);
+        UT_FAIL("Get RPM validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRPM...");
 }
@@ -2669,13 +2684,13 @@ void test_l1_platform_hal_positive2_getRPM(void)
     UT_LOG("FanRPM = %d", fanRPM);
     if(fanRPM >= 0)
     {
-            UT_LOG("RPM is %d which is a valid value.", fanRPM);
-            UT_PASS("Get RPM validation success");
+        UT_LOG("RPM is %d which is a valid value.", fanRPM);
+        UT_PASS("Get RPM validation success");
     }
     else
     {
-            UT_LOG("RPM is %d which is an invalid value.", fanRPM);
-            UT_FAIL("Get RPM validation failed");
+        UT_LOG("RPM is %d which is an invalid value.", fanRPM);
+        UT_FAIL("Get RPM validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getRPM...");
 }
@@ -2702,7 +2717,8 @@ void test_l1_platform_hal_positive2_getRPM(void)
 void test_l1_platform_hal_positive1_initThermal(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_initThermal...");
     THERMAL_PLATFORM_CONFIG *thermalConfig = (THERMAL_PLATFORM_CONFIG*)malloc(sizeof(THERMAL_PLATFORM_CONFIG));
-    if(thermalConfig != NULL){
+    if(thermalConfig != NULL)
+    {
         UT_LOG("Invoking platform_hal_initThermal with thermalConfig = valid structure ");
         INT result = platform_hal_initThermal(thermalConfig);
 
@@ -2712,29 +2728,30 @@ void test_l1_platform_hal_positive1_initThermal(void) {
         UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig->FanCount, thermalConfig->SlowSpeedThresh, thermalConfig->MediumSpeedThresh, thermalConfig->FastSpeedThresh, thermalConfig->FanMinRunTime, thermalConfig->MonitoringDelay, thermalConfig->PowerMonitoring, thermalConfig->LogInterval);
     
         if (thermalConfig->FanCount == 1 || thermalConfig->FanCount == 2)
-	    {
-                UT_LOG("Fan Count is %d which is a valid value", thermalConfig->FanCount);
-                UT_PASS("Fan Count validation success");
-	    }
-	    else
-	    {
-                UT_LOG("Fan Count is %d which is an invalid value", thermalConfig->FanCount);
-                UT_FAIL("Fan Count validation failed");
-	    }
+        {
+            UT_LOG("Fan Count is %d which is a valid value", thermalConfig->FanCount);
+            UT_PASS("Fan Count validation success");
+        }
+        else
+       {
+            UT_LOG("Fan Count is %d which is an invalid value", thermalConfig->FanCount);
+            UT_FAIL("Fan Count validation failed");
+        }
 
         if (thermalConfig->PowerMonitoring == 0 || thermalConfig->PowerMonitoring == 1)
-	    {
-                UT_LOG("Power Monitoring is %d which is a valid value", thermalConfig->PowerMonitoring);
-                UT_PASS("Power Monitoring validation success");
-	    }
-	    else
-	    {
-                UT_LOG("Power Monitoring is %d which is an invalid value", thermalConfig->PowerMonitoring);
-                UT_FAIL("Power Monitoring validation failed");
-	    }
+        {
+            UT_LOG("Power Monitoring is %d which is a valid value", thermalConfig->PowerMonitoring);
+            UT_PASS("Power Monitoring validation success");
+        }
+        else
+        {
+            UT_LOG("Power Monitoring is %d which is an invalid value", thermalConfig->PowerMonitoring);
+            UT_FAIL("Power Monitoring validation failed");
+        }
     }
-    else{
-                UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_initThermal...");
 }
@@ -2802,13 +2819,13 @@ void test_l1_platform_hal_positive1_getFanTemperature(void)
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(temp >= 0 && temp <= 100)
     { 
-            UT_LOG("Fan Temperature  is %d", temp);
-            UT_PASS (" Fan Temperature Validation success");
+        UT_LOG("Fan Temperature  is %d", temp);
+        UT_PASS (" Fan Temperature Validation success");
     }
     else
     {
-            UT_LOG("Fan Temperature is %d", temp);
-            UT_FAIL(" Fan Temperature Validation Failure");    
+        UT_LOG("Fan Temperature is %d", temp);
+        UT_FAIL(" Fan Temperature Validation Failure");    
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanTemperature...");
 }
@@ -2877,13 +2894,13 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
 
     if(value >= 0 && value <= 100)
     { 
-            UT_LOG("Radio Temperature  is %d", value);
-            UT_PASS (" Radio Temperature Validation success");
+        UT_LOG("Radio Temperature  is %d", value);
+        UT_PASS (" Radio Temperature Validation success");
     }
     else
     {
-            UT_LOG("Radio Temperature is %d", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
+        UT_LOG("Radio Temperature is %d", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRadioTemperature...");
@@ -2936,7 +2953,6 @@ void test_l1_platform_hal_negative1_getRadioTemperature(void)
  * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
  *
  * **Test Procedure:** @n
- * 
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | --------- | ---------- | -------------- | ----- |
  * | 01 | Invoking platform_hal_getRadioTemperature with invalid radioIndex=3, value= 0.| radioIndex = 3, value = 0 | RETURN_ERR | API should return an error status |
@@ -2989,13 +3005,13 @@ void test_l1_platform_hal_positive2_getRadioTemperature(void)
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(value >= 0 && value <= 100)
     { 
-            UT_LOG("Radio Temperature  is %d", value);
-            UT_PASS (" Radio Temperature Validation success");
+        UT_LOG("Radio Temperature  is %d", value);
+        UT_PASS (" Radio Temperature Validation success");
     }
     else
     {
-            UT_LOG("Radio Temperature is %d", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
+        UT_LOG("Radio Temperature is %d", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getRadioTemperature...");
 }
@@ -3033,13 +3049,13 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
 
     if(value >= 0 && value <= 100)
     { 
-            UT_LOG("Radio Temperature  is %d", value);
-            UT_PASS (" Radio Temperature Validation success");
+        UT_LOG("Radio Temperature  is %d", value);
+        UT_PASS (" Radio Temperature Validation success");
     }
     else
     {
-            UT_LOG("Radio Temperature is %d", value);
-            UT_FAIL(" Radio Temperature Validation Failure");    
+        UT_LOG("Radio Temperature is %d", value);
+        UT_FAIL(" Radio Temperature Validation Failure");    
     }
     UT_LOG("Exiting test_l1_platform_hal_positive3_getRadioTemperature...");
 }
@@ -3228,25 +3244,27 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMemoryPaths...");
     RDK_CPUS index = HOST_CPU;
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
-    if (ppinfo != NULL) { 
-            UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
-            INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+    if (ppinfo != NULL) 
+    { 
+        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
+        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
   
-            UT_LOG("Return status = %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_LOG("Return status = %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-            UT_ASSERT_PTR_NOT_NULL(ppinfo);
-            UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
+        UT_ASSERT_PTR_NOT_NULL(ppinfo);
+        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
 
-            UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
+        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
 
-            free(ppinfo);
-            ppinfo = NULL;
+        free(ppinfo);
+        ppinfo = NULL;
     }
-    else {
-            UT_LOG("Malloc operation Failed");
+    else 
+    {
+        UT_LOG("Malloc operation Failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMemoryPaths...");
 }
@@ -3274,26 +3292,27 @@ void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
     RDK_CPUS index = PEER_CPU;
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
    
-    if (ppinfo != NULL){
-            UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
-            INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+    if (ppinfo != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
+        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
     
-            UT_LOG("Return status = %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
-            UT_ASSERT_PTR_NOT_NULL(ppinfo);
-            UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
+        UT_LOG("Return status = %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_ASSERT_PTR_NOT_NULL(ppinfo);
+        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
 
-            UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
+        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
+        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
 
-            free(ppinfo);
-            ppinfo=NULL;
+        free(ppinfo);
+        ppinfo=NULL;
     }
-
-    else{
-	        UT_LOG("Malloc operation failed");
-	}
+    else
+    {
+	    UT_LOG("Malloc operation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetMemoryPaths...");
 }
 
@@ -3320,8 +3339,8 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
     RDK_CPUS index = NOT_SUPPORTED_CPU;
 
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
-    if (ppinfo != NULL) {
-    
+    if (ppinfo != NULL) 
+    {
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
 
@@ -3331,8 +3350,9 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
         free(ppinfo);
         ppinfo=NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMemoryPaths...");
 }
@@ -3392,7 +3412,8 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_negative3_GetMemoryPaths...");  
     RDK_CPUS index = 4; 
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
-    if (ppinfo != NULL) {
+    if (ppinfo != NULL) 
+    {
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d , ppinfo = valid structure", index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
 
@@ -3402,8 +3423,9 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
         free(ppinfo);
         ppinfo = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetMemoryPaths...");
 }
@@ -3441,13 +3463,13 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 
     if(flag == TRUE || flag == FALSE )
     { 
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_PASS(" MACsec Enable Validation success");
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
     }
     else
     {
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_FAIL(" MACsec Enable Validation failure");  
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
     }
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMACsecEnable...");
@@ -3552,13 +3574,13 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 
     if(flag == TRUE || flag == FALSE )
     { 
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_PASS(" MACsec Enable Validation success");
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
     }
     else
     {
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_FAIL(" MACsec Enable Validation failure");  
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetMACsecEnable...");
 }
@@ -3596,13 +3618,13 @@ void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 
     if(flag == TRUE || flag == FALSE )
     { 
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_PASS(" MACsec Enable Validation success");
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_PASS(" MACsec Enable Validation success");
     }
     else
     {
-            UT_LOG("MACsec Enable  is %d", flag);
-            UT_FAIL(" MACsec Enable Validation failure");  
+        UT_LOG("MACsec Enable  is %d", flag);
+        UT_FAIL(" MACsec Enable Validation failure");  
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_GetMACsecEnable...");
@@ -3760,7 +3782,8 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
 
-    if(req_opt_list != NULL && send_opt_list != NULL){
+    if(req_opt_list != NULL && send_opt_list != NULL)
+    {
         UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = valid structure, send_opt_list = valid structure.");    
         INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
         
@@ -3773,28 +3796,31 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
 
         if(req_opt_list->dhcp_opt == 42 || req_opt_list->dhcp_opt == 43 ||  req_opt_list->dhcp_opt == 58 ||  req_opt_list->dhcp_opt == 59 ||  req_opt_list->dhcp_opt == 60 ||  req_opt_list->dhcp_opt == 61 ||  req_opt_list->dhcp_opt == 100 ||  req_opt_list->dhcp_opt == 122 ||  req_opt_list->dhcp_opt == 125 ||  req_opt_list->dhcp_opt == 242 ||  req_opt_list->dhcp_opt == 243 ||  req_opt_list->dhcp_opt == 255)
         {
-                UT_LOG("req_opt_list->dhcp_opt is %d which is a valid value.", req_opt_list->dhcp_opt);
-                UT_PASS("Get Request DHCPV6 Options validation success");
+            UT_LOG("req_opt_list->dhcp_opt is %d which is a valid value.", req_opt_list->dhcp_opt);
+            UT_PASS("Get Request DHCPV6 Options validation success");
         }
-        else {
-                UT_LOG("req_opt_list->dhcp_opt is %d which is an invalid value.", req_opt_list->dhcp_opt);
-                UT_FAIL("Get Request DHCPV6 Options validation failed");
+        else
+        {
+            UT_LOG("req_opt_list->dhcp_opt is %d which is an invalid value.", req_opt_list->dhcp_opt);
+            UT_FAIL("Get Request DHCPV6 Options validation failed");
         } 
         if(send_opt_list->dhcp_opt == 42 || send_opt_list->dhcp_opt == 43 ||  send_opt_list->dhcp_opt == 58 ||  send_opt_list->dhcp_opt == 59 ||  send_opt_list->dhcp_opt == 60 ||  send_opt_list->dhcp_opt == 61 ||  send_opt_list->dhcp_opt == 100 ||  send_opt_list->dhcp_opt == 122 ||  send_opt_list->dhcp_opt == 125 ||  send_opt_list->dhcp_opt == 242 ||  send_opt_list->dhcp_opt == 243 ||  send_opt_list->dhcp_opt == 255)
         {
-                UT_LOG("send_opt_list->dhcp_opt is %d which is a valid value.", send_opt_list->dhcp_opt);
-                UT_PASS("Get Send DHCPV6 Options validation success");
+            UT_LOG("send_opt_list->dhcp_opt is %d which is a valid value.", send_opt_list->dhcp_opt);
+            UT_PASS("Get Send DHCPV6 Options validation success");
         }
-        else {
-                UT_LOG("send_opt_list->dhcp_opt is %d which is an invalid value.", send_opt_list->dhcp_opt);
-                UT_FAIL("Get Send DHCPV6 Options validation failed");
+        else 
+        {
+            UT_LOG("send_opt_list->dhcp_opt is %d which is an invalid value.", send_opt_list->dhcp_opt);
+            UT_FAIL("Get Send DHCPV6 Options validation failed");
         }
         free(req_opt_list);
         req_opt_list = NULL;
         free(send_opt_list);
         send_opt_list = NULL; 
     }
-    else{
+    else
+    {
         UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDhcpv6_Options...");
@@ -3823,18 +3849,20 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
     dhcp_opt_list* req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
 
-    if(send_opt_list != NULL){
-            UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = valid structure.");    
-            INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
+    if(send_opt_list != NULL)
+    {
+        UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = valid structure.");    
+        INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
     
-            UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);    
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
+        UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);    
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-            free(send_opt_list);
-            send_opt_list = NULL;
+        free(send_opt_list);
+        send_opt_list = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDhcpv6_Options...");
 }
@@ -3862,18 +3890,20 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     dhcp_opt_list* send_opt_list = NULL;
 
-    if(req_opt_list != NULL){
-            UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list = NULL and req_opt_list = valid structure.");    
-            INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
+    if(req_opt_list != NULL)
+    {
+        UT_LOG("Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list = NULL and req_opt_list = valid structure.");    
+        INT result = platform_hal_GetDhcpv6_Options(&req_opt_list, &send_opt_list);
 
-            UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
+        UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-            free(req_opt_list);
-            req_opt_list = NULL;
+        free(req_opt_list);
+        req_opt_list = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetDhcpv6_Options...");
 }
@@ -4360,18 +4390,20 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFirmwareBankInfo...");
     FW_BANK bankIndex = ACTIVE_BANK;
     PFW_BANK_INFO fwBankInfo = (PFW_BANK_INFO)malloc(sizeof(FW_BANK_INFO));
-    if(fwBankInfo != NULL){
-            UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d , fwBankInfo = valid structure.", bankIndex);
-            INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
+    if(fwBankInfo != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d , fwBankInfo = valid structure.", bankIndex);
+        INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-            UT_ASSERT_EQUAL(result, RETURN_OK);
-            UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_LOG("Return value: %d", result);
 
-            free(fwBankInfo);
-            fwBankInfo = NULL;
+        free(fwBankInfo);
+        fwBankInfo = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFirmwareBankInfo...");
 }
@@ -4400,18 +4432,20 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
     UT_LOG("Entering test_l1_platform_hal_positive2_GetFirmwareBankInfo...");
     FW_BANK bankIndex = INACTIVE_BANK;
     PFW_BANK_INFO fwBankInfo = (PFW_BANK_INFO)malloc(sizeof(FW_BANK_INFO));
-    if(fwBankInfo != NULL){
-            UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d and , fwBankInfo = valid structure.",bankIndex);
-            INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
+    if(fwBankInfo != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d and , fwBankInfo = valid structure.",bankIndex);
+        INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-            UT_LOG("Return value: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-            free(fwBankInfo);
-            fwBankInfo = NULL;
+        free(fwBankInfo);
+        fwBankInfo = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }     
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetFirmwareBankInfo...");
 }
@@ -4439,18 +4473,20 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_GetFirmwareBankInfo...");
     FW_BANK bankIndex = 2;
     PFW_BANK_INFO fwBankInfo = (PFW_BANK_INFO)malloc(sizeof(FW_BANK_INFO));
-    if(fwBankInfo != NULL){
-            UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d, fwBankInfo = valid structure.", bankIndex);
-            INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
+    if(fwBankInfo != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d, fwBankInfo = valid structure.", bankIndex);
+        INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-            UT_LOG("Return value: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-            free(fwBankInfo);
-            fwBankInfo = NULL;
+        free(fwBankInfo);
+        fwBankInfo = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFirmwareBankInfo...");
 }
@@ -4612,41 +4648,45 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
 
-    if(req_opt_list != NULL && send_opt_list != NULL){
-            UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = valid structure and send_opt_list = valid structure");
-            INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
+    if(req_opt_list != NULL && send_opt_list != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = valid structure and send_opt_list = valid structure");
+        INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-            UT_LOG("The result is: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
-            UT_ASSERT_PTR_NOT_NULL(req_opt_list);
-            UT_ASSERT_PTR_NOT_NULL(send_opt_list);
-            UT_LOG("DHCPv4 Options values for req is %d and for send is %d",req_opt_list->dhcp_opt,send_opt_list->dhcp_opt);
+        UT_LOG("The result is: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_ASSERT_PTR_NOT_NULL(req_opt_list);
+        UT_ASSERT_PTR_NOT_NULL(send_opt_list);
+        UT_LOG("DHCPv4 Options values for req is %d and for send is %d",req_opt_list->dhcp_opt,send_opt_list->dhcp_opt);
     
-            if(req_opt_list->dhcp_opt == 42 || req_opt_list->dhcp_opt == 43 ||  req_opt_list->dhcp_opt == 58 ||  req_opt_list->dhcp_opt == 59 ||  req_opt_list->dhcp_opt == 60 ||  req_opt_list->dhcp_opt == 61 ||  req_opt_list->dhcp_opt == 100 ||  req_opt_list->dhcp_opt == 122 ||  req_opt_list->dhcp_opt == 125 ||  req_opt_list->dhcp_opt == 242 ||  req_opt_list->dhcp_opt == 243 ||  req_opt_list->dhcp_opt == 255)
-            {
-                UT_LOG("req_opt_list->dhcp_opt is %d which is a valid value.", req_opt_list->dhcp_opt);
-                UT_PASS("Get Request DHCPV4 Options validation success");
-            }
-            else {
-                UT_LOG("req_opt_list->dhcp_opt is %d which is an invalid value.", req_opt_list->dhcp_opt);
-                UT_FAIL("Get Request DHCPV4 Options validation failed");
-            } 
-            if(send_opt_list->dhcp_opt == 42 || send_opt_list->dhcp_opt == 43 ||  send_opt_list->dhcp_opt == 58 ||  send_opt_list->dhcp_opt == 59 ||  send_opt_list->dhcp_opt == 60 ||  send_opt_list->dhcp_opt == 61 ||  send_opt_list->dhcp_opt == 100 ||  send_opt_list->dhcp_opt == 122 ||  send_opt_list->dhcp_opt == 125 ||  send_opt_list->dhcp_opt == 242 ||  send_opt_list->dhcp_opt == 243 ||  send_opt_list->dhcp_opt == 255)
-            {
-                UT_LOG("send_opt_list->dhcp_opt is %d which is a valid value.", send_opt_list->dhcp_opt);
-                UT_PASS("Get Send DHCPV4 Options validation success");
-            }
-            else {
-                UT_LOG("send_opt_list->dhcp_opt is %d which is an invalid value.", send_opt_list->dhcp_opt);
-                UT_FAIL("Get Send DHCPV4 Options validation failed");
-            }
-            free(req_opt_list);
-            req_opt_list = NULL;
-            free(send_opt_list);
-            send_opt_list = NULL; 
+        if(req_opt_list->dhcp_opt == 42 || req_opt_list->dhcp_opt == 43 ||  req_opt_list->dhcp_opt == 58 ||  req_opt_list->dhcp_opt == 59 ||  req_opt_list->dhcp_opt == 60 ||  req_opt_list->dhcp_opt == 61 ||  req_opt_list->dhcp_opt == 100 ||  req_opt_list->dhcp_opt == 122 ||  req_opt_list->dhcp_opt == 125 ||  req_opt_list->dhcp_opt == 242 ||  req_opt_list->dhcp_opt == 243 ||  req_opt_list->dhcp_opt == 255)
+        {
+            UT_LOG("req_opt_list->dhcp_opt is %d which is a valid value.", req_opt_list->dhcp_opt);
+            UT_PASS("Get Request DHCPV4 Options validation success");
+        }
+        else 
+        {
+            UT_LOG("req_opt_list->dhcp_opt is %d which is an invalid value.", req_opt_list->dhcp_opt);
+            UT_FAIL("Get Request DHCPV4 Options validation failed");
+        } 
+        if(send_opt_list->dhcp_opt == 42 || send_opt_list->dhcp_opt == 43 ||  send_opt_list->dhcp_opt == 58 ||  send_opt_list->dhcp_opt == 59 ||  send_opt_list->dhcp_opt == 60 ||  send_opt_list->dhcp_opt == 61 ||  send_opt_list->dhcp_opt == 100 ||  send_opt_list->dhcp_opt == 122 ||  send_opt_list->dhcp_opt == 125 ||  send_opt_list->dhcp_opt == 242 ||  send_opt_list->dhcp_opt == 243 ||  send_opt_list->dhcp_opt == 255)
+        {
+            UT_LOG("send_opt_list->dhcp_opt is %d which is a valid value.", send_opt_list->dhcp_opt);
+            UT_PASS("Get Send DHCPV4 Options validation success");
+        }
+        else
+        {
+            UT_LOG("send_opt_list->dhcp_opt is %d which is an invalid value.", send_opt_list->dhcp_opt);
+            UT_FAIL("Get Send DHCPV4 Options validation failed");
+        }
+        free(req_opt_list);
+        req_opt_list = NULL;
+        free(send_opt_list);
+        send_opt_list = NULL; 
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDhcpv4_Options...");
 }
@@ -4675,18 +4715,20 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
     dhcp_opt_list *req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     
-    if(send_opt_list != NULL) {
-            UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = valid structure.");
-            INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
+    if(send_opt_list != NULL) 
+    {
+        UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = valid structure.");
+        INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-            UT_LOG("The result is: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
+        UT_LOG("The result is: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-            free(send_opt_list);
-            send_opt_list = NULL; 
+        free(send_opt_list);
+        send_opt_list = NULL; 
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDhcpv4_Options...");
 }
@@ -4715,18 +4757,20 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
     dhcp_opt_list *send_opt_list = NULL;
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
 
-    if(req_opt_list != NULL){
-            UT_LOG("Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL, req_opt_list = valid structure");
-            INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
+    if(req_opt_list != NULL)
+    {
+        UT_LOG("Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL, req_opt_list = valid structure");
+        INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-            UT_LOG("The result is: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
+        UT_LOG("The result is: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
 
-            free(req_opt_list);
-            req_opt_list = NULL; 
+        free(req_opt_list);
+        req_opt_list = NULL; 
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetDhcpv4_Options...");
 }
@@ -4787,68 +4831,73 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getDscpClientList...");
     WAN_INTERFACE interfaceType = DOCSIS;
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
-    if(pDSCP_List != NULL){
-            UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.", interfaceType);
-            INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+    if(pDSCP_List != NULL)
+    {
+        UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.", interfaceType);
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-            UT_LOG("Return value: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
-            if (pDSCP_List != NULL) {
-                if (pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64)
-		            {
-                        UT_LOG("numElements is %d which is a valid value", pDSCP_List->numElements);
-                        UT_PASS("numElement validation success");
-		            }
-	            else
-		            {
-                        UT_LOG("numElements is %d which is an Invalid value", pDSCP_List->numElements);
-                        UT_FAIL("numElement validation failed");
-		            }
-                for (UINT i = 0; i < pDSCP_List->numElements; i++) {
-                    DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
-                    if (pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534)
-                        {
-                            UT_LOG("dscp_value is %d which is a valid value", pDSCP_Element->dscp_value);
-                            UT_PASS("dscp_value validation success");
-		                }
-	                else
-		                {
-                        UT_LOG("dscp_value is %d which is an Invalid value", pDSCP_Element->dscp_value);
-                        UT_FAIL("dscp_value validation failed");
-		                }
-                    if (pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255)
-                        {
-                            UT_LOG("numClients is %d which is a valid value", pDSCP_Element->numClients);
-                            UT_PASS("numClients validation success");
-		                }
-	                else
-		                {
-                        UT_LOG("numClients is %d which is an Invalid value", pDSCP_Element->numClients);
-                        UT_FAIL("numClients validation failed");
-		                }
-                    for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
-                        Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
-                        int len = strlen(pTraffic_client->mac);
-                        UT_ASSERT_EQUAL(len,17);
-                        UT_LOG("Valid MAC string as expected");
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
+        if (pDSCP_List != NULL) 
+        {
+            if (pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64)
+            {
+                UT_LOG("numElements is %d which is a valid value", pDSCP_List->numElements);
+                UT_PASS("numElement validation success");
+            }
+            else
+            {
+                UT_LOG("numElements is %d which is an Invalid value", pDSCP_List->numElements);
+                UT_FAIL("numElement validation failed");
+            }
+            for (UINT i = 0; i < pDSCP_List->numElements; i++) 
+            {
+                DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
+                if (pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534)
+                {
+                    UT_LOG("dscp_value is %d which is a valid value", pDSCP_Element->dscp_value);
+                    UT_PASS("dscp_value validation success");
+                }
+                else
+                {
+                    UT_LOG("dscp_value is %d which is an Invalid value", pDSCP_Element->dscp_value);
+                    UT_FAIL("dscp_value validation failed");
+                }
+                if (pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255)
+                {
+                    UT_LOG("numClients is %d which is a valid value", pDSCP_Element->numClients);
+                    UT_PASS("numClients validation success");
+                }
+                else
+                {
+                    UT_LOG("numClients is %d which is an Invalid value", pDSCP_Element->numClients);
+                    UT_FAIL("numClients validation failed");
+                }
+                for (UINT j = 0; j < pDSCP_Element->numClients; j++) 
+                {
+                    Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
+                    int len = strlen(pTraffic_client->mac);
+                    UT_ASSERT_EQUAL(len,17);
+                    UT_LOG("Valid MAC string as expected");
                     if (pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0)
-                        {
-                            UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
-                            UT_PASS("rxBytes and txBytes validation success");
-		                }
-	                else
-		                {
+                    {
+                        UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
+                        UT_PASS("rxBytes and txBytes validation success");
+                    }
+                    else
+                    {
                         UT_LOG("rxBytes is: %d and txBytes is: %d which is an invalid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
                         UT_FAIL("rxBytes and txBytes validation failed");
-		                }
                     }
                 }
-                free(pDSCP_List);
-                pDSCP_List = NULL;
             }
+            free(pDSCP_List);
+            pDSCP_List = NULL;
         }
-    else{
-            UT_LOG("Malloc operation failed");
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getDscpClientList...");
 }
@@ -4876,69 +4925,74 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
     UT_LOG("Entering test_l1_platform_hal_positive2_getDscpClientList...");
     WAN_INTERFACE interfaceType = EWAN;
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t));
-    if(pDSCP_List != NULL){
-            UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.",interfaceType);
-            INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+    if(pDSCP_List != NULL)
+    {
+        UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.",interfaceType);
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-            UT_LOG("Return value: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_OK);
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
 
-            if (pDSCP_List != NULL) {
-                if (pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64)
-		            {
-                        UT_LOG("numElements is %d which is a valid value", pDSCP_List->numElements);
-                        UT_PASS("numElement validation success");
-		            }
-	            else
-		            {
-                        UT_LOG("numElements is %d which is an Invalid value", pDSCP_List->numElements);
-                        UT_FAIL("numElement validation failed");
-		            }
-                for (UINT i = 0; i < pDSCP_List->numElements; i++) {
-                    DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
-                    if (pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534)
-                        {
-                            UT_LOG("dscp_value is %d which is a valid value", pDSCP_Element->dscp_value);
-                            UT_PASS("dscp_value validation success");
-		                }
-	                else
-		                {
-                        UT_LOG("dscp_value is %d which is an Invalid value", pDSCP_Element->dscp_value);
-                        UT_FAIL("dscp_value validation failed");
-		                }
-                    if (pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255)
-                        {
-                            UT_LOG("numClients is %d which is a valid value", pDSCP_Element->numClients);
-                            UT_PASS("numClients validation success");
-		                }
-	                else
-		                {
-                        UT_LOG("numClients is %d which is an Invalid value", pDSCP_Element->numClients);
-                        UT_FAIL("numClients validation failed");
-		                }
-                    for (UINT j = 0; j < pDSCP_Element->numClients; j++) {
-                        Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);                    
-                        int len = strlen(pTraffic_client->mac);
-                        UT_ASSERT_EQUAL(len,17);
-                        UT_LOG("Valid MAC string as expected");
+        if (pDSCP_List != NULL)
+        {
+            if (pDSCP_List->numElements >= 0 && pDSCP_List->numElements <= 64)
+            {
+                UT_LOG("numElements is %d which is a valid value", pDSCP_List->numElements);
+                UT_PASS("numElement validation success");
+            }
+            else
+            {
+                UT_LOG("numElements is %d which is an Invalid value", pDSCP_List->numElements);
+                UT_FAIL("numElement validation failed");
+            }
+            for (UINT i = 0; i < pDSCP_List->numElements; i++) 
+            {
+                DSCP_Element_t *pDSCP_Element = &(pDSCP_List->DSCP_Element[i]);
+                if (pDSCP_Element->dscp_value >= 0 && pDSCP_Element->dscp_value <= 65534)
+                {
+                    UT_LOG("dscp_value is %d which is a valid value", pDSCP_Element->dscp_value);
+                    UT_PASS("dscp_value validation success");
+                }
+                else
+                {
+                    UT_LOG("dscp_value is %d which is an Invalid value", pDSCP_Element->dscp_value);
+                    UT_FAIL("dscp_value validation failed");
+                }
+                if (pDSCP_Element->numClients >= 0 && pDSCP_Element->numClients <= 255)
+                {
+                    UT_LOG("numClients is %d which is a valid value", pDSCP_Element->numClients);
+                    UT_PASS("numClients validation success");
+                }
+                else
+                {
+                    UT_LOG("numClients is %d which is an Invalid value", pDSCP_Element->numClients);
+                    UT_FAIL("numClients validation failed");
+                }
+                for (UINT j = 0; j < pDSCP_Element->numClients; j++)
+                {
+                    Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);                    
+                    int len = strlen(pTraffic_client->mac);
+                    UT_ASSERT_EQUAL(len,17);
+                    UT_LOG("Valid MAC string as expected");
                     if (pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0)
-                        {
-                            UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
-                            UT_PASS("rxBytes and txBytes validation success");
-		                }
-	                else
-		                {
+                    {
+                        UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
+                        UT_PASS("rxBytes and txBytes validation success");
+                    }
+                    else
+                    {
                         UT_LOG("rxBytes is: %d and txBytes is: %d which is an invalid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
                         UT_FAIL("rxBytes and txBytes validation failed");
-		                }
                     }
                 }
-                free(pDSCP_List);
-                pDSCP_List = NULL;
             }
         }
-    else{
-            UT_LOG("Malloc operation failed");
+        free(pDSCP_List);
+        pDSCP_List = NULL;        
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getDscpClientList...");
 }
@@ -4967,16 +5021,17 @@ void test_l1_platform_hal_negative1_getDscpClientList(void)
     WAN_INTERFACE interfaceType = 3; 
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
     if(pDSCP_List != NULL){
-            UT_LOG("Invoking platform_hal_getDscpClientList with invalid interfaceType = %d and valid pDSCP_List.", interfaceType);
-            INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
+        UT_LOG("Invoking platform_hal_getDscpClientList with invalid interfaceType = %d and valid pDSCP_List.", interfaceType);
+        INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-            UT_LOG("Return value: %d", result);
-            UT_ASSERT_EQUAL(result, RETURN_ERR);
-            free(pDSCP_List);
-            pDSCP_List = NULL;
+        UT_LOG("Return value: %d", result);
+        UT_ASSERT_EQUAL(result, RETURN_ERR);
+        free(pDSCP_List);
+        pDSCP_List = NULL;
     }
-    else{
-            UT_LOG("Malloc operation failed");
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }    
     UT_LOG("Exiting test_l1_platform_hal_negative1_getDscpClientList...");
 }
@@ -5079,13 +5134,13 @@ void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) {
 
     if (!strcmp(pValue,"WaitForImplement") || !strcmp(pValue,"In Progress")|| !strcmp(pValue,"Complete"))
     {
-            UT_LOG("pValue from the device is %s which is a valid value",pValue);
-            UT_PASS("pValue validation success");
+        UT_LOG("pValue from the device is %s which is a valid value",pValue);
+        UT_PASS("pValue validation success");
     }
     else
     {
-            UT_LOG("pValue from the device %s which is an Invalid value",pValue);
-            UT_FAIL("pValue validation fail");
+        UT_LOG("pValue from the device %s which is an Invalid value",pValue);
+        UT_FAIL("pValue validation fail");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDeviceConfigStatus...");
 }
@@ -5330,33 +5385,39 @@ void test_l1_platform_hal_negative1_getInputCurrent(void) {
 void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_LoadThermalConfig...");
     THERMAL_PLATFORM_CONFIG *thermalConfig = (THERMAL_PLATFORM_CONFIG*)malloc(sizeof(THERMAL_PLATFORM_CONFIG));
-    if(thermalConfig != NULL){
-            UT_LOG("Invoking platform_hal_LoadThermalConfig with thermalConfig = valid structure");
-            INT status = platform_hal_LoadThermalConfig(thermalConfig);
+    if(thermalConfig != NULL)
+    {
+        UT_LOG("Invoking platform_hal_LoadThermalConfig with thermalConfig = valid structure");
+        INT status = platform_hal_LoadThermalConfig(thermalConfig);
     
-            UT_LOG("platform_hal_LoadThermalConfig API returns : %d", status);
-            UT_ASSERT_EQUAL(status, RETURN_OK);
-            UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig->FanCount, thermalConfig->SlowSpeedThresh, thermalConfig->MediumSpeedThresh, thermalConfig->FastSpeedThresh, thermalConfig->FanMinRunTime, thermalConfig->MonitoringDelay, thermalConfig->PowerMonitoring, thermalConfig->LogInterval);
+        UT_LOG("platform_hal_LoadThermalConfig API returns : %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_LOG("Values are Fan count : %d, Slow Speed Thresh: %d, MediumSpeedThresh : %d, Fast Speed Thresh : %d, FanMinRunTime : %d, MonitoringDelay : %d, PowerMonitoring : %d, LogInterval : %d",thermalConfig->FanCount, thermalConfig->SlowSpeedThresh, thermalConfig->MediumSpeedThresh, thermalConfig->FastSpeedThresh, thermalConfig->FanMinRunTime, thermalConfig->MonitoringDelay, thermalConfig->PowerMonitoring, thermalConfig->LogInterval);
 
-            if(thermalConfig->FanCount == 1 || thermalConfig->FanCount == 2){
-                UT_LOG("Fan Count is %d which is a valid value", thermalConfig->FanCount );
-                UT_PASS("Fan Count validation success");
-            }
-            else{
-                UT_LOG("Fan Count is %d which is a Invalid value", thermalConfig->FanCount);
-                UT_PASS("Fan Count validation failed");
-            }
-            if(thermalConfig->PowerMonitoring, 0 || thermalConfig->PowerMonitoring == 1){
-                UT_LOG("Power monitoring is %d which is a valid value", thermalConfig->PowerMonitoring );
-                UT_PASS("Power monitoring validation success");
-            }
-            else{
-                UT_LOG("Power monitoring is %d which is a valid value", thermalConfig->PowerMonitoring);
-                UT_PASS("Power monitoring validation failed");
-            }
+        if(thermalConfig->FanCount == 1 || thermalConfig->FanCount == 2)
+        {
+            UT_LOG("Fan Count is %d which is a valid value", thermalConfig->FanCount );
+            UT_PASS("Fan Count validation success");
         }
-    else{
-            UT_LOG("Malloc operation failed");
+        else
+        {
+            UT_LOG("Fan Count is %d which is a Invalid value", thermalConfig->FanCount);
+            UT_PASS("Fan Count validation failed");
+        }
+        if(thermalConfig->PowerMonitoring, 0 || thermalConfig->PowerMonitoring == 1)
+        {
+            UT_LOG("Power monitoring is %d which is a valid value", thermalConfig->PowerMonitoring );
+            UT_PASS("Power monitoring validation success");
+        }
+        else
+        {
+            UT_LOG("Power monitoring is %d which is a valid value", thermalConfig->PowerMonitoring);
+            UT_PASS("Power monitoring validation failed");
+        }
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_LoadThermalConfig...");
 }
@@ -5426,13 +5487,13 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     if(flag == TRUE || flag == FALSE )
     { 
-            UT_LOG(" Get MAC sec Operational Status is %d", flag);
-            UT_PASS(" MAC sec Operational Status validation success");
+        UT_LOG(" Get MAC sec Operational Status is %d", flag);
+        UT_PASS(" MAC sec Operational Status validation success");
     }
     else
     {
-            UT_LOG("MAC sec Operational Status  is %d", flag);
-            UT_FAIL(" MAC sec Operational Status validation failure");  
+        UT_LOG("MAC sec Operational Status  is %d", flag);
+        UT_FAIL(" MAC sec Operational Status validation failure");  
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMACsecOperationalStatus...");
 }
@@ -6068,17 +6129,20 @@ void test_l1_platform_hal_negative1_setFanSpeed(void) {
     UT_LOG("pErrReason : %d", pErrReason);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
-    if(pErrReason == 1){
-	        UT_LOG("Status of the Error is: %d  ",pErrReason);
-	        UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
+    if(pErrReason == 1)
+    {
+        UT_LOG("Status of the Error is: %d  ",pErrReason);
+        UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
     }
-    else if (pErrReason == 2){
-	        UT_LOG("Status of the Error is: %d  ",pErrReason);
-	        UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET.");
+    else if (pErrReason == 2)
+    {
+        UT_LOG("Status of the Error is: %d  ",pErrReason);
+        UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET.");
     }
-    else{
-            UT_LOG("Status of the Error is: %d ",pErrReason);
-	        UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason.");
+    else
+    {
+        UT_LOG("Status of the Error is: %d ",pErrReason);
+        UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason.");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_setFanSpeed...");
 }
@@ -6148,17 +6212,20 @@ void test_l1_platform_hal_negative3_setFanSpeed(void) {
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status,pErrReason);
     UT_LOG("pErrReason : %d", pErrReason);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
-    if(pErrReason == 1){
-	        UT_LOG("Status of the Error is: %d.",pErrReason);
-	        UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
+    if(pErrReason == 1)
+    {
+        UT_LOG("Status of the Error is: %d.",pErrReason);
+        UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
     }
-    else if (pErrReason == 2){
-	        UT_LOG("Status of the Error is: %d.",pErrReason);
-	        UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET ");
+    else if (pErrReason == 2)
+    {
+        UT_LOG("Status of the Error is: %d.",pErrReason);
+        UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET ");
     }
-    else{
-            UT_LOG("Status of the Error is: %d.",pErrReason);
-	        UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason ");
+    else
+    {
+        UT_LOG("Status of the Error is: %d.",pErrReason);
+        UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason ");
     }   
     UT_LOG("Exiting test_l1_platform_hal_negative3_setFanSpeed...");
 }
@@ -6189,7 +6256,19 @@ void test_l1_platform_hal_positive1_getInputPower(void) {
     INT status = platform_hal_getInputPower(&value);
 
     UT_LOG("platform_hal_getInputPower returns : %d", status);
+    UT_LOG("Output value: %d", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    if(value > 0)
+    { 
+        UT_LOG("Input Power is %lu which is a valid value", size);
+        UT_PASS (" Get Input Power Validation success");
+    }
+    else
+    {
+        UT_LOG("Input Power is %lu which is an invalid value", size);
+        UT_FAIL(" Get Input Power Validation Failure");    
+    } 
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getInputPower...");
 }
@@ -6315,16 +6394,15 @@ void test_l1_platform_hal_positive1_GetFreeMemorySize(void) {
     
     UT_LOG("Return value: %d, size: %lu", result, size);
     UT_ASSERT_EQUAL(result, RETURN_OK);
-
     if(size > 0)
     { 
-            UT_LOG("Free Memory Size  is %lu", size);
-            UT_PASS (" Free Memory Size  Validation success");
+        UT_LOG("Free Memory Size  is %lu", size);
+        UT_PASS (" Free Memory Size  Validation success");
     }
     else
     {
-            UT_LOG("Free Memory Size  is %lu", size);
-            UT_FAIL(" Free Memory Size Validation Failure");    
+        UT_LOG("Free Memory Size  is %lu", size);
+        UT_FAIL(" Free Memory Size Validation Failure");    
     } 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFreeMemorySize...");
 }
@@ -6390,13 +6468,13 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void) {
     
     if (!strcmp(timeOffSet,"-25200") || !strcmp(timeOffSet,"-18000")|| !strcmp(timeOffSet,"+25200"))
     {
-            UT_LOG("Time Offset value from the device is %s which is a valid value", timeOffSet);
-            UT_PASS("Get Time Offset validation success");
+        UT_LOG("Time Offset value from the device is %s which is a valid value", timeOffSet);
+        UT_PASS("Get Time Offset validation success");
     }
     else
     {
-            UT_LOG("Time Offset value from the device %s which is an Invalid value", timeOffSet);
-            UT_FAIL("Time Offset validation failed");
+        UT_LOG("Time Offset value from the device %s which is an Invalid value", timeOffSet);
+        UT_FAIL("Time Offset validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getTimeOffSet...");
 }
@@ -6421,7 +6499,7 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void) {
  */
 void test_l1_platform_hal_negative1_getTimeOffSet(void) {
     UT_LOG("Entering test_l1_platform_hal_negative1_getTimeOffSet...");
-     CHAR *timeOffSet = NULL;
+    CHAR *timeOffSet = NULL;
 
     UT_LOG("Invoking platform_hal_getTimeOffSet with timeOffSet=NULL");
     INT status = platform_hal_getTimeOffSet(timeOffSet);
@@ -6463,15 +6541,15 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if (!strcmp(pValue,"unknown") || !strcmp(pValue,"eUnprogrammed")|| !strcmp(pValue,"eComcast") || !strcmp(pValue,"eCharter") || !strcmp(pValue,"eCox") || !strcmp(pValue,"eRogers") || !strcmp(pValue,"eVodafone") || !strcmp(pValue,"eShaw") || !strcmp(pValue,"eVideotron"))
-	{
-            UT_LOG("Factory Patner ID from the device is %s which is a valid value", pValue);
-            UT_PASS("Get Factory Patner ID validation success");
-	}
-	else
-	{
-            UT_LOG("Factory Patner ID  from the device %s which is an Invalid value", pValue);
-            UT_FAIL("Get Factory Patner ID validation failed");
-	}
+    {
+        UT_LOG("Factory Patner ID from the device is %s which is a valid value", pValue);
+        UT_PASS("Get Factory Patner ID validation success");
+    }
+    else
+    {
+        UT_LOG("Factory Patner ID  from the device %s which is an Invalid value", pValue);
+        UT_FAIL("Get Factory Patner ID validation failed");
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFactoryPartnerId...");
 }
 
@@ -6589,7 +6667,6 @@ void test_l1_platform_hal_negative1_initLed( void )
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 * 
 * **Test Procedure:** @n
-* 
 * | Variation / Step | Description                                 | Test Data       | Expected Result         | Notes             |
 * | :----:           | ---------                                   | ----------      |--------------           | -----             |
 * | 01               | Invoking the API platform_hal_getFanStatus with fanIndex = 0  | fanIndex = 0     | Returns 0 or 1 | Should be successful |
@@ -6605,18 +6682,18 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
     UT_LOG("Status of the fan is %d",status);
     if(status == 0)
     { 
-            UT_LOG("Status of the fan is %d and it is disabled.", status);
-            UT_PASS("Get Fan Status Validation success");
+        UT_LOG("Status of the fan is %d and it is disabled.", status);
+        UT_PASS("Get Fan Status Validation success");
     }
     else if(status == 1 )
     { 
-            UT_LOG("Status of the fan is %d and it is enabled", status);
-            UT_PASS("Get Fan Status Validation success");
+        UT_LOG("Status of the fan is %d and it is enabled", status);
+        UT_PASS("Get Fan Status Validation success");
     }
     else
     {
-            UT_LOG("Status of the fan is %d", status);
-            UT_FAIL("Get Fan Status Validation Failed");  
+        UT_LOG("Status of the fan is %d", status);
+        UT_FAIL("Get Fan Status Validation Failed");  
     }   
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanStatus...");
 }
@@ -6734,13 +6811,13 @@ void test_l1_platform_hal_positive2_getFanSpeed(void) {
     UT_LOG("Received fanSpeed=%d", fanSpeed);
     if (fanSpeed >= 0)
     {
-            UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-            UT_PASS("Get Fan Speed validation success");
+        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
+        UT_PASS("Get Fan Speed validation success");
     }
     else
     {
-            UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-            UT_FAIL("Get Fan Speed validation success");
+        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
+        UT_FAIL("Get Fan Speed validation success");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getFanSpeed...");
 }
@@ -6775,13 +6852,13 @@ void test_l1_platform_hal_positive1_GetSSHEnable(void) {
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(pFlag == TRUE || pFlag == FALSE )
     { 
-            UT_LOG("SSH Enable is %d", pFlag);
-            UT_PASS("Get SSH Enable validation success");
+        UT_LOG("SSH Enable is %d", pFlag);
+        UT_PASS("Get SSH Enable validation success");
     }
     else
     {
-            UT_LOG("SSH Enable is %d", pFlag);
-            UT_FAIL(" Get SSH Enable Validation failure");  
+        UT_LOG("SSH Enable is %d", pFlag);
+        UT_FAIL(" Get SSH Enable Validation failure");  
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetSSHEnable...");
 }
@@ -7102,13 +7179,13 @@ void test_l1_platform_hal_positive1_GetTelnetEnable(void)
 
     if(pFlag == TRUE || pFlag == FALSE )
     { 
-            UT_LOG("Telnet Enable is %d", pFlag);
-            UT_PASS("Get Telnet Enable validation success");
+        UT_LOG("Telnet Enable is %d", pFlag);
+        UT_PASS("Get Telnet Enable validation success");
     }
     else
     {
-            UT_LOG("Telnet Enable is %d", pFlag);
-            UT_FAIL(" Get Telnet Enable Validation failed");  
+        UT_LOG("Telnet Enable is %d", pFlag);
+        UT_FAIL(" Get Telnet Enable Validation failed");  
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetTelnetEnable...");
 }
@@ -7503,7 +7580,8 @@ int register_hal_tests(void)
 {
     // Create the test suite
     pSuite = UT_add_suite("[L1 platform_hal]", NULL, NULL);
-    if (pSuite == NULL) {
+    if (pSuite == NULL) 
+    {
         return -1;
     }
     // List of test function names and strings
@@ -7512,7 +7590,8 @@ int register_hal_tests(void)
    void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_initThermal, test_l1_platform_hal_negative1_initThermal, test_l1_platform_hal_positive1_getFanTemperature, test_l1_platform_hal_negative1_getFanTemperature, test_l1_platform_hal_positive1_getRadioTemperature, test_l1_platform_hal_negative1_getRadioTemperature, test_l1_platform_hal_negative2_getRadioTemperature, test_l1_platform_hal_positive2_getRadioTemperature, test_l1_platform_hal_positive3_getRadioTemperature, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_getInputCurrent, test_l1_platform_hal_negative1_getInputCurrent, test_l1_platform_hal_positive1_LoadThermalConfig, test_l1_platform_hal_negative1_LoadThermalConfig, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_setFanSpeed, test_l1_platform_hal_positive2_setFanSpeed, test_l1_platform_hal_positive3_setFanSpeed, test_l1_platform_hal_positive4_setFanSpeed, test_l1_platform_hal_positive5_setFanSpeed, test_l1_platform_hal_positive6_setFanSpeed, test_l1_platform_hal_positive7_setFanSpeed, test_l1_platform_hal_positive8_setFanSpeed, test_l1_platform_hal_positive9_setFanSpeed, test_l1_platform_hal_positive10_setFanSpeed, test_l1_platform_hal_negative1_setFanSpeed, test_l1_platform_hal_negative2_setFanSpeed, test_l1_platform_hal_negative3_setFanSpeed,  test_l1_platform_hal_positive1_getInputPower, test_l1_platform_hal_negative1_getInputPower, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_initLed, test_l1_platform_hal_negative1_initLed, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
 
     // Add tests to the suite
-    for (int i = 0; i < sizeof(list1) / sizeof(list1[0]); i++) {
+    for (int i = 0; i < sizeof(list1) / sizeof(list1[0]); i++) 
+    {
         UT_add_test(pSuite, list1[i], list2[i]);
     }
     return 0;
