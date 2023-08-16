@@ -3379,7 +3379,7 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
     UT_LOG("Entering test_l1_platform_hal_negative2_GetMemoryPaths..."); 
 
     RDK_CPUS index = HOST_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo = NULL;
+    PPLAT_PROC_MEM_INFO *ppinfo = NULL;
 
     UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = NULL",index);
     INT result = platform_hal_GetMemoryPaths(index, ppinfo);
@@ -6250,7 +6250,7 @@ void test_l1_platform_hal_negative3_setFanSpeed(void) {
  */
 void test_l1_platform_hal_positive1_getInputPower(void) {
     UT_LOG("Entering test_l1_platform_hal_positive1_getInputPower...");
-    INT value=0;
+    INT value = 0;
 
     UT_LOG("Invoking platform_hal_getInputPower with value = %d.",value);
     INT status = platform_hal_getInputPower(&value);
@@ -6261,12 +6261,12 @@ void test_l1_platform_hal_positive1_getInputPower(void) {
 
     if(value > 0)
     { 
-        UT_LOG("Input Power is %lu which is a valid value", size);
+        UT_LOG("Input Power is %d which is a valid value", value);
         UT_PASS (" Get Input Power Validation success");
     }
     else
     {
-        UT_LOG("Input Power is %lu which is an invalid value", size);
+        UT_LOG("Input Power is %d which is an invalid value", value);
         UT_FAIL(" Get Input Power Validation Failure");    
     } 
 
