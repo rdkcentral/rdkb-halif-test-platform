@@ -38,7 +38,7 @@
 #include "cJSON.h"
 
 int MaxEthPort = 0;
-char conigFile[] =  "config/platform_config";
+char configFile[] =  "./platform_config";
 
 /**function to read the json config file and return its content as a string
 *IN : json file name
@@ -54,7 +54,7 @@ static char* read_file(const char *filename) {
     file = fopen(filename, "r");
     if (file == NULL)
     {
-        printf("platform_config file not exist in config directory\n");
+        printf("Please place platform_config file ,where your binary is placed\n");
         exit(1);
     }
     else
@@ -130,7 +130,7 @@ int get_MaxEthPort(void)
     cJSON *value = NULL;
     cJSON *json = NULL;
     UT_LOG("Checking MaxEthPort");
-    json = parse_file(conigFile);
+    json = parse_file(configFile);
     if (json==NULL)
         {
           printf("Failed to parse config\n");
