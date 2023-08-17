@@ -35,6 +35,120 @@
 #include <stdlib.h>
 #include <string.h>
 #include "platform_hal.h"
+#include "cJSON.h"
+
+int MaxEthPort = 0;
+char conigFile[] =  "config/platform_config";
+
+/**function to read the json config file and return its content as a string
+*IN : json file name
+*OUT : content of json file as string
+**/
+static char* read_file(const char *filename) {
+    FILE *file = NULL;
+    long length = 0;
+    char *content = NULL;
+    size_t read_chars = 0;
+
+    /* open in read mode */
+    file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        printf("platform_config file not exist in config directory\n");
+        exit(1);
+    }
+    else
+    {
+	/* get the length */
+        if (fseek(file, 0, SEEK_END) == 0)
+        {
+            length = ftell(file);
+        if (length > 0)
+            {
+                if (fseek(file, 0, SEEK_SET) == 0)
+                {
+                    /* allocate content buffer */
+                    content = (char*)malloc((size_t)length + sizeof(""));
+                    if (content != NULL)
+                    {
+                        /* read the file into memory */
+                        read_chars = fread(content, sizeof(char), (size_t)length, file);
+                        if ((long)read_chars != length)
+                        {
+                            free(content);
+                            content = NULL;
+                        }
+                        else
+                            content[read_chars] = '\0';
+                    }
+                }
+            
+       }
+        else
+        {
+            printf("platform_config file is empty. please add configuration\n");
+            exit(1);
+        }
+        }
+    fclose(file);
+    }
+
+    return content;
+}
+
+/**function to read the json config file and return its content as a json object
+*IN : json file name
+*OUT : content of json file as a json object
+**/
+static cJSON *parse_file(const char *filename)
+{
+    cJSON *parsed = NULL;
+    char *content = read_file(filename);
+    parsed = cJSON_Parse(content);
+
+    if (content != NULL)
+    {
+        free(content);
+    }
+
+    return parsed;
+}
+/* decode the value from json object */
+static int decode_param_integer(cJSON  *json, char *key, cJSON  **value)
+{
+    *value = cJSON_GetObjectItem(json, key);
+    if ((*value == NULL) || (cJSON_IsNumber(*value) == FALSE)) {
+        printf("%s:%d: Validation failed for key:%s\n", __func__, __LINE__, key);
+        return -1;
+    }
+    return 0;
+}
+
+/* get the MaxEthPort from configuration file */
+int get_MaxEthPort(void)
+{
+    cJSON *value = NULL;
+    cJSON *json = NULL;
+    UT_LOG("Checking MaxEthPort");
+    json = parse_file(conigFile);
+    if (json==NULL)
+        {
+          printf("Failed to parse config\n");
+          return -1;
+        }
+        value = cJSON_GetObjectItem(json, "MaxEthPort");
+    // null check and object is number, value->valueint
+    if( (value!=NULL) && (cJSON_IsNumber(value)) )
+    {
+        if(0 == decode_param_integer(json, "MaxEthPort", &value))
+        {
+                MaxEthPort = value->valueint;
+        }
+    }
+	printf(" MaxEthPort = %d\n",MaxEthPort);
+    UT_LOG("Checking MaxEthpor t is  ================== %d",MaxEthPort);
+    return 0;	
+}  
 
 /**
 * @brief This test case is used to verify the functionality of the get firmware name API.
@@ -7613,6 +7727,15 @@ int register_hal_tests(void)
 int main(int argc, char** argv)
 {
     int registerReturn = 0;
+    /* get MaxEthPort value */
+    if (get_MaxEthPort() == 0)
+    {
+        printf("got the MaxEthPort value\n");
+    }
+    else
+    {
+        printf("failed to get MaxEthport value\n");
+    }
     /* Register tests as required, then call the UT-main to support switches and triggering */
     UT_init( argc, argv );
     /* Check if tests are registered successfully */
