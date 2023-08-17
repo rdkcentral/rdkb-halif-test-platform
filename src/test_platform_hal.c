@@ -34,6 +34,7 @@
 #include <ut_log.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "platform_hal.h"
 #include "cJSON.h"
 
@@ -44,7 +45,8 @@ char configFile[] =  "./platform_config";
 *IN : json file name
 *OUT : content of json file as string
 **/
-static char* read_file(const char *filename) {
+static char* read_file(const char *filename) 
+{
     FILE *file = NULL;
     long length = 0;
     char *content = NULL;
@@ -59,11 +61,11 @@ static char* read_file(const char *filename) {
     }
     else
     {
-	/* get the length */
+    /* get the length */
         if (fseek(file, 0, SEEK_END) == 0)
         {
             length = ftell(file);
-        if (length > 0)
+            if (length > 0)
             {
                 if (fseek(file, 0, SEEK_SET) == 0)
                 {
@@ -82,17 +84,15 @@ static char* read_file(const char *filename) {
                             content[read_chars] = '\0';
                     }
                 }
-            
-       }
-        else
-        {
-            printf("platform_config file is empty. please add configuration\n");
-            exit(1);
+            }
+            else
+            {
+                printf("platform_config file is empty. please add configuration\n");
+                exit(1);
+            }
         }
-        }
-    fclose(file);
+        fclose(file);
     }
-
     return content;
 }
 
@@ -117,7 +117,8 @@ static cJSON *parse_file(const char *filename)
 static int decode_param_integer(cJSON  *json, char *key, cJSON  **value)
 {
     *value = cJSON_GetObjectItem(json, key);
-    if ((*value == NULL) || (cJSON_IsNumber(*value) == FALSE)) {
+    if ((*value == NULL) || (cJSON_IsNumber(*value) == FALSE)) 
+    {
         printf("%s:%d: Validation failed for key:%s\n", __func__, __LINE__, key);
         return -1;
     }
@@ -132,11 +133,11 @@ int get_MaxEthPort(void)
     UT_LOG("Checking MaxEthPort");
     json = parse_file(configFile);
     if (json==NULL)
-        {
-          printf("Failed to parse config\n");
-          return -1;
-        }
-        value = cJSON_GetObjectItem(json, "MaxEthPort");
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "MaxEthPort");
     // null check and object is number, value->valueint
     if( (value!=NULL) && (cJSON_IsNumber(value)) )
     {
@@ -145,8 +146,8 @@ int get_MaxEthPort(void)
                 MaxEthPort = value->valueint;
         }
     }
-	printf(" MaxEthPort = %d\n",MaxEthPort);
-    UT_LOG("Checking MaxEthpor t is  ================== %d",MaxEthPort);
+    printf(" MaxEthPort = %d\n",MaxEthPort);
+    UT_LOG("Checking MaxEthport is  ================== %d",MaxEthPort);
     return 0;	
 }  
 
@@ -175,7 +176,7 @@ void test_l1_platform_hal_positive1_GetFirmwareName(void)
     CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize=256.");
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize = %lu.",maxSize);
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
     UT_LOG("Output value of pValue: %s", pValue);
@@ -210,7 +211,7 @@ void test_l1_platform_hal_negative1_GetFirmwareName(void)
     CHAR* pValue = NULL;
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = NULL, maxSize = 256");
+    UT_LOG("Invoking platform_hal_GetFirmwareName() with pValue = NULL, maxSize = %lu.",maxSize);
     INT status = platform_hal_GetFirmwareName(pValue, maxSize);
 
     UT_LOG("platform_hal_GetFirmwareName API returns: %d", status);
@@ -244,7 +245,7 @@ void test_l1_platform_hal_positive1_GetSoftwareVersion(void)
     CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetSoftwareVersion with pValue = valid buffer, maxSize = 256");
+    UT_LOG("Invoking platform_hal_GetSoftwareVersion with pValue = valid buffer, maxSize = %lu.",maxSize);
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
     UT_LOG("Output value of pValue: %s", pValue);
@@ -279,7 +280,7 @@ void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
     CHAR* pValue = NULL;
     ULONG maxSize = 256;
 
-    UT_LOG("Invoking platform_hal_GetSoftwareVersion with pValue = NULL, maxSize = 256");
+    UT_LOG("Invoking platform_hal_GetSoftwareVersion with pValue = NULL, maxSize = %lu.", maxSize);
     INT status = platform_hal_GetSoftwareVersion(pValue, maxSize);
 
     UT_LOG("platform_hal_GetSoftwareVersion API returns: %d", status);
@@ -370,7 +371,7 @@ void test_l1_platform_hal_negative1_GetSerialNumber(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_GetSNMPEnable with valid pValue buffer | pValue = Valid Buffer | Return status should be RETURN_OK  | Should be successful |
+* | 01 | Invoking platform_hal_GetSNMPEnable with valid pValue buffer| pValue = Valid Buffer| RETURN_OK  | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetSNMPEnable(void)
 {
@@ -412,17 +413,19 @@ void test_l1_platform_hal_positive1_GetSNMPEnable(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 * 
 * **Test Procedure:** @n
-* | Variation / Step | Description                                                                                 | Test Data         | Expected Result                     | Notes             |
-* | ---------------- | ------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------- | ----------------- |
-* | 01               | Verify platform_hal_GetSNMPEnable with NULL pValue                                        | pValue = NULL     | RETURN_ERR                           | Should fail|
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :------: |---------|----------|-------------|---------|
+* | 01| Verify platform_hal_GetSNMPEnable with NULL pValue| pValue = NULL| RETURN_ERR| Should fail|
 */
-void test_l1_platform_hal_negative1_GetSNMPEnable(void) {
+void test_l1_platform_hal_negative1_GetSNMPEnable(void)
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetSNMPEnable...");
     char *pValue = NULL;
 
     UT_LOG("Invoking platform_hal_GetSNMPEnable with NULL pValue");
     INT result = platform_hal_GetSNMPEnable(pValue);
 
+    UT_LOG("platform_hal_GetSNMPEnable API returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetSNMPEnable...");
@@ -444,28 +447,30 @@ void test_l1_platform_hal_negative1_GetSNMPEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_GetHardware_MemUsed with value = Valid Buffer  | value = Valid Buffer | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetHardware_MemUsed with value = Valid Buffer| value = Valid Buffer | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) {
+void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware_MemUsed...");
     CHAR value[1024] = {"\0"};
+    int Mem_Used = 0;
 
-    UT_LOG("Invoking platform_hal_GetHardware_MemUsed with value =Valid Buffer.");
+    UT_LOG("Invoking platform_hal_GetHardware_MemUsed with value = Valid Buffer.");
     INT status = platform_hal_GetHardware_MemUsed(value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_LOG("Return Status: %d", status);
+    UT_LOG("platform_hal_GetHardware_MemUsed returns: %d", status);
     
-    int Mem_Used = atoi(value);
+    Mem_Used = atoi(value);
     UT_LOG("Total used memory : %d", Mem_Used);
     if(Mem_Used > 0)
     {
-        UT_LOG("RPM is %d which is a valid value.", Mem_Used);
-        UT_PASS("Get RPM validation success");
+        UT_LOG("Hardware Memory Used is %d which is a valid value.", Mem_Used);
+        UT_PASS("Get Hardware Memory Used validation success");
     }
     else
     {
-        UT_LOG("RPM is %d which is an invalid value.", Mem_Used);
-        UT_FAIL("Get RPM validation failed");
+        UT_LOG("Hardware Memory Used is %d which is an invalid value.", Mem_Used);
+        UT_FAIL("Get Hardware Memory Used validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemUsed...");
 }
@@ -485,41 +490,43 @@ void test_l1_platform_hal_positive1_GetHardware_MemUsed(void) {
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
+* | :----: | --------- | ---------- |--------------|-----|
 * | 01 | Invoking platform_hal_GetHardware_MemUsed with  value = NULL | value = NULL | RETURN_ERR | Should be equal to RETURN_ERR |
 */
-void test_l1_platform_hal_negative1_GetHardware_MemUsed(void) {
+void test_l1_platform_hal_negative1_GetHardware_MemUsed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware_MemUsed..."); 
     CHAR *value = NULL;
 
     UT_LOG("Invoking platform_hal_GetHardware_MemUsed with  value = NULL.");
     INT status = platform_hal_GetHardware_MemUsed(value);
     
-    UT_LOG("Return Status: %d", status);
+    UT_LOG("platform_hal_GetHardware_MemUsed returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardware_MemUsed...");
 }
 
 /**
- * @brief Test case to verify the functionality of the platform_hal_GetHardwareVersion function.
- * 
- * This test case checks the behavior of the platform_hal_GetHardwareVersion function and verifies if it returns the hardware version correctly.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 011 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                | Test Data                       | Expected Result                              | Notes              |
- * |:----------------:|------------------------------------------------------------|---------------------------------|----------------------------------------------|--------------------|
- * |       01         | Invoke platform_hal_GetHardwareVersion function with pValue = Valid Buffer          | pValue = Valid Buffer   | RETURN_OK| Should be successful |
- */
-void test_l1_platform_hal_positive1_GetHardwareVersion(void) {
+* @brief Test case to verify the functionality of the platform_hal_GetHardwareVersion function.
+* 
+* This test case checks the behavior of the platform_hal_GetHardwareVersion function and verifies if it returns the hardware version correctly.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 011 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* |:-------:|-----------|---------|------------|-------|
+* |01| Invoke platform_hal_GetHardwareVersion function with pValue = Valid Buffer| pValue = Valid Buffer|RETURN_OK| Should be successful|
+*/
+void test_l1_platform_hal_positive1_GetHardwareVersion(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardwareVersion...");    
     CHAR pValue[256] = {"\0"}; 
     
@@ -534,26 +541,27 @@ void test_l1_platform_hal_positive1_GetHardwareVersion(void) {
 }
 
 /**
- * @brief Test case for the platform_hal_GetHardwareVersion function with negative input.
- *
- * This test case is used to verify the behavior of the platform_hal_GetHardwareVersion function 
- * when provided with negative input. The objective of this test is to ensure that the function 
- * correctly handles negative input and returns the expected error code.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 012 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                | Test Data                       | Expected Result                              | Notes              |
- * |:----------------:|------------------------------------------------------------|---------------------------------|----------------------------------------------|--------------------|
- *  01 |  Invoke platform_hal_GetHardwareVersion function with pValue = NULL | pValue = NULL | Status = RETURN_ERR | Should fail
- */
-void test_l1_platform_hal_negative1_GetHardwareVersion(void) {
+* @brief Test case for the platform_hal_GetHardwareVersion function with negative input.
+*
+* This test case is used to verify the behavior of the platform_hal_GetHardwareVersion function 
+* when provided with negative input. The objective of this test is to ensure that the function 
+* correctly handles negative input and returns the expected error code.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 012 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description|Test Data| Expected Result| Notes|
+* |:------:|----------|--------------|--------|-------|
+* |01|Invoke platform_hal_GetHardwareVersion function with pValue = NULL| pValue = NULL | Status = RETURN_ERR|Should fail|
+*/
+void test_l1_platform_hal_negative1_GetHardwareVersion(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardwareVersion...");  
     CHAR* pValue = NULL; 
 
@@ -582,7 +590,7 @@ void test_l1_platform_hal_negative1_GetHardwareVersion(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoke GetModelName API pValue = Valid buffer | pValue = Valid buffer | RETURN_OK  | Should be successful |
+* | 01| Invoke GetModelName API with pValue = Valid buffer | pValue = Valid buffer |RETURN_OK|Should be successful|
 */
 void test_l1_platform_hal_positive1_GetModelName(void)
 {
@@ -593,7 +601,7 @@ void test_l1_platform_hal_positive1_GetModelName(void)
     UT_LOG("Invoking platform_hal_GetModelName with pValue = Valid buffer");
     UT_LOG("Output value of pValue: %s", pValue);
     
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetModelName returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetModelName...");
@@ -615,19 +623,18 @@ void test_l1_platform_hal_positive1_GetModelName(void)
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :--------------: | ----------- | --------- | --------------- | ----- |
-* |       01         | Invoking platform_hal_GetModelName with model_name = NULL| model_name = NULL | RETURN_ERR | Function should return RETURN_ERR when invoked with a NULL input parameter |
+* | :------: | -------- | --------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetModelName with model_name = NULL| model_name = NULL | RETURN_ERR | Should return error |
 */
 void test_l1_platform_hal_negative1_GetModelName(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetModelName...");
-
     CHAR* model_name = NULL;
 
     UT_LOG("Invoking platform_hal_GetModelName with model_name = NULL");
     INT status = platform_hal_GetModelName(model_name);
     
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetModelName returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetModelName...");
@@ -651,7 +658,8 @@ void test_l1_platform_hal_negative1_GetModelName(void)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetRouterRegion with pValue = Valid buffer | pValue = Valid buffer| RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetRouterRegion(void) {
+void test_l1_platform_hal_positive1_GetRouterRegion(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetRouterRegion...");
     CHAR pValue[256] = {"\0"};
 
@@ -695,7 +703,8 @@ void test_l1_platform_hal_positive1_GetRouterRegion(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetRouterRegion with pValue = NULL | pValue = NULL | RETURN_ERR | Should be successful |
 */
-void test_l1_platform_hal_negative1_GetRouterRegion(void) {
+void test_l1_platform_hal_negative1_GetRouterRegion(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetRouterRegion...");
     CHAR *pValue = NULL;
 
@@ -724,46 +733,44 @@ void test_l1_platform_hal_negative1_GetRouterRegion(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetBootloaderVersion with pValue = valid buffer, maxSize = 256 | pValue = valid buffer, maxSize = 256 | status = RETURN_OK | Should be successful |
+* |01| Invoking platform_hal_GetBootloaderVersion with pValue = valid buffer, maxSize = 256| pValue = valid buffer, maxSize = 256| RETURN_OK | Should be successful|
 */
 void test_l1_platform_hal_positive1_GetBootloaderVersion(void)
 {
+    UT_LOG("Entering test_l1_platform_hal_positive1_GetBootloaderVersion...");    
     CHAR pValue[256] = {"\0"};
     ULONG maxSize = 256;
 
-    UT_LOG("Entering test_l1_platform_hal_positive1_GetBootloaderVersion...");
-
-    UT_LOG("Invoking platform_hal_GetBootloaderVersion with pValue = valid buffer, maxSize = 256.");
+    UT_LOG("Invoking platform_hal_GetBootloaderVersion with pValue = valid buffer, maxSize = %lu.",maxSize);
     INT status = platform_hal_GetBootloaderVersion(pValue, maxSize);
     
-    UT_LOG("Output values: pValue = %s", pValue);
-    UT_LOG("Return status: status = %d", status);
+    UT_LOG("Output value of pValue = %s", pValue);
+    UT_LOG("platform_hal_GetBootloaderVersion returns = %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetBootloaderVersion...");
 }
 
 /**
- * @brief Tests the functionality of the GetBootloaderVersion function when called with NULL pValue parameter.
- *
- * The objective of this test is to verify the behavior of the platform_hal_GetBootloaderVersion function when it is called with a NULL pValue parameter. It checks whether the function returns an error status as expected.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 018 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- *  | Variation / Step | Description | Test Data                                      | Expected Result               | Notes           |
- *  | :--------------: | ----------- | ---------------------------------------------- | ----------------------------- | --------------- |
- *  |       01         | Invoke the platform_hal_GetBootloaderVersion with pValue = NULL, maxSize = 0. | pValue = NULL, maxSize = 0               | RETURN_ERR                     | Should fail |
- */
+* @brief Tests the functionality of the GetBootloaderVersion function when called with NULL pValue parameter.
+*
+* The objective of this test is to verify the behavior of the platform_hal_GetBootloaderVersion function when it is called with a NULL pValue parameter. It checks whether the function returns an error status as expected.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 018 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:** @n
+*  | Variation / Step | Description | Test Data| Expected Result| Notes|
+*  | :--------: |-----------| -------- | --------| ---------|
+*  |01| Invoke the platform_hal_GetBootloaderVersion with pValue = NULL, maxSize = 0| pValue = NULL, maxSize = 0| RETURN_ERR|Should fail|
+*/
 void test_l1_platform_hal_negative1_GetBootloaderVersion(void)
 {
-
     UT_LOG("Entering test_l1_platform_hal_negative1_GetBootloaderVersion...");
     CHAR* pValue = NULL;
     ULONG maxSize = 0;
@@ -771,41 +778,43 @@ void test_l1_platform_hal_negative1_GetBootloaderVersion(void)
     UT_LOG("Invoking platform_hal_GetBootloaderVersion with pValue = NULL, maxSize = 0.");
     INT status = platform_hal_GetBootloaderVersion(pValue, maxSize);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_GetBootloaderVersion returns = %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetBootloaderVersion...");
 }
 
 /**
- * @brief Unit test to verify the functionality of platform_hal_GetHardware function.
- * 
- * This test case is used to validate the correctness and functionality of the platform_hal_GetHardware() function.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 019 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetHardware with pValue = valid buffer | pValue = valid buffer | RETURN_OK | The function should return success status |
- */
-void test_l1_platform_hal_positive1_GetHardware(void) {
+* @brief Unit test to verify the functionality of platform_hal_GetHardware function.
+* 
+* This test case is used to validate the correctness and functionality of the platform_hal_GetHardware() function.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 019 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_GetHardware with pValue = valid buffer | pValue = valid buffer | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_GetHardware(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware...");
     CHAR value[256] = {"\0"};
+    int flash_size = 0;
 
     UT_LOG("Invoking platform_hal_GetHardware with pValue = valid buffer");
     INT ret = platform_hal_GetHardware(value);
 
-    UT_LOG("Output values: pValue = %s", value);
-    UT_LOG("Return status: ret = %d", ret);
+    UT_LOG("Output value of pValue = %s", value);
+    UT_LOG("platform_hal_GetHardware returns = %d", ret);
     
-    int flash_size = atoi(value);
+    flash_size = atoi(value);
     UT_ASSERT_EQUAL(ret, RETURN_OK);
 
     if (flash_size >= 1 && flash_size <= 4096)
@@ -838,19 +847,19 @@ void test_l1_platform_hal_positive1_GetHardware(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* 
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_GetHardware with pValue = NULL | pValue = NULL | RETURN_ERR | Should return the error code |
 */
-void test_l1_platform_hal_negative1_GetHardware(void) {
+void test_l1_platform_hal_negative1_GetHardware(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware...");
     CHAR *pValue = NULL;
 
     UT_LOG("Invoking platform_hal_GetHardware with pValue = NULL");
     INT ret = platform_hal_GetHardware(pValue);
 
-    UT_LOG("Return status: ret = %d", ret);    
+    UT_LOG(" platform_hal_GetHardware returns = %d", ret);    
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardware...");
@@ -875,14 +884,15 @@ void test_l1_platform_hal_negative1_GetHardware(void) {
  * | :----: | --------- | ---------- | -------------- | ----- |
  * | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "rgWan" | pValue = "rgWan" | RETURN_OK | Should be successful |
  */
-void test_l1_platform_hal_positive1_SetSNMPEnable(void) {
+void test_l1_platform_hal_positive1_SetSNMPEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSNMPEnable...");
     CHAR pValue[32] = "rgWan";
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with pValue = %s.",pValue);
     INT result = platform_hal_SetSNMPEnable(pValue);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_SetSNMPEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetSNMPEnable...");
@@ -906,14 +916,15 @@ void test_l1_platform_hal_positive1_SetSNMPEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "rgDualIp" | pValue = "rgDualIp" | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_SetSNMPEnable(void) {
+void test_l1_platform_hal_positive2_SetSNMPEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetSNMPEnable...");
     CHAR pValue[32] = "rgDualIp";
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with pValue = %s.",pValue);
     INT result = platform_hal_SetSNMPEnable(pValue);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_SetSNMPEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetSNMPEnable...");
@@ -937,46 +948,47 @@ void test_l1_platform_hal_positive2_SetSNMPEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_SetSNMPEnable with pValue = "rgLanIp" | pValue = "rgLanIp" | RETURN_OK| Should be successful |
 */
-void test_l1_platform_hal_positive3_SetSNMPEnable(void) {
+void test_l1_platform_hal_positive3_SetSNMPEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_SetSNMPEnable...");
-
     CHAR pValue[32] = "rgLanIp";
 
     UT_LOG("Invoke platform_hal_SetSNMPEnable with pValue = %s.",pValue);
     INT result = platform_hal_SetSNMPEnable(pValue);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_SetSNMPEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetSNMPEnable...");
 }
 
 /**
- * @brief This is a test case to verify the negative scenario of the platform_hal_SetSNMPEnable function.
- *
- * This test case is designed to verify the behavior of the platform_hal_SetSNMPEnable function when the input parameter pValue is NULL.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 024 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                      | Test Data                 | Expected Result | Notes             |
- * | :--------------: | --------------------------------------------------------------- | ------------------------- | --------------- | ----------------- |
- * |       01         | Invoking platform_hal_SetSNMPEnable with pValue=NULL | pValue=NULL               | RETURN_ERR       | Should fail |
- */
-void test_l1_platform_hal_negative1_SetSNMPEnable(void) {
+* @brief This is a test case to verify the negative scenario of the platform_hal_SetSNMPEnable function.
+*
+* This test case is designed to verify the behavior of the platform_hal_SetSNMPEnable function when the input parameter pValue is NULL.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 024 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data| Expected Result |Notes|
+* | :------: |------------| -----------| ----------| ------ |
+* | 01| Invoking platform_hal_SetSNMPEnable with pValue = NULL | pValue = NULL| RETURN_ERR| Should fail |
+*/
+void test_l1_platform_hal_negative1_SetSNMPEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetSNMPEnable...");
-    CHAR *pValue=NULL;
+    CHAR *pValue = NULL;
 
-    UT_LOG("Invoking platform_hal_SetSNMPEnable with pValue=NULL.");
+    UT_LOG("Invoking platform_hal_SetSNMPEnable with pValue = NULL.");
     INT result = platform_hal_SetSNMPEnable(pValue);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_SetSNMPEnable returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetSNMPEnable...");
@@ -999,17 +1011,17 @@ void test_l1_platform_hal_negative1_SetSNMPEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "invalidValue" | pValue = "invalidValue" | RETURN_ERR | Should return an error code indicating that the input value is invalid |
+* | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "invalidValue" | pValue = "invalidValue" | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative2_SetSNMPEnable(void) {
+void test_l1_platform_hal_negative2_SetSNMPEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetSNMPEnable...");
-
     CHAR pValue[32] = "invalidValue";
 
     UT_LOG("Invoking platform_hal_SetSNMPEnable with pValue = %s.",pValue);
     INT result = platform_hal_SetSNMPEnable(pValue);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_SetSNMPEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetSNMPEnable...");
@@ -1031,17 +1043,17 @@ void test_l1_platform_hal_negative2_SetSNMPEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 |Invoking platform_hal_SetWebUITimeout with value = 30 | value = 30 | Return value should be RETURN_OK | Should be successful |
+* | 01 |Invoking platform_hal_SetWebUITimeout with value = 30 | value = 30 | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetWebUITimeout...");
     ULONG value = 30;
 
-    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = 30");
+    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu.", value);
     INT result = platform_hal_SetWebUITimeout(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetWebUITimeout returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetWebUITimeout...");
@@ -1063,17 +1075,17 @@ void test_l1_platform_hal_positive1_SetWebUITimeout(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_SetWebUITimeout with value = 86400 | value = 86400 | RETURN_OK is expected | Should be successful |
+* | 01 | Invoking platform_hal_SetWebUITimeout with value = 86400 | value = 86400 | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive2_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetWebUITimeout...");
     ULONG value = 86400;
 
-    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = 86400.");
+    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu.", value);
     INT result = platform_hal_SetWebUITimeout(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetWebUITimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetWebUITimeout...");
@@ -1097,23 +1109,24 @@ void test_l1_platform_hal_positive2_SetWebUITimeout(void)
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_SetWebUITimeout with value = 0 | value = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive3_SetWebUITimeout(void){
+void test_l1_platform_hal_positive3_SetWebUITimeout(void)
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_SetWebUITimeout...");
     ULONG value = 0;
 
-    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = 0.");
+    UT_LOG("Invoking platform_hal_SetWebUITimeout with value = %lu.", value);
     INT result = platform_hal_SetWebUITimeout(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetWebUITimeout returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetWebUITimeout...");
 }
 
 /**
-* @brief This test is used to verify the behavior of the platform_hal_SetWebUITimeout function when the input value is zero.
+* @brief This test is used to verify the behavior of the platform_hal_SetWebUITimeout function when the input value is 100.
 *
-* The purpose of this test is to ensure that the platform_hal_SetWebUITimeout function behaves correctly when the input value is zero.
+* The purpose of this test is to ensure that the platform_hal_SetWebUITimeout function behaves correctly when the input value is 100.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 029 @n
@@ -1156,19 +1169,19 @@ void test_l1_platform_hal_positive4_SetWebUITimeout(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description | Test Data                          | Expected Result | Notes           |
-* | :--------------: | ----------- | ---------------------------------- | --------------- | --------------- |
-* | 01 | Invoking platform_hal_SetWebUITimeout with invalid value = 86401 | value = 86401 |  RETURN_ERR | The function is expected to return RETURN_ERR as the input value exceeds the maximum allowed timeout value.|
+* | Variation / Step | Description | Test Data | Expected Result |Notes|
+* | :---------: | ----------- | ----------|----------|----------|
+* | 01 | Invoking platform_hal_SetWebUITimeout with invalid value = 86401 | value = 86401 |  RETURN_ERR | Should return error|
 */
 void test_l1_platform_hal_negative1_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetWebUITimeout...");
     ULONG value = 86401;
 
-    UT_LOG("Invoking platform_hal_SetWebUITimeout with invalid value = 86401");
+    UT_LOG("Invoking platform_hal_SetWebUITimeout with invalid value = %lu.", value);
     INT result = platform_hal_SetWebUITimeout(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetWebUITimeout returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetWebUITimeout...");
@@ -1191,17 +1204,16 @@ void test_l1_platform_hal_negative1_SetWebUITimeout(void)
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_SetWebUITimeout with invalid value = 29 | value = 29 | RETURN_ERR | Should return RETURN_ERR  |
-*
 */
 void test_l1_platform_hal_negative2_SetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetWebUITimeout...");
     ULONG value = 29;
 
-    UT_LOG("Invoking platform_hal_SetWebUITimeout with invalid value = 29.");
+    UT_LOG("Invoking platform_hal_SetWebUITimeout with invalid value = %lu.", value);
     INT result = platform_hal_SetWebUITimeout(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetWebUITimeout returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetWebUITimeout...");
@@ -1222,18 +1234,19 @@ void test_l1_platform_hal_negative2_SetWebUITimeout(void)
  * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
  *
  * **Test Procedure:** @n
- * | Variation / Step | Description                                             | Test Data                             | Expected Result                                               | Notes           |
- * | :--------------: | ------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------- | --------------- |
- * |       01         | Invoke platform_hal_GetWebUITimeout function with valid value = 5                            |      value = 5                                 | RETURN_OK                                                      | Should be successful |
+ * | Variation / Step | Description | Test Data| Expected Result | Notes |
+ * | :----------: | --------| ------- | -----------| -------- |
+ * | 01| Invoke platform_hal_GetWebUITimeout function with valid value = 5 | value = 5| RETURN_OK| Should be successful |
  */
-void test_l1_platform_hal_positive1_GetWebUITimeout(void) {
+void test_l1_platform_hal_positive1_GetWebUITimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetWebUITimeout...");
     ULONG value = 5;
 
-    UT_LOG("Invoking platform_hal_GetWebUITimeout with valid value = 5.");    
+    UT_LOG("Invoking platform_hal_GetWebUITimeout with valid value = %lu.", value);    
     INT status = platform_hal_GetWebUITimeout(&value);
     
-    UT_LOG("Return Value: %d", status);
+    UT_LOG("platform_hal_GetWebUITimeout returns : %d", status);
     UT_LOG("WebUI timeout value : %lu", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
     
@@ -1267,9 +1280,10 @@ void test_l1_platform_hal_positive1_GetWebUITimeout(void) {
  * **Test Procedure:** @n
  * | Variation / Step | Description | Test Data | Expected Result | Notes |
  * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_GetWebUITimeout with valid value = NULL | value = NULL| RETUEN_ERR | Should return an error code |
+ * | 01 | Invoking platform_hal_GetWebUITimeout with value = NULL | value = NULL| RETURN_ERR | Should return an error code |
  */
-void test_l1_platform_hal_negative1_GetWebUITimeout(void) {
+void test_l1_platform_hal_negative1_GetWebUITimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetWebUITimeout...");
     ULONG *value = NULL;
 
@@ -1283,7 +1297,7 @@ void test_l1_platform_hal_negative1_GetWebUITimeout(void) {
 }
 
 /**
-* @brief Test case to verify the functionality of platform_hal_GetBaseMacAddress function when a valid MAC address is provided.
+* @brief Test case to verify the functionality of platform_hal_GetBaseMacAddress function when a valid buffer for MAC address is provided.
 *
 * This test case verifies the functionality of the platform_hal_GetBaseMacAddress function by providing a valid MAC address.
 *
@@ -1298,45 +1312,76 @@ void test_l1_platform_hal_negative1_GetWebUITimeout(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetBaseMacAddress with  macAddress = valid buffer | macAddress = valid buffer | status = RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_GetBaseMacAddress with  macAddress = valid buffer | macAddress = valid buffer |RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetBaseMacAddress...");
     CHAR macAddress[256] = {"\0"};
+    int count = 0;
+    int len = 0;
 
     UT_LOG("Invoking platform_hal_GetBaseMacAddress with  macAddress = valid buffer");
     INT status = platform_hal_GetBaseMacAddress(macAddress);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetBaseMacAddress returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_LOG("Output: MAC Address = %s", macAddress);
-
-    int len = strlen(macAddress);
-    UT_ASSERT_EQUAL(len,17);
-    UT_LOG("Valid MAC string as expected");
+    UT_LOG("MAC Address = %s", macAddress);
+    
+    len = strlen(macAddress);
+    if(len == 17)
+    {
+        for (int i = 0; macAddress[i] != '\0'; i++) 
+        {
+            // Check for valid characters: 0-9, A-F, a-f, and ':'
+            if (!(isdigit(macAddress[i]) || (macAddress[i] >= 'A' && macAddress[i] <= 'F') || (macAddress[i] >= 'a' && macAddress[i] <= 'f') || macAddress[i] == ':')) 
+            {
+                break;
+            }
+            // Count colons
+            if (macAddress[i] == ':')
+            {
+                count++;
+            }  
+        }
+        if (count == 5)
+        {
+            UT_LOG("MAC string is %s which is valid MAC address.",macAddress);
+            UT_PASS("Get CMTS MAC validation success");
+        }
+        else
+        {
+            UT_LOG(" MAC address string is %s which is invalid string value.", macAddress);
+            UT_FAIL("Get CMTS MAC validation failed");   
+        }
+    }
+    else
+    {
+        UT_LOG(" MAC address string is %s which is invalid string length.", macAddress);
+        UT_FAIL("Get CMTS MAC validation failed");           
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetBaseMacAddress...");
 }
 
 /**
- * @brief Test case to verify the negative scenario of the platform_hal_GetBaseMacAddress function
- *
- * This test case checks the behavior of the platform_hal_GetBaseMacAddress function when passing a NULL pointer as the argument.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 035 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetBaseMacAddress with pValue as NULL | pValue=NULL | RETURN_ERR | Should return RETURN_ERR |
- */
+* @brief Test case to verify the negative scenario of the platform_hal_GetBaseMacAddress function
+*
+* This test case checks the behavior of the platform_hal_GetBaseMacAddress function when passing a NULL pointer as the argument.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 035 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_GetBaseMacAddress with pValue as NULL | pValue = NULL | RETURN_ERR | Should return RETURN_ERR |
+*/
 void test_l1_platform_hal_negative1_GetBaseMacAddress(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetBaseMacAddress...");
@@ -1345,7 +1390,7 @@ void test_l1_platform_hal_negative1_GetBaseMacAddress(void)
     UT_LOG("Invoking platform_hal_GetBaseMacAddress with pValue as NULL");
     INT status = platform_hal_GetBaseMacAddress(pValue);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetBaseMacAddress returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetBaseMacAddress...");
@@ -1369,92 +1414,95 @@ void test_l1_platform_hal_negative1_GetBaseMacAddress(void)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetHardware_MemFree with buffer = Valid buffer| buffer = Valid buffer | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetHardware_MemFree(void) {
+void test_l1_platform_hal_positive1_GetHardware_MemFree(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetHardware_MemFree...");
     CHAR buffer[1024] = {"\0"};
+    int version = 0;
 
     UT_LOG("Invoking platform_hal_GetHardware_MemFree with buffer = Valid buffer.");
     INT result = platform_hal_GetHardware_MemFree(buffer);
 
-    UT_LOG("Output value: %s", buffer);
-    UT_LOG("Return status: %d", result);
+    UT_LOG("Hardware Memory Free : %s", buffer);
+    UT_LOG("platform_hal_GetHardware_MemFree returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
     
-    int version = atoi(buffer);
+    version = atoi(buffer);
     if(version > 0)
     {
-        UT_LOG("RPM is %d which is a valid value.", version);
-        UT_PASS("Get RPM validation success");
+        UT_LOG("Hardware Memory Free is %d which is a valid value.", version);
+        UT_PASS("Get Hardware Memory Free  validation success");
     }
     else
     {
-        UT_LOG("RPM is %d which is an invalid value.", version);
-        UT_FAIL("Get RPM validation failed");
+        UT_LOG("Hardware Memory Free is %d which is an invalid value.", version);
+        UT_FAIL("Get Hardware Memory Free validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware_MemFree...");
 }
 
 /**
- * @brief Test case to validate the platform_hal_GetHardware_MemFree function with NULL pointer.
- *
- * This test case validates the platform_hal_GetHardware_MemFree function when invoked with a NULL pointer. It checks if the function returns RETURN_ERR as expected.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 037 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Test platform_hal_GetHardware_MemFree with pValue = NULL | pValue = NULL | RETURN_ERR | Should return RETURN_ERR |
- */
-void test_l1_platform_hal_negative1_GetHardware_MemFree(void) {
+* @brief Test case to validate the platform_hal_GetHardware_MemFree function with NULL pointer.
+*
+* This test case validates the platform_hal_GetHardware_MemFree function when invoked with a NULL pointer. It checks if the function returns RETURN_ERR as expected.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 037 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Test platform_hal_GetHardware_MemFree with pValue = NULL | pValue = NULL | RETURN_ERR | Should return RETURN_ERR |
+*/
+void test_l1_platform_hal_negative1_GetHardware_MemFree(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetHardware_MemFree...");
     CHAR *pValue = NULL;
 
     UT_LOG("Invoking platform_hal_GetHardware_MemFree with pValue = NULL.");
     INT result = platform_hal_GetHardware_MemFree(pValue);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG(" platform_hal_GetHardware_MemFree returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetHardware_MemFree...");
 }
 
 /**
- * @brief This test case verifies the functionality of the platform_hal_GetUsedMemorySize API.
- *
- * This test case validates the platform_hal_GetUsedMemorySize API by invoking it with valid input
- * and checking the return value and the value of the pulSize variable after the API is executed.
- * The test case also includes assertions to verify that the return value is equal to RETURN_OK and
- * the value of pulSize is greater than 0.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 038 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- *  | Variation / Step | Description | Test Data | Expected Result | Notes |
- *  | :--------------: | ----------- | --------- | --------------- | ----- |
- *  |       01         | Invoking platform_hal_GetUsedMemorySize with pulSize = 0 | pulSize = 0 | RETURN_OK, pulSize > 0 | Should be successful |
- */
+* @brief This test case verifies the functionality of the platform_hal_GetUsedMemorySize API.
+*
+* This test case validates the platform_hal_GetUsedMemorySize API by invoking it with valid input
+* and checking the return value and the value of the pulSize variable after the API is executed.
+* The test case also includes assertions to verify that the return value is equal to RETURN_OK and
+* the value of pulSize is greater than 0.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 038 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+*  | Variation / Step | Description | Test Data | Expected Result | Notes |
+*  | :-------: | ------- | --------- | --------- | ----- |
+*  |01| Invoking platform_hal_GetUsedMemorySize with pulSize = valid buffer | pulSize = valid buffer | RETURN_OK| Should be successful |
+*/
 void test_l1_platform_hal_positive1_GetUsedMemorySize(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetUsedMemorySize...");
     ULONG pulSize = 0;
 
-    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize = 0.");
+    UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize = valid buffer.");
     INT ret = platform_hal_GetUsedMemorySize(&pulSize);
 
-    UT_LOG("Return value: %d", ret);
+    UT_LOG(" platform_hal_GetUsedMemorySize returns : %d", ret);
     UT_LOG("pulSize: %lu", pulSize);
 
     UT_ASSERT_EQUAL(ret, RETURN_OK);
@@ -1498,7 +1546,7 @@ void test_l1_platform_hal_negative1_GetUsedMemorySize(void)
     UT_LOG("Invoking platform_hal_GetUsedMemorySize with pulSize = NULL.");
     INT ret = platform_hal_GetUsedMemorySize(pulSize);
 
-    UT_LOG("Return value: %d", ret);
+    UT_LOG("platform_hal_GetUsedMemorySize returns: %d", ret);
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetUsedMemorySize...");
@@ -1518,104 +1566,108 @@ void test_l1_platform_hal_negative1_GetUsedMemorySize(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                         | Test Data                | Expected Result     | Notes             |
-* | :----:           | ---------                                           | ----------               |--------------       | -----             |
-* | 01               | Invoking platform_hal_ClearResetCount with bFlag = TRUE        | bFlag = TRUE             | RETURN_OK           | Should be successful |
+* | Variation / Step | Description |Test Data | Expected Result | Notes|
+* | :----: | ---------| --------- |--------------| -------|
+* | 01| Invoking platform_hal_ClearResetCount with bFlag = TRUE| bFlag = TRUE | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_ClearResetCount(void) {
+void test_l1_platform_hal_positive1_ClearResetCount(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_ClearResetCount...");
     BOOLEAN bFlag = TRUE;
 
     UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = TRUE");
     INT result = platform_hal_ClearResetCount(bFlag);
 
-    UT_LOG("Actual Output: %d", result);
+    UT_LOG("platform_hal_ClearResetCount returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_ClearResetCount...");
 }
 
 /**
- * @brief Test to verify the functionality of platform_hal_ClearResetCount API with bFlag as FALSE.
- *
- * This test case is used to verify the behavior of the platform_hal_ClearResetCount API when bFlag is set to FALSE. 
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 041 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_ClearResetCount with bFlag = FALSE | bFlag = FALSE | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive2_ClearResetCount(void) {
+* @brief Test to verify the functionality of platform_hal_ClearResetCount API with bFlag as FALSE.
+*
+* This test case is used to verify the behavior of the platform_hal_ClearResetCount API when bFlag is set to FALSE. 
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 041 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_ClearResetCount with bFlag = FALSE | bFlag = FALSE | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive2_ClearResetCount(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_ClearResetCount...");
     BOOLEAN bFlag = FALSE;
 
     UT_LOG("Invoking platform_hal_ClearResetCount with bFlag = FALSE");
     INT result = platform_hal_ClearResetCount(bFlag);
 
-    UT_LOG("Actual Output: %d", result);
+    UT_LOG(" platform_hal_ClearResetCount returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_ClearResetCount...");
 }
 
 /**
- * @brief This test case is used to verify the behavior of the platform_hal_ClearResetCount function when an invalid bFlag value is provided.
- *
- * The purpose of this test is to ensure that the platform_hal_ClearResetCount function handles the scenario when an invalid bFlag value is passed as an argument.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 042 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | :--------- | :-------- | :-------------- | ----- |
- * | 01 | Invoking platform_hal_ClearResetCount with invalid bFlag = 2 | bFlag = 2 | RETURN_ERR | should return RETURN_ERR |
- */
-void test_l1_platform_hal_negative1_ClearResetCount(void) {
+* @brief This test case is used to verify the behavior of the platform_hal_ClearResetCount function when an invalid bFlag value is provided.
+*
+* The purpose of this test is to ensure that the platform_hal_ClearResetCount function handles the scenario when an invalid bFlag value is passed as an argument.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 042 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: |--------- |--------|--------------| -----|
+* | 01| Invoking platform_hal_ClearResetCount with invalid bFlag = 2 | bFlag = 2 | RETURN_ERR | should return RETURN_ERR |
+*/
+void test_l1_platform_hal_negative1_ClearResetCount(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_ClearResetCount...");
     BOOLEAN bFlag = 2;
 
     UT_LOG("Invoking platform_hal_ClearResetCount with invalid bFlag = 2");
     INT result = platform_hal_ClearResetCount(bFlag);
 
-    UT_LOG("Actual Output: %d", result);
+    UT_LOG("platform_hal_ClearResetCount returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_ClearResetCount...");
 }
 
 /**
- * @brief This test case tests the functionality of the platform_hal_SetDeviceCodeImageValid function.
- *
- * The objective of this test is to verify if the platform_hal_SetDeviceCodeImageValid function correctly sets the device's code image validity flag.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 043 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |        01        | Invoking platform_hal_SetDeviceCodeImageValid with bFlag = TRUE | flag = TRUE | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_SetDeviceCodeImageValid(void) {
+* @brief This test case tests the functionality of the platform_hal_SetDeviceCodeImageValid function.
+*
+* The objective of this test is to verify if the platform_hal_SetDeviceCodeImageValid function correctly sets the device's code image validity flag.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 043 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :-------: | ----------- | --------- | ---------| ----- |
+* | 01| Invoking platform_hal_SetDeviceCodeImageValid with bFlag = TRUE | flag = TRUE | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_SetDeviceCodeImageValid(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetDeviceCodeImageValid...");    
     BOOLEAN flag = TRUE;
     
@@ -1647,7 +1699,8 @@ void test_l1_platform_hal_positive1_SetDeviceCodeImageValid(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_SetDeviceCodeImageValid with flag = FALSE | flag = FALSE | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_SetDeviceCodeImageValid(void) {
+void test_l1_platform_hal_positive2_SetDeviceCodeImageValid(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetDeviceCodeImageValid...");   
     BOOLEAN flag = FALSE;
     
@@ -1679,7 +1732,8 @@ void test_l1_platform_hal_positive2_SetDeviceCodeImageValid(void) {
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_SetDeviceCodeImageValid with an invalid flag = 2  | flag = 2 | RETURN_ERR | The function should return an error code |
 */
-void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void) {
+void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetDeviceCodeImageValid...");    
     BOOLEAN flag = 2;
 
@@ -1693,31 +1747,32 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void) {
 }
 
 /**
- * @brief Test case to verify the functionality of the platform_hal_setFactoryCmVariant function
- *
- * This test case checks whether the platform_hal_setFactoryCmVariant function successfully sets the factory CM variant value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 046 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:**  @n
- *  | Variation / Step | Description | Test Data | Expected Result | Notes |
- *  | :----: | --------- | ---------- |-------------- | ----- |
- *  | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20" | pValue = "pc20" | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_setFactoryCmVariant(void) {
+* @brief Test case to verify the functionality of the platform_hal_setFactoryCmVariant function
+*
+* This test case checks whether the platform_hal_setFactoryCmVariant function successfully sets the factory CM variant value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 046 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:**  @n
+*  | Variation / Step | Description | Test Data | Expected Result | Notes |
+*  | :----: | --------- | ---------- |-------------- | ----- |
+*  | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20" | pValue = "pc20" | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_setFactoryCmVariant...");
     CHAR pValue[512] = "pc20";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFactoryCmVariant...");
@@ -1741,76 +1796,79 @@ void test_l1_platform_hal_positive1_setFactoryCmVariant(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "unknown" | pValue = "unknown" | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_setFactoryCmVariant(void) {
+void test_l1_platform_hal_positive2_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_setFactoryCmVariant...");
     CHAR pValue[512] = "unknown";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_setFactoryCmVariant...");
 }
 
 /**
- * @brief Test for the function platform_hal_setFactoryCmVariant.
- *
- * This test verifies the correct functionality of the platform_hal_setFactoryCmVariant function by setting the factory CM variant value and checking the return status.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 048 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20genband" | pValue = "pc20genband" | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive3_setFactoryCmVariant(void) {
+* @brief Test for the function platform_hal_setFactoryCmVariant.
+*
+* This test verifies the correct functionality of the platform_hal_setFactoryCmVariant function by setting the factory CM variant value and checking the return status.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 048 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |---------| --------|
+* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20genband" | pValue = "pc20genband" | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive3_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_setFactoryCmVariant...");
     CHAR pValue[512] = "pc20genband";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setFactoryCmVariant...");
 }
 
 /**
- * @brief This test case verifies the functionality of the platform_hal_setFactoryCmVariant function.
- *
- * This test case checks if the platform_hal_setFactoryCmVariant function sets the factory CM variant correctly.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 049 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc15sip"| pValue = "pc15sip" | RETURN_OK | Should be successful |
+* @brief This test case verifies the functionality of the platform_hal_setFactoryCmVariant function.
+*
+* This test case checks if the platform_hal_setFactoryCmVariant function sets the factory CM variant correctly.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 049 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc15sip"| pValue = "pc15sip" | RETURN_OK | Should be successful |
  */
-void test_l1_platform_hal_positive4_setFactoryCmVariant(void) {
+void test_l1_platform_hal_positive4_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive4_setFactoryCmVariant...");
     CHAR pValue[512] = "pc15sip";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_setFactoryCmVariant...");
@@ -1834,14 +1892,15 @@ void test_l1_platform_hal_positive4_setFactoryCmVariant(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc15mgcp" | pValue = "pc15mgcp" | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive5_setFactoryCmVariant(void) {
+void test_l1_platform_hal_positive5_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive5_setFactoryCmVariant...");
     CHAR pValue[512] = "pc15mgcp";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive5_setFactoryCmVariant...");
@@ -1865,14 +1924,15 @@ void test_l1_platform_hal_positive5_setFactoryCmVariant(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = NULL | pValue = NULL | RETURN_ERR | Should return an error code |
 */
-void test_l1_platform_hal_negative1_setFactoryCmVariant(void) {
+void test_l1_platform_hal_negative1_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_setFactoryCmVariant...");
     CHAR *pValue = NULL;
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = NULL");
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_setFactoryCmVariant...");
@@ -1896,38 +1956,40 @@ void test_l1_platform_hal_negative1_setFactoryCmVariant(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 |Invoking platform_hal_setFactoryCmVariant with invalid pValue = "invalid"| pValue = "invalid" | RETURN_ERR | Should return an error |
 */
-void test_l1_platform_hal_negative2_setFactoryCmVariant(void) {
+void test_l1_platform_hal_negative2_setFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_setFactoryCmVariant...");
     CHAR pValue[512] = "invalid";
 
     UT_LOG("Invoking platform_hal_setFactoryCmVariant with invalid pValue = %s", pValue);
     INT status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_setFactoryCmVariant returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_setFactoryCmVariant...");
 }
 
 /**
- * @brief Test case to verify the platform_hal_getLed function with valid input parameters.
- *
- * This test case verifies the functionality of the platform_hal_getLed function when invoked with valid input parameters.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 053 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_getLed with params = Valid structure | params = Valid structure| RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_getLed(void) {
+* @brief Test case to verify the platform_hal_getLed function with valid input parameters.
+*
+* This test case verifies the functionality of the platform_hal_getLed function when invoked with valid input parameters.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 053 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_getLed with params = Valid structure | params = Valid structure| RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_getLed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getLed...");
     PLEDMGMT_PARAMS params = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
     if(params != NULL)
@@ -1975,29 +2037,31 @@ void test_l1_platform_hal_positive1_getLed(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getLed...");
 }
 
 /**
- * @brief Test to verify the behavior of platform_hal_getLed function when a null pointer is passed as an argument.
- *
- * This test is intended to verify the behavior of the platform_hal_getLed function when a null pointer is passed as an argument. The objective of this test is to ensure that the function returns the expected error code in this scenario.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 054 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoking platform_hal_getLed with params = NULL | params = NULL | RETURN_ERR  | Should return error |
- */
-void test_l1_platform_hal_negative1_getLed(void) {
+* @brief Test to verify the behavior of platform_hal_getLed function when a null pointer is passed as an argument.
+*
+* This test is intended to verify the behavior of the platform_hal_getLed function when a null pointer is passed as an argument. The objective of this test is to ensure that the function returns the expected error code in this scenario.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 054 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :-------: | ----------- | --------- | ---------| ----- |
+* | 01| Invoking platform_hal_getLed with params = NULL | params = NULL | RETURN_ERR  | Should return error |
+*/
+void test_l1_platform_hal_negative1_getLed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getLed...");
     PLEDMGMT_PARAMS params = NULL;
 
@@ -2030,7 +2094,8 @@ void test_l1_platform_hal_negative1_getLed(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_getRotorLock with fanIndex=0 | fanIndex=0 |Return can be 0 or 1 | Should be successful |
 */
-void test_l1_platform_hal_positive1_getRotorLock(void) {
+void test_l1_platform_hal_positive1_getRotorLock(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getRotorLock...");
     int fanIndex = 0;
 
@@ -2075,7 +2140,8 @@ void test_l1_platform_hal_positive1_getRotorLock(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_getRotorLock with fanIndex=1 | fanIndex = 1 | Return can be 0 or 1 | Should be successful |
 */
-void test_l1_platform_hal_positive2_getRotorLock(void) {
+void test_l1_platform_hal_positive2_getRotorLock(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_getRotorLock...");
     int fanIndex = 1;
 
@@ -2093,32 +2159,34 @@ void test_l1_platform_hal_positive2_getRotorLock(void) {
         UT_LOG("Status of the Rotor is: %d NOT locked ",status);
         UT_PASS("Get Rotor NOT locked Validation success");
     }
-    else if(status == -1){
-            UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-            UT_FAIL("Get Rotor Validation failed");
+    else if(status == -1)
+    {
+        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
+        UT_FAIL("Get Rotor Validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
 }
 
 /**
- * @brief Test case to verify the functionality of platform_hal_getRotorLock API with invalid fanIndex value.
- *
- * This test case is to verify that platform_hal_getRotorLock API returns -1 when invoked with an invalid fanIndex value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 057 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_getRotorLock with invalid fanIndex=2 | fanIndex = 2 | Return -1 | Should return -1 as value is not applicable |
- */
-void test_l1_platform_hal_negative1_getRotorLock(void) {
+* @brief Test case to verify the functionality of platform_hal_getRotorLock API with invalid fanIndex value.
+*
+* This test case is to verify that platform_hal_getRotorLock API returns -1 when invoked with an invalid fanIndex value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 057 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_getRotorLock with invalid fanIndex=2 | fanIndex = 2 | Return -1 | Should return -1 as value is not applicable |
+*/
+void test_l1_platform_hal_negative1_getRotorLock(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getRotorLock...");
     int fanIndex = 2;
 
@@ -2140,31 +2208,31 @@ void test_l1_platform_hal_negative1_getRotorLock(void) {
 }
 
 /**
- * @brief This test case verifies the functionality of the GetTotalMemorySize API by checking if it returns a positive value and does not return an error status.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 058 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoke the GetTotalMemorySize API with size = 0  | size = 0 | RETURN_OK | Should be successful |
- */
+* @brief This test case verifies the functionality of the GetTotalMemorySize API by checking if it returns a positive value and does not return an error status.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 058 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :------: | ------- | --------- | ---------- | ----- |
+* |01|Invoke the GetTotalMemorySize API with a valid buffer | size = valid buffer | RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive1_GetTotalMemorySize(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetTotalMemorySize...");
     ULONG size = 0;
 
-    UT_LOG("Invoke the platform_hal_GetTotalMemorySize API with size = %d",size);
+    UT_LOG("Invoke the platform_hal_GetTotalMemorySize API with a valid buffer.");
     INT status = platform_hal_GetTotalMemorySize(&size);
 
-    UT_LOG("Returned status: %d", status);
-    UT_LOG("Returned size: %lu", size);
+    UT_LOG("platform_hal_GetTotalMemorySize returns : %d", status);
+    UT_LOG("Returned total memory size: %lu", size);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(size > 0)
@@ -2197,7 +2265,7 @@ void test_l1_platform_hal_positive1_GetTotalMemorySize(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_GetTotalMemorySize with pulSize pointer= NULL | pulSize = NULL | Funcion returns RETURN_ERR | Should return an error status |
+* | 01 | Invoking platform_hal_GetTotalMemorySize with pulSize pointer = NULL | pulSize = NULL | RETURN_ERR | Should return an error status |
 */
 void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
 {
@@ -2208,7 +2276,7 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
     INT status = platform_hal_GetTotalMemorySize(pulSize);
 
     UT_ASSERT_EQUAL(status, RETURN_ERR);
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetTotalMemorySize returns: %d", status);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetTotalMemorySize...");
 }
@@ -2229,14 +2297,14 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetFactoryResetCount with pulSize = 0 | pulSize = 0 | RETURN_OK, pulSize >= 0 | Should be successful |
+* | 01 | Invoking platform_hal_GetFactoryResetCount with pulSize = valid buffer | pulSize = valid buffer| RETURN_OK| Should be successful |
 */
 void test_l1_platform_hal_positive1_GetFactoryResetCount(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFactoryResetCount...");
     ULONG pulSize = 0;
 
-    UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = %lu", pulSize);
+    UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = valid buffer");
     INT status = platform_hal_GetFactoryResetCount(&pulSize);
 
     UT_LOG(" platform_hal_GetFactoryResetCount returns : %d",status);    
@@ -2281,69 +2349,71 @@ void test_l1_platform_hal_negative1_GetFactoryResetCount(void)
     UT_LOG("Invoking platform_hal_GetFactoryResetCount with pulSize = NULL");
     INT status = platform_hal_GetFactoryResetCount(pulSize);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_GetFactoryResetCount returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFactoryResetCount...");
 }
 
 /**
- * @brief Verify that the platform_hal_SetDeviceCodeImageTimeout function sets the device code image timeout correctly.
- *
- * This test verifies that the platform_hal_SetDeviceCodeImageTimeout function sets the timeout value correctly for the device code image.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 062 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value = 30 minutes(1800 sec) | timeout = 1800 | The function should return RETURN_OK | Should be successful
- */
-void test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout(void) {
+* @brief Verify that the platform_hal_SetDeviceCodeImageTimeout function sets the device code image timeout correctly.
+*
+* This test verifies that the platform_hal_SetDeviceCodeImageTimeout function sets the timeout value correctly for the device code image.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 062 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | --------------- | ----- |
+* | 01| Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value = 30 minutes(1800 sec) | timeout = 1800 | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout...");
     INT timeout = 1800;
 
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 30 minutes(1800 sec).");
     INT result = platform_hal_SetDeviceCodeImageTimeout(timeout);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_SetDeviceCodeImageTimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout...");
 }
 
 /**
- * @brief This test is used to verify the functionality of the platform_hal_SetDeviceCodeImageTimeout function when provided with a timeout value of 0 minutes.
- *
- * The purpose of this test is to ensure that the platform_hal_SetDeviceCodeImageTimeout function correctly sets the device code image timeout value to 0 minutes and returns RETURN_OK.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 063 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 0 minutes| timeout = 0 minutes | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void) {
+* @brief This test is used to verify the functionality of the platform_hal_SetDeviceCodeImageTimeout function when provided with a timeout value of 0 minutes.
+*
+* The purpose of this test is to ensure that the platform_hal_SetDeviceCodeImageTimeout function correctly sets the device code image timeout value to 0 minutes and returns RETURN_OK.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 063 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -----------| ----- |
+* | 01 | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 0 minutes| timeout = 0 minutes | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout...");
     INT timeout = 0;
 
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 0 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(timeout);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_SetDeviceCodeImageTimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout...");
@@ -2367,14 +2437,15 @@ void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void) {
 * | :----: | --------- | ---------- | -------------- | ------ |
 * | 01 | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 60 minutes(3600 sec) | timeout = 3600 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void) {
+void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout...");
     INT timeout = 3600;
 
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 60 minutes(3600 sec).");
     INT result = platform_hal_SetDeviceCodeImageTimeout(timeout);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_SetDeviceCodeImageTimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout...");
@@ -2394,82 +2465,84 @@ void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                               | Test Data     | Expected Result  | Notes             |
-* | :--------------: | -------------------------------------------------------- | -------------- | ----------------- | ----------------- |
-* |       01         | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: -1  | timeout = -1  | RETURN_ERR   | Should be a failure |
-*
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :-------: | --------- | --------- | --------- | ----------- |
+* | 01| Invoking platform_hal_SetDeviceCodeImageTimeout with timeout = -1 | timeout = -1 | RETURN_ERR | Should be a failure |
 */
-void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void) {
+void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout...");
     INT timeout = -1 ;
 
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: -1");
     INT result = platform_hal_SetDeviceCodeImageTimeout(timeout);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_SetDeviceCodeImageTimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout...");
 }
 
 /**
- * @brief This test case checks the functionality of setting device code image timeout.
- *
- * The platform_hal_SetDeviceCodeImageTimeout function is tested in this test case to verify if it correctly sets the device code image timeout.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 066 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes                |
- * | :--------------: | ----------- | --------- | --------------- | -------------------- |
- * |        01        | Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 61 minutes | timeout = 3660 | RETURN_ERR | Should return an error |
- */
-void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void) {
+* @brief This test case checks the functionality of setting device code image timeout.
+*
+* The platform_hal_SetDeviceCodeImageTimeout function is tested in this test case to verify if it correctly sets the device code image timeout.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 066 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes|
+* | :--------------: | ----------- | --------- | --------------- | -------------------- |
+* | 01| Invoking platform_hal_SetDeviceCodeImageTimeout with timeout = 61 minutes | timeout = 3660 | RETURN_ERR | Should return an error |
+*/
+void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout...");
     INT timeout = 3660 ;
 
     UT_LOG("Invoking platform_hal_SetDeviceCodeImageTimeout with timeout value: 61 minutes");
     INT result = platform_hal_SetDeviceCodeImageTimeout(timeout);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_SetDeviceCodeImageTimeout returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout...");
 }
 
 /**
- * @brief Test case to verify the functionality of platform_hal_getFactoryCmVariant API.
- *
- * This test case verifies the functionality of the platform_hal_getFactoryCmVariant API by invoking it with a valid buffer of size 512 bytes and checking the return status.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 067 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                               | Test Data              | Expected Result | Notes             |
- * | :--------------: | --------------------------------------------------------- | ---------------------- | --------------- | ----------------- |
- * |        01        | Invoke the platform_hal_getFactoryCmVariant API   buffer = valid buffer     | buffer = valid buffer     | RETURN_OK        | Should be successful |
- */
-void test_l1_platform_hal_positive1_getFactoryCmVariant(void) {
+* @brief Test case to verify the functionality of platform_hal_getFactoryCmVariant API.
+*
+* This test case verifies the functionality of the platform_hal_getFactoryCmVariant API by invoking it with a valid buffer of size 512 bytes and checking the return status.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 067 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :-----------: | ----------- | ----------- | ---------| ------- |
+* |01| Invoke the platform_hal_getFactoryCmVariant API buffer = valid buffer| buffer = valid buffer| RETURN_OK| Should be successful |
+*/
+void test_l1_platform_hal_positive1_getFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getFactoryCmVariant...");
     CHAR buffer[512] = {"\0"};
 
     UT_LOG("Invoking platform_hal_getFactoryCmVariant with a valid buffer ...");
     INT status = platform_hal_getFactoryCmVariant(buffer);
 
-    UT_LOG("Actual Result: %d", status);
-    UT_LOG("Value: %s", buffer);    
+    UT_LOG("platform_hal_getFactoryCmVariant returns : %d", status);
+    UT_LOG("Value of buffer : %s", buffer);    
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if (!strcmp(buffer,"unknown") || !strcmp(buffer,"pc20") || !strcmp(buffer,"pc20genband") || !strcmp(buffer,"pc15sip")||  !strcmp(buffer,"pc15mgcp"))
@@ -2486,31 +2559,32 @@ void test_l1_platform_hal_positive1_getFactoryCmVariant(void) {
 }
 
 /**
- * @brief Test case to verify the behavior of platform_hal_getFactoryCmVariant when a null pointer is passed as the parameter.
- *
- * This test case checks whether platform_hal_getFactoryCmVariant function returns RETURN_ERR when a null pointer is passed as the parameter.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 068 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_getFactoryCmVariant with buffer = NULL | buffer = NULL | RETURN_ERR | Should return RETURN_ERR |
- */
-void test_l1_platform_hal_negative1_getFactoryCmVariant(void) {
+* @brief Test case to verify the behavior of platform_hal_getFactoryCmVariant when a null pointer is passed as the parameter.
+*
+* This test case checks whether platform_hal_getFactoryCmVariant function returns RETURN_ERR when a null pointer is passed as the parameter.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 068 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_getFactoryCmVariant with buffer = NULL | buffer = NULL | RETURN_ERR | Should return RETURN_ERR |
+*/
+void test_l1_platform_hal_negative1_getFactoryCmVariant(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getFactoryCmVariant...");
     CHAR *buffer = NULL;
 
     UT_LOG("Invoking platform_hal_getFactoryCmVariant with buffer = NULL.");
     INT status = platform_hal_getFactoryCmVariant(buffer);
     
-    UT_LOG("Actual Result: %d", status);    
+    UT_LOG("platform_hal_getFactoryCmVariant returns : %d", status);    
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getFactoryCmVariant...");
@@ -2534,7 +2608,8 @@ void test_l1_platform_hal_negative1_getFactoryCmVariant(void) {
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_setLed with valid params structure | LedColor = 0-7, State = 0-1, Interval = 0,1,3,5 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_setLed() {
+void test_l1_platform_hal_positive1_setLed() 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_setLed...");
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
     if (pValue != NULL) 
@@ -2564,6 +2639,7 @@ void test_l1_platform_hal_positive1_setLed() {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_setLed...");
 }
@@ -2586,7 +2662,8 @@ void test_l1_platform_hal_positive1_setLed() {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setLed with pValue = NULL | pValue = NULL | RETURN_ERR | Should return RETURN_ERR |
 */
-void test_l1_platform_hal_negative1_setLed(void) {
+void test_l1_platform_hal_negative1_setLed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_setLed...");
     PLEDMGMT_PARAMS pValue = NULL;
 
@@ -2614,11 +2691,12 @@ void test_l1_platform_hal_negative1_setLed(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * Test Procedure: ** @n
-* | Variation / Step | Description                                           | Test Data   | Expected Result    | Notes    |
-* | :--------------: | ----------------------------------------------------- | -----------------------| ------------------ | ------------------ |
-* |        01        | Invoking platform_hal_setLed with invalid LedColor value =8| LedColor = 8   | RETURN_ERR | Should be successful |
+* | Variation / Step | Description | Test Data | Expected Result| Notes|
+* | :---------: | ---------| -------------| -------- | ------- |
+* |01| Invoking platform_hal_setLed with invalid LedColor value = 8| LedColor = 8 | RETURN_ERR | Should be successful |
 */
-void test_l1_platform_hal_negative2_setLed(void) {
+void test_l1_platform_hal_negative2_setLed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_setLed...");
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));    
 
@@ -2639,6 +2717,7 @@ void test_l1_platform_hal_negative2_setLed(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_setLed...");
 }
@@ -2649,7 +2728,7 @@ void test_l1_platform_hal_negative2_setLed(void) {
 * This test verifies that the platform_hal_setLed function returns an error code (RETURN_ERR) when an invalid state  value is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 073 @n
+* **Test Case ID:** 072 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2661,7 +2740,8 @@ void test_l1_platform_hal_negative2_setLed(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setLed with invalid State value = 2, valid LedColor = 1 and  valid Interval = 10 | pValue->LedColor = 1, pValue->State = 2, pValue->Interval = 10 | RETURN_ERR | Should return an error code |
 */
-void test_l1_platform_hal_negative3_setLed(void) {
+void test_l1_platform_hal_negative3_setLed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_setLed...");
 
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
@@ -2682,6 +2762,7 @@ void test_l1_platform_hal_negative3_setLed(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative3_setLed...");
 }
@@ -2704,7 +2785,8 @@ void test_l1_platform_hal_negative3_setLed(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_setLed with invalid Interval value = -1, LedColor = 1 and State = 0 | pValue->LedColor = 1, pValue->State = 0, pValue->Interval = -1 | RETURN_ERR | Should return an error code |
 */
-void test_l1_platform_hal_negative4_setLed(void) {
+void test_l1_platform_hal_negative4_setLed(void)
+{
     UT_LOG("Entering test_l1_platform_hal_negative4_setLed...");
 
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
@@ -2725,28 +2807,29 @@ void test_l1_platform_hal_negative4_setLed(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative4_setLed...");
 }
 
 /**
- * @brief Test case to validate the platform_hal_getRPM function.
- *
- * This test case verifies the correctness of the platform_hal_getRPM function by invoking it with different inputs and checking the returned value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 074 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking getRPM function with fanIndex = 0 | fanIndex = 0 | fanRPM >= 0 | Should pass |
- */
+* @brief Test case to validate the platform_hal_getRPM function.
+*
+* This test case verifies the correctness of the platform_hal_getRPM function by invoking it with different inputs and checking the returned value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 074 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking getRPM function with fanIndex = 0 | fanIndex = 0 | fanRPM >= 0 | Should pass |
+*/
 void test_l1_platform_hal_positive1_getRPM(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRPM...");
@@ -2811,24 +2894,25 @@ void test_l1_platform_hal_positive2_getRPM(void)
 
 #ifdef FEATURE_RDKB_THERMAL_MANAGER
 /**
- * @brief This test case verifies the functionality of the platform_hal_initThermal function in the platform_hal module. 
- *
- * The objective of this test is to ensure that the platform_hal_initThermal function initializes the thermal platform configuration correctly and returns the expected status value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 076 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * |01 |  Invoke the platform_hal_initThermal function with thermalConfig = valid structure |  thermalConfig = valid structure  |  RETURN_OK    |    Should be successful  |
- */
-void test_l1_platform_hal_positive1_initThermal(void) {
+* @brief This test case verifies the functionality of the platform_hal_initThermal function in the platform_hal module. 
+*
+* The objective of this test is to ensure that the platform_hal_initThermal function initializes the thermal platform configuration correctly and returns the expected status value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 076 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01 | Invoke the platform_hal_initThermal function with thermalConfig = valid structure | thermalConfig = valid structure | RETURN_OK | Should be successful|
+*/
+void test_l1_platform_hal_positive1_initThermal(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_initThermal...");
     THERMAL_PLATFORM_CONFIG *thermalConfig = (THERMAL_PLATFORM_CONFIG*)malloc(sizeof(THERMAL_PLATFORM_CONFIG));
     if(thermalConfig != NULL)
@@ -2866,28 +2950,29 @@ void test_l1_platform_hal_positive1_initThermal(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_initThermal...");
 }
 
 /**
- * @brief This test is to verify the behavior of the platform_hal_initThermal function when invoked with a NULL input parameter.
- *
- * This test verifies that the platform_hal_initThermal function returns RETURN_ERR when invoked with a NULL input parameter.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 077 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_initThermal with thermalConfig = NULL | thermalConfig = NULL | RETURN_ERR | Should return RETURN_ERR |
- */
+* @brief This test is to verify the behavior of the platform_hal_initThermal function when invoked with a NULL input parameter.
+*
+* This test verifies that the platform_hal_initThermal function returns RETURN_ERR when invoked with a NULL input parameter.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 077 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_initThermal with thermalConfig = NULL | thermalConfig = NULL | RETURN_ERR | Should return RETURN_ERR |
+*/
 void test_l1_platform_hal_negative1_initThermal() {
     UT_LOG("Entering test_l1_platform_hal_negative1_initThermal...");
     THERMAL_PLATFORM_CONFIG* thermalConfig = NULL;
@@ -2915,19 +3000,19 @@ void test_l1_platform_hal_negative1_initThermal() {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                     | Test Data                     | Expected Result                       | Notes              |
-* | :--------------: | ----------------------------------------------- | ----------------------------- | ------------------------------------- | ------------------ |
-* |       01         |Invoking platform_hal_getFanTemperature with temp = 0           | temp = 0       |  RETURN_OK               | Should be successful |
+* | Variation / Step | Description| Test Data | Expected Result | Notes|
+* | :----------: | ----------| ----------- | ------ | ------- |
+* |01|Invoking platform_hal_getFanTemperature with temp = valid buffer | temp = valid buffer| RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_getFanTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanTemperature...");
     int temp = 0;
 
-    UT_LOG("Invoking platform_hal_getFanTemperature with temp = %d",temp);
+    UT_LOG("Invoking platform_hal_getFanTemperature with temp = valid buffer");
     int status = platform_hal_getFanTemperature(&temp);
     
-    UT_LOG("Return Status: %d", status);
+    UT_LOG("platform_hal_getFanTemperature returns : %d", status);
     UT_LOG("Temperature Value: %d", temp);
     
     UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -2989,9 +3074,9 @@ void test_l1_platform_hal_negative1_getFanTemperature(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                                                            | Test Data                                  | Expected Result                             | Notes            |
-* | :--------------: | -------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------ | ---------------- |
-* |       01         | Invoking platform_hal_getRadioTemperature with radioIndex=0, value = 0       | radioIndex = 0, value = 0    | RETURN_OK                       |  Should be successful           |
+* | Variation / Step | Description| Test Data| Expected Result| Notes |
+* | :---------: | --------| --------| --------| --------|
+* | 01| Invoking platform_hal_getRadioTemperature with radioIndex = 0, value = valid buffer| radioIndex = 0, value = valid buffer| RETURN_OK|  Should be successful|
 */
 void test_l1_platform_hal_positive1_getRadioTemperature(void)
 {
@@ -2999,11 +3084,11 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
     INT radioIndex = 0;
     INT value = 0;
 
-    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, value=%d.", radioIndex, value);
+    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex = %d, value = valid buffer.", radioIndex);
     INT status = platform_hal_getRadioTemperature(radioIndex, &value);
  
-    UT_LOG("Returned status: %d", status);
-    UT_LOG("Returned value: %d", value);
+    UT_LOG("platform_hal_getRadioTemperature returns : %d", status);
+    UT_LOG("Radio Temperature: %d", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(value >= 0 && value <= 100)
@@ -3021,66 +3106,66 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
 }
 
 /**
- * @brief Test to validate the platform_hal_getRadioTemperature function with negative input.
- *
- * This test case verifies the behavior of the platform_hal_getRadioTemperature function
- * when negative input values are provided.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 081 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                    | Test Data                                      | Expected Result      | Notes            |
- * | :----:           | ---------                                      | ----------                                    |--------------        | -----            |
- * | 01               | Invoking platform_hal_getRadioTemperature with radioIndex= 1, value=NULL  | radioIndex = 1, value = NULL                  | RETURN_ERR           | Should be failed |
- */
+* @brief Test to validate the platform_hal_getRadioTemperature function with negative input.
+*
+* This test case verifies the behavior of the platform_hal_getRadioTemperature function
+* when negative input values are provided.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 081 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description|Test Data| Expected Result| Notes|
+* | :-------:| ---------| ----------|--------------| -----|
+* | 01| Invoking platform_hal_getRadioTemperature with radioIndex = 1, value = NULL| radioIndex = 1, value = NULL| RETURN_ERR| Should be failed |
+*/
 void test_l1_platform_hal_negative1_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_getRadioTemperature...");
     INT radioIndex = 1;
     INT* value = NULL;
 
-    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, value=NULL.", radioIndex);
+    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, value = NULL.", radioIndex);
     INT status = platform_hal_getRadioTemperature(radioIndex, value);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_getRadioTemperature returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     UT_LOG("Exiting test_l1_platform_hal_negative1_getRadioTemperature...");
 }
 
 /**
- * @brief Test to check the functionality of platform_hal_getRadioTemperature in case of negative scenario.
- *
- * This test verifies the behavior of platform_hal_getRadioTemperature API when a negative scenario is encountered.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 082 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_getRadioTemperature with invalid radioIndex=3, value= 0.| radioIndex = 3, value = 0 | RETURN_ERR | API should return an error status |
- */
+* @brief Test to check the functionality of platform_hal_getRadioTemperature in case of negative scenario.
+*
+* This test verifies the behavior of platform_hal_getRadioTemperature API when a negative scenario is encountered.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 082 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_getRadioTemperature with invalid radioIndex = 3, value = valid buffer| radioIndex = 3, value = valid buffer | RETURN_ERR | API should return an error status |
+*/
 void test_l1_platform_hal_negative2_getRadioTemperature(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_getRadioTemperature...");
     INT radioIndex = 3;
     INT value = 0 ;
 
-    UT_LOG("Invoking platform_hal_getRadioTemperature with invalid radioIndex=%d, value=%d.", radioIndex,value);
+    UT_LOG("Invoking platform_hal_getRadioTemperature with invalid radioIndex = %d, value = valid buffer.", radioIndex);
     INT status = platform_hal_getRadioTemperature(radioIndex, &value);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_getRadioTemperature returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_getRadioTemperature...");
@@ -3102,7 +3187,7 @@ void test_l1_platform_hal_negative2_getRadioTemperature(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_getRadioTemperature with radioIndex=1, value=0 | radioIndex=1, value=0 | Should return RETURN_OK | Should be successful |
+* |01| Invoking platform_hal_getRadioTemperature with radioIndex = 1, value = valid buffer|radioIndex = 1, value = valid buffer|RETURN_OK|Should be successful|
 */
 void test_l1_platform_hal_positive2_getRadioTemperature(void)
 {
@@ -3110,11 +3195,11 @@ void test_l1_platform_hal_positive2_getRadioTemperature(void)
     INT radioIndex = 1;
     INT value = 0;
 
-    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, value=%d.", radioIndex,value);
+    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex = %d, value = valid buffer.", radioIndex);
     INT status = platform_hal_getRadioTemperature(radioIndex, &value);
 
-    UT_LOG("Returned status: %d", status);
-    UT_LOG("Returned value: %d", value);
+    UT_LOG("platform_hal_getRadioTemperature returns: %d", status);
+    UT_LOG("Radio Temperature: %d", value);
 
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(value >= 0 && value <= 100)
@@ -3144,9 +3229,9 @@ void test_l1_platform_hal_positive2_getRadioTemperature(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description | Test Data                                                                            | Expected Result      | Notes             |
-* | :--------------: | ----------- | ------------------------------------------------------------------------------------ | -------------------- | ----------------- |
-* |       01         | Invoking platform_hal_getRadioTemperature with radioIndex = 2, value = 0 | radioIndex = 2, value = 0 | RETURN_OK  | Should be successful |
+* | Variation / Step| Description | Test Data | Expected Result| Notes|
+* | :-------: | ----------- | ----------- | ---------- | ------|
+* | 01| Invoking platform_hal_getRadioTemperature with radioIndex = 2, value = valid buffer| radioIndex = 2, value = valid buffer| RETURN_OK| Should be successful |
 */ 
 void test_l1_platform_hal_positive3_getRadioTemperature(void)
 {
@@ -3154,11 +3239,11 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
     INT radioIndex = 2;
     INT value = 0;
 
-    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex=%d, value=%d.", radioIndex,value);
+    UT_LOG("Invoking platform_hal_getRadioTemperature with radioIndex = %d, value = valid buffer.", radioIndex);
     INT status = platform_hal_getRadioTemperature(radioIndex, &value);
 
-    UT_LOG("Returned status: %d", status);
-    UT_LOG("Returned value: %d", value);
+    UT_LOG("platform_hal_getRadioTemperature returns: %d", status);
+    UT_LOG("Radio Temperature: %d", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(value >= 0 && value <= 100)
@@ -3174,6 +3259,7 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
     UT_LOG("Exiting test_l1_platform_hal_positive3_getRadioTemperature...");
 }
 #endif
+
 /**
 * @brief Unit test for the platform_hal_SetMACsecEnable function.
 *
@@ -3189,10 +3275,11 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :--------------: | ----------- | --------- | --------------- | ----- |
-* |       01         | Invoking platform_hal_SetMACsecEnable with ethPort = 0, Flag = 1 | ethPort = 0, Flag = 1 | RETURN_OK | Should be successful |
+* | :-------: | ----------- | --------- | --------------- | ----- |
+* |01| Invoking platform_hal_SetMACsecEnable with ethPort = 0, Flag = 1 | ethPort = 0, Flag = 1 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_SetMACsecEnable(void) {
+void test_l1_platform_hal_positive1_SetMACsecEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetMACsecEnable...");
     INT ethPort = 0;
     BOOLEAN Flag = 1;
@@ -3200,7 +3287,7 @@ void test_l1_platform_hal_positive1_SetMACsecEnable(void) {
     UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_SetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetMACsecEnable...");
@@ -3224,7 +3311,8 @@ void test_l1_platform_hal_positive1_SetMACsecEnable(void) {
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_SetMACsecEnable with ethPort = 0, Flag = 0| ethPort = 0, Flag = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_SetMACsecEnable(void) {
+void test_l1_platform_hal_positive2_SetMACsecEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetMACsecEnable...");
     INT ethPort = 0;
     BOOLEAN Flag = 0;
@@ -3232,7 +3320,7 @@ void test_l1_platform_hal_positive2_SetMACsecEnable(void) {
     UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_SetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetMACsecEnable...");
@@ -3254,9 +3342,10 @@ void test_l1_platform_hal_positive2_SetMACsecEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_SetMACsecEnable API with invalid ethPort = -1 and Flag = 1 | ethPort = -1, Flag = 1 | RETURN_ERR | Should return error status |
+* | 1|Invoking platform_hal_SetMACsecEnable API with invalid ethPort = -1 and Flag = 1| ethPort = -1, Flag = 1| RETURN_ERR|Should return error status|
 */
-void test_l1_platform_hal_negative1_SetMACsecEnable(void) {
+void test_l1_platform_hal_negative1_SetMACsecEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetMACsecEnable...");
     INT ethPort = -1;
     BOOLEAN Flag = 1;
@@ -3264,7 +3353,7 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void) {
     UT_LOG("Invoking platform_hal_SetMACsecEnable with invalid ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_SetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetMACsecEnable...");
@@ -3284,11 +3373,12 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                              | Test Data                 | Expected Result                        | Notes              |
-* | :--------------: | -------------------------------------------------------- | ------------------------- | -------------------------------------- | ------------------ |
-* |       01         | Invoking platform_hal_SetMACsecEnable with ethPort = MaxEthPort-1 ,Flag = 1 | ethPort = MaxEthPort-1, Flag = 1 | RETURN_OK   | Should be successful |
+* | Variation / Step | Description| Test Data | Expected Result| Notes|
+* | :---------: | -----------| ------------| ---------| -------|
+* | 01| Invoking platform_hal_SetMACsecEnable with ethPort = MaxEthPort-1 ,Flag = 1| ethPort = MaxEthPort-1, Flag = 1| RETURN_OK| Should be successful|
 */
-void test_l1_platform_hal_positive3_SetMACsecEnable(void) {
+void test_l1_platform_hal_positive3_SetMACsecEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_SetMACsecEnable...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = MaxEthPort-1;
@@ -3297,7 +3387,7 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void) {
     UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, Flag = %d", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_SetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetMACsecEnable...");
@@ -3320,50 +3410,53 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_SetMACsecEnable with ethPort = 0, invalid Flag = 2 | ethPort = 0, Flag = 2 | RETURN_ERR | Should produce an error |
+* | 01| Invoking platform_hal_SetMACsecEnable with ethPort = 0, invalid Flag = 2| ethPort = 0, Flag = 2| RETURN_ERR | Should produce an error |
 */
-void test_l1_platform_hal_negative2_SetMACsecEnable(void) {
+void test_l1_platform_hal_negative2_SetMACsecEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetMACsecEnable...");
     INT ethPort = 0;
     BOOLEAN Flag = 2;
 
-    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, invalid Flag = %d", ethPort, Flag);
+    UT_LOG("Invoking platform_hal_SetMACsecEnable with ethPort = %d, invalid Flag = %d.", ethPort, Flag);
     INT status = platform_hal_SetMACsecEnable(ethPort, Flag);
 
-    UT_LOG("Return status = %d", status);
+    UT_LOG("platform_hal_SetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetMACsecEnable...");
 }
 
 /**
- * @brief This test case is used to verify the functionality of the platform_hal_GetMemoryPaths() API when called with HOST_CPU index.
- *
- * The objective of this test is to ensure that the API returns the expected results and does not encounter any errors.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 090 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = valid structure | index = HOST_CPU, ppinfo = valid structure| RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_GetMemoryPaths(void) {
+* @brief This test case is used to verify the functionality of the platform_hal_GetMemoryPaths() API when called with HOST_CPU index.
+*
+* The objective of this test is to ensure that the API returns the expected results and does not encounter any errors.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 090 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01| Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = valid structure| index = HOST_CPU, ppinfo = valid structure| RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_GetMemoryPaths(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMemoryPaths...");
     RDK_CPUS index = HOST_CPU;
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
+
     if (ppinfo != NULL) 
     { 
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
   
-        UT_LOG("Return status = %d", result);
+        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
 
         UT_ASSERT_PTR_NOT_NULL(ppinfo);
@@ -3379,29 +3472,31 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void) {
     else 
     {
         UT_LOG("Malloc operation Failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMemoryPaths...");
 }
 
 /**
- * @brief Test the functionality of the platform_hal_GetMemoryPaths() function.
- *
- * This test case verifies the platform_hal_GetMemoryPaths() function to ensure that it returns the correct memory paths for the peer CPU.
- *
- * **Test Group ID:** Basic : 01  @n
- * **Test Case ID:** 091 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetMemoryPaths with index = PEER_CPU, ppinfo = valid structure | index = PEER_CPU, ppinfo = valid structure | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
+* @brief Test the functionality of the platform_hal_GetMemoryPaths() function.
+*
+* This test case verifies the platform_hal_GetMemoryPaths() function to ensure that it returns the correct memory paths for the peer CPU.
+*
+* **Test Group ID:** Basic : 01  @n
+* **Test Case ID:** 091 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01|Invoking platform_hal_GetMemoryPaths with index = PEER_CPU, ppinfo = valid structure| index = PEER_CPU, ppinfo = valid structure | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive2_GetMemoryPaths(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_GetMemoryPaths...");
     RDK_CPUS index = PEER_CPU;
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
@@ -3411,7 +3506,7 @@ void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
     
-        UT_LOG("Return status = %d", result);
+        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
         UT_ASSERT_PTR_NOT_NULL(ppinfo);
         UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
@@ -3425,30 +3520,32 @@ void test_l1_platform_hal_positive2_GetMemoryPaths(void) {
     }
     else
     {
-	    UT_LOG("Malloc operation failed");
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetMemoryPaths...");
 }
 
 /**
- * @brief Test case to verify the behavior of platform_hal_GetMemoryPaths function when provided with an invalid CPU index.
- * 
- * This test case verifies that the platform_hal_GetMemoryPaths function returns an error when called with an invalid CPU index.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 092 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                        | Test Data                                           | Expected Result                                | Notes            |
- * | :----:           | ---------                                                          | ----------                                         |--------------                                | -----            |
- * | 01               | Invoking platform_hal_GetMemoryPaths with index = NOT_SUPPORTED_CPU, ppinfo = valid structure  | index = NOT_SUPPORTED_CPU, ppinfo = valid structure | RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
+* @brief Test case to verify the behavior of platform_hal_GetMemoryPaths function when provided with an invalid CPU index.
+* 
+* This test case verifies that the platform_hal_GetMemoryPaths function returns an error when called with an invalid CPU index.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 092 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :----:| ---------| ----------|--------------| ----- |
+* | 01| Invoking platform_hal_GetMemoryPaths with index = NOT_SUPPORTED_CPU, ppinfo = valid structure| index = NOT_SUPPORTED_CPU, ppinfo = valid structure | RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative1_GetMemoryPaths(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetMemoryPaths...");
     RDK_CPUS index = NOT_SUPPORTED_CPU;
 
@@ -3458,7 +3555,7 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid structure",index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
 
-        UT_LOG("Return status = %d", result);
+        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
 
         free(ppinfo);
@@ -3467,6 +3564,7 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMemoryPaths...");
 }
@@ -3487,9 +3585,10 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL | index = HOST_CPU, ppinfo = NULL | result = RETURN_ERR | The function should return RETURN_ERR |
+* | 01| Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = NULL| index = HOST_CPU, ppinfo = NULL|RETURN_ERR | The function should return RETURN_ERR |
 */
-void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
+void test_l1_platform_hal_negative2_GetMemoryPaths(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_GetMemoryPaths..."); 
 
     RDK_CPUS index = HOST_CPU;
@@ -3498,7 +3597,7 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
     UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = NULL",index);
     INT result = platform_hal_GetMemoryPaths(index, ppinfo);
   
-    UT_LOG("Return status = %d", result);
+    UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
   
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetMemoryPaths...");
@@ -3519,10 +3618,11 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void) {
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :--------------: | ----------- | --------- | --------------- | ----- |
-* |       01         | Invoking platform_hal_GetMemoryPaths with invalid index = 4 , ppinfo = valid structure| index = 4, ppinfo = valid structure| RETURN_ERR | Function should return an error |
+* | :-------: | ------- |---------| ----------| -----|
+* | 01| Invoking platform_hal_GetMemoryPaths with invalid index = 4, ppinfo = valid structure| index = 4, ppinfo = valid structure| RETURN_ERR | Function should return an error |
 */
-void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
+void test_l1_platform_hal_negative3_GetMemoryPaths(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_GetMemoryPaths...");  
     RDK_CPUS index = 4; 
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
@@ -3531,7 +3631,7 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
         UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d , ppinfo = valid structure", index);
         INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
 
-        UT_LOG("Return status = %d", result);
+        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
 
         free(ppinfo);
@@ -3540,6 +3640,7 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetMemoryPaths...");
 }
@@ -3560,7 +3661,7 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort = 0 and flag = FALSE | ethPort = 0 and flag = FALSE| RETURN_OK | Should be successful |
+* |01| Invoking platform_hal_GetMACsecEnable with valid ethPort = 0 and flag = FALSE | ethPort = 0 and flag = FALSE| RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 {
@@ -3571,8 +3672,8 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
     UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d flag =%d.", ethPort,flag);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Returned status: %d", status);
-    UT_LOG("Returned value: %d", flag);
+    UT_LOG("platform_hal_GetMACsecEnable returns :  %d", status);
+    UT_LOG("MACsec Enable: %d", flag);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(flag == TRUE || flag == FALSE )
@@ -3616,7 +3717,7 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
     UT_LOG("Invoking platform_hal_GetMACsecEnable with ethPort=%d with NULL pFlag .", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, pFlag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetMACsecEnable...");
@@ -3638,7 +3739,7 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 |Invoking platform_hal_GetMACsecEnable with invalid ethPort = -1 , flag = FALSE| ethPort = -1, flag = FALSE| RETURN_ERR | Should return error |
+* | 01 |Invoking platform_hal_GetMACsecEnable with invalid ethPort = -1 , flag = FALSE| ethPort = -1, flag = FALSE|RETURN_ERR| Should return error|
 */
 void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 {
@@ -3649,30 +3750,30 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
     UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort=%d flag =%d.", ethPort,flag);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetMACsecEnable...");
 }
 
 /**
- * @brief This test case checks the behavior of the 'platform_hal_GetMACsecEnable' function for the highest Ethernet port.
- *
- * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port. 
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 098 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort = MaxEthPort-1,  flag = FALSE | ethPort = MaxEthPort-1, flag = FALSE | status = RETURN_OK | Should be successful |
- */
+* @brief This test case checks the behavior of the 'platform_hal_GetMACsecEnable' function for the highest Ethernet port.
+*
+* This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port. 
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 098 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort = MaxEthPort-1, flag = FALSE| ethPort = MaxEthPort-1, flag = FALSE |RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_GetMACsecEnable...");
@@ -3683,7 +3784,7 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
     UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d flag = %d.", ethPort,flag);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetMACsecEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(flag == TRUE || flag == FALSE )
@@ -3700,23 +3801,23 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 }
 
 /**
- * @brief This test case checks the behavior of the 'platform_hal_GetMACsecEnable' function for the highest Ethernet port.
- *
- * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port. 
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 099 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | --------------- | ----- |
- * | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort= valid value, flag = FALSE | ethPort = valid value, flag = FALSE | status = RETURN_OK | Should be successful |
- */
+* @brief This test case checks the behavior of the 'platform_hal_GetMACsecEnable' function for the highest Ethernet port.
+*
+* This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port. 
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 099 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort= valid value, flag = FALSE | ethPort = valid value, flag = FALSE |RETURN_OK |Should be successful|
+*/
 void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_GetMACsecEnable...");
@@ -3727,7 +3828,7 @@ void test_l1_platform_hal_positive3_GetMACsecEnable(void)
     UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort=%d flag=%d.", ethPort,flag);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetMACsecEnable returns :  %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(flag == TRUE || flag == FALSE )
@@ -3762,7 +3863,8 @@ void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_StartMACsec with ethPort = 1, timeoutSec = 0  | ethPort = 1, timeoutSec = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_StartMACsec(void) {
+void test_l1_platform_hal_positive1_StartMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_StartMACsec...");
     INT ethPort = 1;
     INT timeoutSec = 0;
@@ -3770,7 +3872,7 @@ void test_l1_platform_hal_positive1_StartMACsec(void) {
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
     INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_StartMACsec returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_StartMACsec...");
@@ -3794,7 +3896,8 @@ void test_l1_platform_hal_positive1_StartMACsec(void) {
 * | :----: | --------- | ---------- | --------------- | ----- |
 * | 01 | Invoke StartMACsec with invalid ethPort = -1 ,  timeoutSec = 0  | ethPort = -1, timeoutSec = 0 | RETURN_ERR | Should return an error |
 */
-void test_l1_platform_hal_negative1_StartMACsec(void) {
+void test_l1_platform_hal_negative1_StartMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_StartMACsec...");
     INT ethPort = -1;
     INT timeoutSec = 0;
@@ -3802,7 +3905,7 @@ void test_l1_platform_hal_negative1_StartMACsec(void) {
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
     INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_StartMACsec returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_StartMACsec...");
@@ -3824,9 +3927,10 @@ void test_l1_platform_hal_negative1_StartMACsec(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_StartMACsec with ethPort = 0, timeoutSec = 0    | ethPort = 0, timeoutSec = 0 | RETURN_OK | Should be successful |
+* | 01| Invoking platform_hal_StartMACsec with ethPort = 0, timeoutSec = 0| ethPort = 0, timeoutSec = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_StartMACsec(void) {
+void test_l1_platform_hal_positive2_StartMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_StartMACsec...");
     INT ethPort = 0;
     INT timeoutSec = 0;
@@ -3834,7 +3938,7 @@ void test_l1_platform_hal_positive2_StartMACsec(void) {
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
     INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_StartMACsec returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_StartMACsec...");
@@ -3856,9 +3960,10 @@ void test_l1_platform_hal_positive2_StartMACsec(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_StartMACsec with ethPort = MaxEthPort - 1, timeoutSec = 0 | ethPort = MaxEthPort - 1, timeoutSec = 0 | RETURN_OK | Should be successful |
+* | 01| Invoking platform_hal_StartMACsec with ethPort = MaxEthPort - 1, timeoutSec = 0 | ethPort = MaxEthPort - 1, timeoutSec = 0 |RETURN_OK| Should be successful|
 */
-void test_l1_platform_hal_positive3_StartMACsec(void) {
+void test_l1_platform_hal_positive3_StartMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_StartMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = MaxEthPort - 1;
@@ -3867,31 +3972,32 @@ void test_l1_platform_hal_positive3_StartMACsec(void) {
     UT_LOG("Invoking platform_hal_StartMACsec with ethPort = %d, timeoutSec = %d", ethPort, timeoutSec);
     INT status = platform_hal_StartMACsec(ethPort, timeoutSec);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_StartMACsec returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_StartMACsec...");
 }
 
 /**
- * @brief Test case to verify the functionality of platform_hal_GetDhcpv6_Options function under normal operation.
- *
- * This test verifies the functionality of platform_hal_GetDhcpv6_Options function by checking the return value and output parameters when the function is invoked in normal conditions.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 104 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = valid structure, send_opt_list = valid structure | req_opt_list = valid structure, send_opt_list = valid structure | RETURN_OK | Test should be successful |
- */
-void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
+* @brief Test case to verify the functionality of platform_hal_GetDhcpv6_Options function under normal operation.
+*
+* This test verifies the functionality of platform_hal_GetDhcpv6_Options function by checking the return value and output parameters when the function is invoked in normal conditions.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 104 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----------: | ----------- | --------- | -------------| ----- |
+* |01| Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = valid structure, send_opt_list = valid structure | req_opt_list = valid structure, send_opt_list = valid structure | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetDhcpv6_Options...");
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
@@ -3936,6 +4042,7 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDhcpv6_Options...");
 }
@@ -3956,9 +4063,10 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = valid structure  | req_opt_list = NULL, send_opt_list = valid structure | RETURN_ERR | Should return error |
+* | 01 | Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = valid structure | req_opt_list = NULL, send_opt_list = valid structure | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
+void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetDhcpv6_Options...");
     dhcp_opt_list* req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
@@ -3977,6 +4085,7 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDhcpv6_Options...");
 }
@@ -3997,9 +4106,10 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list = NULL and req_opt_list = valid structure | send_opt_list = NULL and req_opt_list = valid structure| RETURN_ERR | Should return error|
+* | 01 | Invoking the API platform_hal_GetDhcpv6_Options with send_opt_list = NULL and req_opt_list = valid structure| send_opt_list = NULL and req_opt_list = valid structure| RETURN_ERR | Should return error|
 */
-void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
+void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_GetDhcpv6_Options...");
     dhcp_opt_list* req_opt_list = (dhcp_opt_list*)malloc(sizeof(dhcp_opt_list));
     dhcp_opt_list* send_opt_list = NULL;
@@ -4018,6 +4128,7 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetDhcpv6_Options...");
 }
@@ -4038,9 +4149,10 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = NULL | req_opt_list = NULL, send_opt_list = NULL | RETURN_ERR | Should return error |
+* |01| Invoking the API platform_hal_GetDhcpv6_Options with req_opt_list = NULL, send_opt_list = NULL | req_opt_list = NULL, send_opt_list = NULL | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative3_GetDhcpv6_Options(void) {
+void test_l1_platform_hal_negative3_GetDhcpv6_Options(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_GetDhcpv6_Options...");
     dhcp_opt_list* req_opt_list = NULL;
     dhcp_opt_list* send_opt_list = NULL;
@@ -4068,7 +4180,6 @@ void test_l1_platform_hal_negative3_GetDhcpv6_Options(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-*
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_setDscp with interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30"| interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30" | RETURN_OK | Should be successful |
@@ -4083,30 +4194,30 @@ void test_l1_platform_hal_positive1_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = %d, cmd = %d, pDscpVals = %s.", interfaceType, cmd, pDscpVals);    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_setDscp returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setDscp...");
 }
 
 /**
- * @brief Test function to validate the platform_hal_setDscp API.
- *
- * This test function is used to validate the platform_hal_setDscp API functionality.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 109 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL. | interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL | RETURN_OK | Should be successful |
- */
+* @brief Test function to validate the platform_hal_setDscp API.
+*
+* This test function is used to validate the platform_hal_setDscp API functionality.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 109 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01| Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL| interfaceType = EWAN, cmd = TRAFFIC_CNT_STOP, pDscpVals = NULL|RETURN_OK|Should be successful|
+*/
 void test_l1_platform_hal_positive2_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_setDscp...");
@@ -4117,29 +4228,29 @@ void test_l1_platform_hal_positive2_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = %d, cmd = %d, pDscpVals = NULL.",interfaceType, interfaceType );    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_setDscp returns: %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_setDscp...");
 }
 
 /**
- * @brief Test function to validate the platform_hal_setDscp API.
- *
- * This test function is used to validate the platform_hal_setDscp API functionality.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 110 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30"| interfaceType = EWAN, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30" | RETURN_OK | Should be successful |
+* @brief Test function to validate the platform_hal_setDscp API.
+*
+* This test function is used to validate the platform_hal_setDscp API functionality.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 110 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01| Invoking platform_hal_setDscp with interfaceType = EWAN, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30"| interfaceType = EWAN, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30" | RETURN_OK | Should be successful |
  */
 void test_l1_platform_hal_positive3_setDscp(void)
 {
@@ -4151,7 +4262,7 @@ void test_l1_platform_hal_positive3_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = %d , cmd = %d , pDscpVals = %s.", interfaceType, cmd, pDscpVals);
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);    
+    UT_LOG("platform_hal_setDscp returns : %d", result);    
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setDscp...");
@@ -4185,30 +4296,30 @@ void test_l1_platform_hal_positive4_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with interfaceType = %d, cmd = %d, pDscpVals = %s.", interfaceType, cmd, pDscpVals);    
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG(" platform_hal_setDscp returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_setDscp...");
 }
 
 /**
- * @brief This test function tests the negative scenario of the platform_hal_setDscp API.
- *
- * The objective of this test is to verify the behavior of the platform_hal_setDscp API when an invalid interface type is passed as an argument.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 112 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description                                  | Test Data                                                         | Expected Result            | Notes             |
- * | :--------------: | -------------------------------------------- | ----------------------------------------------------------------- | -------------------------- | ----------------- |
- * |       01         | Invoking platform_hal_setDscp with invalid interfaceType = 3, valid cmd = TRAFFIC_CNT_START and pDscpVals = "10,20,30"  | interfaceType = 3, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30" | RETURN_ERR | Should return error |
- */
+* @brief This test function tests the negative scenario of the platform_hal_setDscp API.
+*
+* The objective of this test is to verify the behavior of the platform_hal_setDscp API when an invalid interface type is passed as an argument.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 112 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step| Description| Test Data| Expected Result| Notes|
+* | :---------: | ------- | ---------| -----------| ------ |
+* |01| Invoking platform_hal_setDscp with invalid interfaceType = 3, valid cmd = TRAFFIC_CNT_START and pDscpVals = "10,20,30"| interfaceType = 3, cmd = TRAFFIC_CNT_START, pDscpVals = "10,20,30" | RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative1_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_setDscp...");
@@ -4219,30 +4330,30 @@ void test_l1_platform_hal_negative1_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with invalid interfaceType = %d, valid cmd = %d and  pDscpVals = %s.", interfaceType, cmd, pDscpVals);
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
     
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_setDscp returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_setDscp...");
 }
 
 /**
- * @brief Test case to verify the negative scenario of the platform_hal_setDscp function.
- *
- * This test case verifies the behavior of the platform_hal_setDscp function when an invalid command is provided.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 113 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoking platform_hal_setDscp with valid interfaceType = DOCSIS, invalid cmd = 3, valid pDscpVals = "10,20,30"  | interfaceType = DOCSIS, cmd = 3, pDscpVals = "10,20,30" | RETURN_ERR | Should return error |
- */
+* @brief Test case to verify the negative scenario of the platform_hal_setDscp function.
+*
+* This test case verifies the behavior of the platform_hal_setDscp function when an invalid command is provided.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 113 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, the test case has to be selected via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----------: | ------| --------- | ------------ | ----- |
+* |01| Invoking platform_hal_setDscp with valid interfaceType = DOCSIS, invalid cmd = 3, valid pDscpVals = "10,20,30"| interfaceType = DOCSIS, cmd = 3, pDscpVals = "10,20,30"| RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative2_setDscp(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_setDscp...");
@@ -4253,7 +4364,7 @@ void test_l1_platform_hal_negative2_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with valid interfaceType = %d, invalid cmd = %d , valid pDscpVals = %s.", interfaceType, cmd, pDscpVals);   
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_setDscp returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_setDscp...");
@@ -4274,9 +4385,9 @@ void test_l1_platform_hal_negative2_setDscp(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_setDscp with valid interfaceType = DOCSIS and cmd = TRAFFIC_CNT_START, invalid pDscpVals = "100000,200000". | interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = "100000,200000" |  RETURN_ERR | Should return error |
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :----: | ---------| ---------- | -------------- | ----- |
+* | 01| Invoking platform_hal_setDscp with valid interfaceType = DOCSIS and cmd = TRAFFIC_CNT_START, invalid pDscpVals = "100000,200000"| interfaceType = DOCSIS, cmd = TRAFFIC_CNT_START, pDscpVals = "100000,200000" |  RETURN_ERR | Should return error |
 */ 
 void test_l1_platform_hal_negative3_setDscp(void)
 {
@@ -4288,7 +4399,7 @@ void test_l1_platform_hal_negative3_setDscp(void)
     UT_LOG("Invoking platform_hal_setDscp with valid interfaceType = %d and cmd = %d, invalid pDscpVals = %s.", interfaceType, cmd, pDscpVals);
     INT result = platform_hal_setDscp(interfaceType, cmd, pDscpVals);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_setDscp returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_setDscp...");
@@ -4308,49 +4419,51 @@ void test_l1_platform_hal_negative3_setDscp(void)
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description                                                      | Test Data                    | Expected Result     | Notes             |
-* | :--------------: | ---------------------------------------------------------        | ---------------------------- | ------------------- | ------------------|
-* |       01         | Invoking platform_hal_SetLowPowerModeState with pState = PSM_AC     | pState = PSM_AC              | RETURN_OK   | Should be successful |
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :-------: | --------- | ---------| --------| -------|
+* |01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_AC| pState = PSM_AC| RETURN_OK| Should be successful |
 */
-void test_l1_platform_hal_positive1_SetLowPowerModeState(void) {
+void test_l1_platform_hal_positive1_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetLowPowerModeState...");
     PSM_STATE pState = PSM_AC;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetLowPowerModeState...");
 }
 
 /**
- * @brief Test case to verify the behavior of SetLowPowerModeState function with battery power state.
- *
- * This test case verifies the functionality of platform_hal_SetLowPowerModeState function with battery power state.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 116 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoking platform_hal_SetLowPowerModeState with pState = PSM_BATT | pState = PSM_BATT | RETURN_OK | Should be successful |
+* @brief Test case to verify the behavior of SetLowPowerModeState function with battery power state.
+*
+* This test case verifies the functionality of platform_hal_SetLowPowerModeState function with battery power state.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 116 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----------: | ----------- | --------- | ---------| ----- |
+* |01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_BATT | pState = PSM_BATT |RETURN_OK| Should be successful |
  */
-void test_l1_platform_hal_positive2_SetLowPowerModeState(void) {
+void test_l1_platform_hal_positive2_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetLowPowerModeState...");
     PSM_STATE pState = PSM_BATT;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetLowPowerModeState...");
@@ -4372,16 +4485,17 @@ void test_l1_platform_hal_positive2_SetLowPowerModeState(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 |Invoking platform_hal_SetLowPowerModeState with pState = PSM_HOT | pState = PSM_HOT | RETURN_OK | Should be successful |
+* | 01 |Invoking platform_hal_SetLowPowerModeState with pState = PSM_HOT| pState = PSM_HOT| RETURN_OK| Should be successful |
 */
-void test_l1_platform_hal_positive3_SetLowPowerModeState(void) {
+void test_l1_platform_hal_positive3_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_SetLowPowerModeState...");
     PSM_STATE pState = PSM_HOT;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_SetLowPowerModeState...");
@@ -4403,47 +4517,49 @@ void test_l1_platform_hal_positive3_SetLowPowerModeState(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_SetLowPowerModeState with pState = PSM_COOLED | pState = PSM_COOLED | RETURN_OK | Should be successful |
+* | 01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_COOLED| pState = PSM_COOLED| RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive4_SetLowPowerModeState(void) {
+void test_l1_platform_hal_positive4_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive4_SetLowPowerModeState...");
     PSM_STATE pState = PSM_COOLED;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_SetLowPowerModeState...");
 }
 
 /**
- * @brief This test verifies the behavior of the platform_hal_SetLowPowerModeState function when an unknown PPSM_STATE value is provided as input.
- *
- * The objective of this test is to ensure that the platform_hal_SetLowPowerModeState function handles unknown PPSM_STATE values correctly and returns the expected status.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 119 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_SetLowPowerModeState with pState = PSM_UNKNOWN| pState = PSM_UNKNOWN | RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_SetLowPowerModeState(void) {
+* @brief This test verifies the behavior of the platform_hal_SetLowPowerModeState function when an unknown PPSM_STATE value is provided as input.
+*
+* The objective of this test is to ensure that the platform_hal_SetLowPowerModeState function handles unknown PPSM_STATE values correctly and returns the expected status.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 119 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_SetLowPowerModeState with pState = PSM_UNKNOWN| pState = PSM_UNKNOWN| RETURN_ERR| Should return error |
+*/
+void test_l1_platform_hal_negative1_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetLowPowerModeState...");
     PSM_STATE pState = PSM_UNKNOWN;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("Rplatform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetLowPowerModeState...");
@@ -4466,16 +4582,17 @@ void test_l1_platform_hal_negative1_SetLowPowerModeState(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_SetLowPowerModeState with pState = PSM_NOT_SUPPORTED| pState = PSM_NOT_SUPPORTED | RETURN_ERR | Should return error |
+* | 01 | Invoking platform_hal_SetLowPowerModeState with pState = PSM_NOT_SUPPORTED| pState = PSM_NOT_SUPPORTED| RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative2_SetLowPowerModeState(void) {
+void test_l1_platform_hal_negative2_SetLowPowerModeState(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetLowPowerModeState...");
     PSM_STATE pState = PSM_NOT_SUPPORTED;
 
     UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
     INT status = platform_hal_SetLowPowerModeState(&pState);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetLowPowerModeState...");
@@ -4497,7 +4614,7 @@ void test_l1_platform_hal_negative2_SetLowPowerModeState(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_GetFirmwareBankInfo with bankIndex = ACTIVE_BANK, fwBankInfo = valid structure | bankIndex = ACTIVE_BANK, fwBankInfo = valid structure | RETURN_OK | Should be successful |
+* | 01| Invoking platform_hal_GetFirmwareBankInfo with bankIndex = ACTIVE_BANK, fwBankInfo = valid structure | bankIndex = ACTIVE_BANK, fwBankInfo = valid structure | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 {
@@ -4509,8 +4626,8 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
         UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d , fwBankInfo = valid structure.", bankIndex);
         INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
+        UT_LOG("platform_hal_GetFirmwareBankInfo returns: %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        UT_LOG("Return value: %d", result);
 
         free(fwBankInfo);
         fwBankInfo = NULL;
@@ -4518,6 +4635,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetFirmwareBankInfo...");
 }
@@ -4539,7 +4657,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | ---------- | ---------- | --------------- | ----- |
-* | 01     | Invoking platform_hal_GetFirmwareBankInfo with bankIndex = INACTIVE_BANK , fwBankInfo = valid structure | bankIndex = INACTIVE_BANK , fwBankInfo = valid structure | RETURN_OK | Should be successful  |
+* | 01| Invoking platform_hal_GetFirmwareBankInfo with bankIndex = INACTIVE_BANK, fwBankInfo = valid structure | bankIndex = INACTIVE_BANK, fwBankInfo = valid structure | RETURN_OK | Should be successful  |
 */
 void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 {
@@ -4551,7 +4669,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
         UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d and , fwBankInfo = valid structure.",bankIndex);
         INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-        UT_LOG("Return value: %d", result);
+        UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
 
         free(fwBankInfo);
@@ -4560,6 +4678,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }     
     UT_LOG("Exiting test_l1_platform_hal_positive2_GetFirmwareBankInfo...");
 }
@@ -4580,7 +4699,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetFirmwareBankInfo with invalid bankIndex = 2, fwBankInfo = valid structure  | bankIndex = 2, fwBankInfo = valid structure | RETURN_ERR | Should return error |
+* |01| Invoking platform_hal_GetFirmwareBankInfo with invalid bankIndex = 2, fwBankInfo = valid structure| bankIndex = 2, fwBankInfo = valid structure | RETURN_ERR | Should return error |
 */
 void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
 {
@@ -4592,7 +4711,7 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
         UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d, fwBankInfo = valid structure.", bankIndex);
         INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-        UT_LOG("Return value: %d", result);
+        UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
 
         free(fwBankInfo);
@@ -4601,6 +4720,7 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFirmwareBankInfo...");
 }
@@ -4632,30 +4752,30 @@ void test_l1_platform_hal_negative2_GetFirmwareBankInfo(void)
     UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex: %d, fwBankInfo = NULL.", bankIndex);
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetFirmwareBankInfo...");
 }
 
 /**
- * @brief This test case tests the platform_hal_GetFirmwareBankInfo function by passing invalid arguments.
- *
- *  This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 125 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :--------------: | ----------- | --------- | --------------- | ----- |
- * |       01         | Invoke platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK , fwBankInfo = NULL | bankIndex = INACTIVE_BANK, fwBankInfo = NULL | RETURN_ERR | Should return error |
- */
+* @brief This test case tests the platform_hal_GetFirmwareBankInfo function by passing invalid arguments.
+*
+*  This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 125 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :---------: | ------- | --------- | --------| ----- |
+* |01| Invoke platform_hal_GetFirmwareBankInfo with bankIndex: INACTIVE_BANK, fwBankInfo = NULL| bankIndex = INACTIVE_BANK, fwBankInfo = NULL | RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_GetFirmwareBankInfo...");
@@ -4665,46 +4785,76 @@ void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
     UT_LOG("Invoking platform_hal_GetFirmwareBankInfo with bankIndex = %d , fwBankInfo = NULL.", bankIndex);
     INT result = platform_hal_GetFirmwareBankInfo(bankIndex, fwBankInfo);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetFirmwareBankInfo...");
 }
 
 /**
- * @brief This test is used to verify the functionality of the platform_hal_getCMTSMac function.
- *
- * The purpose of this test is to check if the platform_hal_getCMTSMac function returns the expected status and output value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 126 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_getCMTSMac with pValue = valid buffer | pValue = valid buffer | RETURN_OK | Should be successful |
+* @brief This test is used to verify the functionality of the platform_hal_getCMTSMac function.
+*
+* The purpose of this test is to check if the platform_hal_getCMTSMac function returns the expected status and output value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 126 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_getCMTSMac with pValue = valid buffer | pValue = valid buffer | RETURN_OK | Should be successful |
  */
 void test_l1_platform_hal_positive1_getCMTSMac(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getCMTSMac...");
     CHAR pValue[100] ={"\0"};
+    int count = 0;
+    int len = 0;
 
     UT_LOG("Invoking platform_hal_getCMTSMac with pValue = valid buffer");
     INT status = platform_hal_getCMTSMac(pValue);
 
     UT_LOG("platform_hal_getCMTSMac returns : %d", status);
-    UT_LOG("Output: pValue = %s", pValue);
+    UT_LOG("Mac Address = %s", pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
-    int len = strlen(pValue);
-    UT_ASSERT_EQUAL(len,17);
-    UT_LOG("Valid MAC string as expected");
-    
+    len = strlen(pValue);
+    if(len == 17)
+    {
+        for (int i = 0; pValue[i] != '\0'; i++) 
+        {
+            // Check for valid characters: 0-9, A-F, a-f, and ':'
+            if (!(isdigit(pValue[i]) || (pValue[i] >= 'A' && pValue[i] <= 'F') || (pValue[i] >= 'a' && pValue[i] <= 'f') || pValue[i] == ':')) 
+            {
+                break;
+            }
+            // Count colons
+            if (pValue[i] == ':')
+            {
+                count++;
+            }  
+        }
+        if (count == 5)
+        {
+            UT_LOG("MAC string is %s which is valid MAC address.",pValue);
+            UT_PASS("Get CMTS MAC validation success");
+        }
+        else
+        {
+            UT_LOG(" MAC address string is %s which is invalid string value.", pValue);
+            UT_FAIL("Get CMTS MAC validation failed");   
+        }
+    }
+    else
+    {
+        UT_LOG(" MAC address string is %s which is invalid string length.", pValue);
+        UT_FAIL("Get CMTS MAC validation failed");           
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getCMTSMac...");
 }
 
@@ -4732,7 +4882,7 @@ void test_l1_platform_hal_negative1_getCMTSMac(void)
     UT_LOG("Invoking platform_hal_getCMTSMac with pValue = NULL.");
     INT status = platform_hal_getCMTSMac(pValue);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_getCMTSMac returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_getCMTSMac...");
@@ -4754,7 +4904,7 @@ void test_l1_platform_hal_negative1_getCMTSMac(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetDhcpv4_Options with req_opt_list = valid structure and send_opt_list = valid structure| req_opt_list = valid structure and send_opt_list = valid structure | RETURN_OK | Should be successful |
+* |01| Invoking platform_hal_GetDhcpv4_Options with req_opt_list = valid structure and send_opt_list = valid structure| req_opt_list = valid structure and send_opt_list = valid structure | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
 {
@@ -4767,7 +4917,7 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
         UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = valid structure and send_opt_list = valid structure");
         INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-        UT_LOG("The result is: %d", result);
+        UT_LOG("platform_hal_GetDhcpv4_Options returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
         UT_ASSERT_PTR_NOT_NULL(req_opt_list);
         UT_ASSERT_PTR_NOT_NULL(send_opt_list);
@@ -4801,28 +4951,29 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDhcpv4_Options...");
 }
 
 /**
- * @brief This test case is used to verify the handling of NULL input argument by the function platform_hal_GetDhcpv4_Options.
- *
- * This test case verifies the behavior of the platform_hal_GetDhcpv4_Options function when the req_opt_list argument is NULL. The function should return an error code and also the send_opt_list should be set to NULL.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 129 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- * 
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = valid structure | req_opt_list = NULL, send_opt_list = valid structure | RETURN_ERR | Should return error |
- */
+* @brief This test case is used to verify the handling of NULL input argument by the function platform_hal_GetDhcpv4_Options.
+*
+* This test case verifies the behavior of the platform_hal_GetDhcpv4_Options function when the req_opt_list argument is NULL. The function should return an error code and also the send_opt_list should be set to NULL.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 129 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+* 
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* |01| Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = valid structure | req_opt_list = NULL, send_opt_list = valid structure | RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetDhcpv4_Options...");
@@ -4834,7 +4985,7 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
         UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = valid structure.");
         INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-        UT_LOG("The result is: %d", result);
+        UT_LOG("platform_hal_GetDhcpv4_Options returns: %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
 
         free(send_opt_list);
@@ -4843,28 +4994,29 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDhcpv4_Options...");
 }
 
 /**
- * @brief Test case to verify the behavior of the function platform_hal_GetDhcpv4_Options when NULL is passed as the send_opt_list argument.
- *
- * This test case checks the behavior of the platform_hal_GetDhcpv4_Options function when NULL is passed as the send_opt_list argument. The function is expected to return an error (RETURN_ERR) and set the req_opt_list and send_opt_list pointers to NULL.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 130 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ----------------- | --------------- | ------ |
- * | 01 | Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL, req_opt_list = valid structure | send_opt_list = NULL, req_opt_list = valid structure  | RETURN_ERR | Should return an error |
- */
+* @brief Test case to verify the behavior of the function platform_hal_GetDhcpv4_Options when NULL is passed as the send_opt_list argument.
+*
+* This test case checks the behavior of the platform_hal_GetDhcpv4_Options function when NULL is passed as the send_opt_list argument. The function is expected to return an error (RETURN_ERR) and set the req_opt_list and send_opt_list pointers to NULL.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 130 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ----------------- | --------------- | ------ |
+* | 01 | Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL, req_opt_list = valid structure | send_opt_list = NULL, req_opt_list = valid structure  | RETURN_ERR | Should return an error |
+*/
 void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_GetDhcpv4_Options...");
@@ -4876,7 +5028,7 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
         UT_LOG("Invoking platform_hal_GetDhcpv4_Options with send_opt_list = NULL, req_opt_list = valid structure");
         INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-        UT_LOG("The result is: %d", result);
+        UT_LOG("platform_hal_GetDhcpv4_Options returns :  %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
 
         free(req_opt_list);
@@ -4885,6 +5037,7 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_negative2_GetDhcpv4_Options...");
 }
@@ -4905,7 +5058,7 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = NULL| req_opt_list = NULL, send_opt_list = NULL | RETURN_ERR | Should return an error |
+* |01| Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = NULL| req_opt_list = NULL, send_opt_list = NULL | RETURN_ERR | Should return an error |
 */
 void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 {
@@ -4916,7 +5069,7 @@ void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
     UT_LOG("Invoking platform_hal_GetDhcpv4_Options with req_opt_list = NULL, send_opt_list = NULL");
     INT result = platform_hal_GetDhcpv4_Options(&req_opt_list, &send_opt_list);
 
-    UT_LOG("The result is: %d", result);
+    UT_LOG("platform_hal_GetDhcpv4_Options returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_GetDhcpv4_Options...");
@@ -4938,19 +5091,21 @@ void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | ----------- | --------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_getDscpClientList with interfaceType = DOCSIS, pDSCP_List = valid structure | interfaceType = DOCSIS, pDSCP_List = valid structure | RETURN_OK | Should be successful |
+* | 1| Invoking platform_hal_getDscpClientList with interfaceType = DOCSIS, pDSCP_List = valid structure | interfaceType = DOCSIS, pDSCP_List = valid structure | RETURN_OK | Should be successful |
 */ 
 void test_l1_platform_hal_positive1_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getDscpClientList...");
     WAN_INTERFACE interfaceType = DOCSIS;
+    int len = 0;
+    int count = 0;
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
     if(pDSCP_List != NULL)
     {
         UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.", interfaceType);
         INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-        UT_LOG("Return value: %d", result);
+        UT_LOG("platform_hal_getDscpClientList returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
         if (pDSCP_List != NULL) 
         {
@@ -4990,9 +5145,39 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
                 for (UINT j = 0; j < pDSCP_Element->numClients; j++) 
                 {
                     Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);
-                    int len = strlen(pTraffic_client->mac);
-                    UT_ASSERT_EQUAL(len,17);
-                    UT_LOG("Valid MAC string as expected");
+                    len = strlen(pTraffic_client->mac);
+                    if(len == 17)
+                    {
+                        count = 0;
+                        for (int i = 0; pTraffic_client->mac[i] != '\0'; i++) 
+                        {
+                            // Check for valid characters: 0-9, A-F, a-f, and ':'
+                            if (!(isdigit(pTraffic_client->mac[i]) || (pTraffic_client->mac[i] >= 'A' && pTraffic_client->mac[i] <= 'F') || (pTraffic_client->mac[i] >= 'a' && pTraffic_client->mac[i] <= 'f') || pTraffic_client->mac[i] == ':')) 
+                            {
+                                break;
+                            }
+                            // Count colons
+                            if (pTraffic_client->mac[i] == ':')
+                            {
+                                count++;
+                            }  
+                        }
+                        if (count == 5)
+                        {
+                            UT_LOG("MAC string is %s which is valid MAC address.",pTraffic_client->mac);
+                            UT_PASS("Get CMTS MAC validation success");
+                        }
+                        else
+                        {
+                            UT_LOG(" MAC address string is %s which is invalid string value.", pTraffic_client->mac);
+                            UT_FAIL("Get CMTS MAC validation failed");   
+                        }
+                    }
+                    else
+                    {
+                        UT_LOG(" MAC address string is %s which is invalid string length.", pTraffic_client->mac);
+                        UT_FAIL("Get CMTS MAC validation failed");           
+                    }
                     if (pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0)
                     {
                         UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
@@ -5012,39 +5197,42 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getDscpClientList...");
 }
 
 /**
- * @brief This test case validates the functionality of the platform_hal_getDscpClientList function in the L1 platform HAL module.
- *
- * This test case verifies that the platform_hal_getDscpClientList function returns the correct list of DSCP clients for the given WAN interface type.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 133 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_getDscpClientList with interfaceType = EWAN, pDSCP_List = valid structure | interfaceType = EWAN, pDSCP_List = valid structure | RETURN_OK | Should be successful |
- */
+* @brief This test case validates the functionality of the platform_hal_getDscpClientList function in the L1 platform HAL module.
+*
+* This test case verifies that the platform_hal_getDscpClientList function returns the correct list of DSCP clients for the given WAN interface type.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 133 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_getDscpClientList with interfaceType = EWAN, pDSCP_List = valid structure | interfaceType = EWAN, pDSCP_List = valid structure | RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive2_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_getDscpClientList...");
     WAN_INTERFACE interfaceType = EWAN;
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t));
+    int count = 0;
+    int len = 0;
     if(pDSCP_List != NULL)
     {
         UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.",interfaceType);
         INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-        UT_LOG("Return value: %d", result);
+        UT_LOG("platform_hal_getDscpClientList returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
 
         if (pDSCP_List != NULL)
@@ -5085,9 +5273,39 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
                 for (UINT j = 0; j < pDSCP_Element->numClients; j++)
                 {
                     Traffic_client_t *pTraffic_client = &(pDSCP_Element->Client[j]);                    
-                    int len = strlen(pTraffic_client->mac);
-                    UT_ASSERT_EQUAL(len,17);
-                    UT_LOG("Valid MAC string as expected");
+                    len = strlen(pTraffic_client->mac);
+                    if(len == 17)
+                    {
+                        count = 0;
+                        for (int i = 0; pTraffic_client->mac[i] != '\0'; i++) 
+                        {
+                            // Check for valid characters: 0-9, A-F, a-f, and ':'
+                            if (!(isdigit(pTraffic_client->mac[i]) || (pTraffic_client->mac[i] >= 'A' && pTraffic_client->mac[i] <= 'F') || (pTraffic_client->mac[i] >= 'a' && pTraffic_client->mac[i] <= 'f') || pTraffic_client->mac[i] == ':')) 
+                            {
+                                break;
+                            }
+                            // Count colons
+                            if (pTraffic_client->mac[i] == ':')
+                            {
+                                count++;
+                            }  
+                        }
+                        if (count == 5)
+                        {
+                            UT_LOG("MAC string is %s which is valid MAC address.", pTraffic_client->mac);
+                            UT_PASS("Get CMTS MAC validation success");
+                        }
+                        else
+                        {
+                            UT_LOG(" MAC address string is %s which is invalid string value.", pTraffic_client->mac);
+                            UT_FAIL("Get CMTS MAC validation failed");   
+                        }
+                    }
+                    else
+                    {
+                        UT_LOG(" MAC address string is %s which is invalid string length.", pTraffic_client->mac);
+                        UT_FAIL("Get CMTS MAC validation failed");           
+                    }
                     if (pTraffic_client->rxBytes >= 0 && pTraffic_client->txBytes >= 0)
                     {
                         UT_LOG("rxBytes is: %d and txBytes is: %d which is a valid value", pTraffic_client->rxBytes,pTraffic_client->txBytes);
@@ -5107,38 +5325,40 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getDscpClientList...");
 }
 
 /**
- * @brief Test case to verify the behavior of the platform_hal_getDscpClientList function with invalid interfaceType and valid pDSCP_List.
- *
- * This test case verifies the behavior of the platform_hal_getDscpClientList function when called with an invalid interfaceType and a valid pDSCP_List. The expected result is that the function should return RETURN_ERR.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 134 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, they can select this test case via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Call platform_hal_getDscpClientList with invalid interfaceType = 3 and valid structure| interfaceType = 3, pDSCP_List = valid structure | RETURN_ERR | should return error |
- */
+* @brief Test case to verify the behavior of the platform_hal_getDscpClientList function with invalid interfaceType and valid pDSCP_List.
+*
+* This test case verifies the behavior of the platform_hal_getDscpClientList function when called with an invalid interfaceType and a valid pDSCP_List. The expected result is that the function should return RETURN_ERR.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 134 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, they can select this test case via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Call platform_hal_getDscpClientList with invalid interfaceType = 3 and valid structure| interfaceType = 3, pDSCP_List = valid structure | RETURN_ERR | should return error |
+*/
 void test_l1_platform_hal_negative1_getDscpClientList(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_getDscpClientList...");
     WAN_INTERFACE interfaceType = 3; 
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t)); 
-    if(pDSCP_List != NULL){
+    if(pDSCP_List != NULL)
+    {
         UT_LOG("Invoking platform_hal_getDscpClientList with invalid interfaceType = %d and valid pDSCP_List.", interfaceType);
         INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-        UT_LOG("Return value: %d", result);
+        UT_LOG("platform_hal_getDscpClientList returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_ERR);
         free(pDSCP_List);
         pDSCP_List = NULL;
@@ -5146,6 +5366,7 @@ void test_l1_platform_hal_negative1_getDscpClientList(void)
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }    
     UT_LOG("Exiting test_l1_platform_hal_negative1_getDscpClientList...");
 }
@@ -5178,7 +5399,7 @@ void test_l1_platform_hal_negative2_getDscpClientList(void)
     UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = NULL.", interfaceType);
     INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_getDscpClientList returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_getDscpClientList...");
@@ -5200,7 +5421,7 @@ void test_l1_platform_hal_negative2_getDscpClientList(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getDscpClientList with interfaceType = EWAN , pDSCP_List = NULL | interfaceType = EWAN, pDSCP_List = NULL | RETURN_ERR | Should return error |
+* |01| Invoking platform_hal_getDscpClientList with interfaceType = EWAN , pDSCP_List = NULL| interfaceType = EWAN, pDSCP_List = NULL | RETURN_ERR | Should return error |
 */
 void test_l1_platform_hal_negative3_getDscpClientList(void)
 {
@@ -5211,7 +5432,7 @@ void test_l1_platform_hal_negative3_getDscpClientList(void)
     UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d and pDSCP_List = NULL.",interfaceType);
     INT result = platform_hal_getDscpClientList(interfaceType, pDSCP_List);
 
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_getDscpClientList returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative3_getDscpClientList...");
@@ -5233,28 +5454,29 @@ void test_l1_platform_hal_negative3_getDscpClientList(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoke platform_hal_GetDeviceConfigStatus API with pValue = valid buffer | pValue = valid buffer | RETURN_OK | Should be successful |
+* |01| Invoke platform_hal_GetDeviceConfigStatus API with pValue = valid buffer | pValue = valid buffer | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) {
+void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetDeviceConfigStatus...");
     CHAR pValue[128] = {"\0"};
 
     UT_LOG("Invoking platform_hal_GetDeviceConfigStatus with pValue = valid buffer.");
     INT result = platform_hal_GetDeviceConfigStatus(pValue);
 
-    UT_LOG("Output value: pValue = %s", pValue);
-    UT_LOG("Return status: %d", result);
+    UT_LOG(" Device Config Status = %s", pValue);
+    UT_LOG("platform_hal_GetDeviceConfigStatus returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     if (!strcmp(pValue,"WaitForImplement") || !strcmp(pValue,"In Progress")|| !strcmp(pValue,"Complete"))
     {
-        UT_LOG("pValue from the device is %s which is a valid value",pValue);
-        UT_PASS("pValue validation success");
+        UT_LOG("Device Config Status is %s which is a valid value",pValue);
+        UT_PASS("Device Config Status validation success");
     }
     else
     {
-        UT_LOG("pValue from the device %s which is an Invalid value",pValue);
-        UT_FAIL("pValue validation fail");
+        UT_LOG("Device Config Status %s which is an Invalid value",pValue);
+        UT_FAIL(" Get Device Config Status validation fail");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetDeviceConfigStatus...");
 }
@@ -5273,79 +5495,82 @@ void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description | Test Data                 | Expected Result | Notes            |
-* | :----:           | ---------   | ----------                |--------------   | -----            |
-* | 01               | Invoke platform_hal_GetDeviceConfigStatus API with pValue = NULL   | pValue = NULL  | RETURN_ERR  | Should return error|
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :-------:| ---------| ----------|--------------| -----|
+* | 01| Invoke platform_hal_GetDeviceConfigStatus API with pValue = NULL| pValue = NULL| RETURN_ERR|Should return error|
 */ 
-void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void) {
+void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetDeviceConfigStatus...");
     CHAR *pValue = NULL;
     UT_LOG("Invoking platform_hal_GetDeviceConfigStatus with pValue = NULL.");
     INT result = platform_hal_GetDeviceConfigStatus(pValue);
 
-    UT_LOG("Return status: %d", result);
+    UT_LOG("platform_hal_GetDeviceConfigStatus returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetDeviceConfigStatus...");
 }
 
 /**
- * @brief Test case to verify the functionality of the platform_hal_SetSNMPOnboardRebootEnable function.
- *
- * This test case verifies if the platform_hal_SetSNMPOnboardRebootEnable function can successfully enable SNMP onboard reboot. 
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 139 @n
- * **Priority:** High @n@n
- * 
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:**  @n
- * | Variation / Step | Description                                        | Test Data                   | Expected Result        | Notes            |
- * | :-------------:  | ------------------------------------------------- | --------------------------- | ---------------------   | --------------   |
- * | 01               | Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "enable" | value = "enable" | RETURN_OK     | Should be successful |
- */
-void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void) {
+* @brief Test case to verify the functionality of the platform_hal_SetSNMPOnboardRebootEnable function.
+*
+* This test case verifies if the platform_hal_SetSNMPOnboardRebootEnable function can successfully enable SNMP onboard reboot. 
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 139 @n
+* **Priority:** High @n@n
+* 
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:**  @n
+* | Variation / Step | Description| Test Data| Expected Result|Notes|
+* | :--------: | ------------| --------| --------- | --------|
+* | 01| Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "enable" | value = "enable" | RETURN_OK| Should be successful |
+*/
+void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable...");
     CHAR value[8] = "enable";
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with value = %s.", value);
     INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetSNMPOnboardRebootEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable...");
 }
 
 /**
- * @brief Unit test to verify the behavior of the function platform_hal_SetSNMPOnboardRebootEnable().
- *
- * This test checks the functionality of the platform_hal_SetSNMPOnboardRebootEnable() function. The test verifies whether the function returns a successful result when the input parameter is "disable".
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 140 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "disable" | value = "disable" | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void) {
+* @brief Unit test to verify the behavior of the function platform_hal_SetSNMPOnboardRebootEnable().
+*
+* This test checks the functionality of the platform_hal_SetSNMPOnboardRebootEnable() function. The test verifies whether the function returns a successful result when the input parameter is "disable".
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 140 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01| Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "disable" | value = "disable" | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable...");
     CHAR value[8] = "disable";
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with value = %s.", value);
     INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetSNMPOnboardRebootEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable...");
@@ -5369,14 +5594,15 @@ void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void) {
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_SetSNMPOnboardRebootEnable with value = NULL| value = NULL | RETURN_ERR | Shouldreturn error |
 */
-void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void) {
+void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable...");
     CHAR *value = NULL;
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with value = NULL");
     INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetSNMPOnboardRebootEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable...");
@@ -5396,18 +5622,19 @@ void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step  | Description                                              | Test Data        | Expected Result  | Notes               |
-* | :---------------- | -----------------------------------------------------  | -------------------| -----------------| ------------------- |
-* | 01                | Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "invalid" | value = "invalid" |  RETURN_ERR      | Should return error |
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :----------: |-------------| ---------| ---------| -------|
+* | 01| Invoking platform_hal_SetSNMPOnboardRebootEnable with value = "invalid" | value = "invalid" | RETURN_ERR| Should return error |
 */
-void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void) {
+void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable...");
     CHAR value[8] = "invalid";
 
     UT_LOG("Invoking platform_hal_SetSNMPOnboardRebootEnable with value = %s.", value);
     INT result = platform_hal_SetSNMPOnboardRebootEnable(value);
 
-    UT_LOG("Return Value: %d", result);
+    UT_LOG("platform_hal_SetSNMPOnboardRebootEnable returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable...");
@@ -5431,72 +5658,75 @@ void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_getInputCurrent with value = 0  | value = 0 |  RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_getInputCurrent with value = a valid buffer | value = valid buffer |  RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_getInputCurrent(void) {
+void test_l1_platform_hal_positive1_getInputCurrent(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getInputCurrent...");
     INT value = 0;
 
-    UT_LOG("Invoking platform_hal_getInputCurrent with value = %d.", value);
+    UT_LOG("Invoking platform_hal_getInputCurrent with value = valid buffer");
     INT status = platform_hal_getInputCurrent(&value);
 
-    UT_LOG("Return status: %d", status);
-    UT_LOG("Output value: %d", value);
+    UT_LOG("platform_hal_getInputCurrent returns : %d", status);
+    UT_LOG("Input Current : %d", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getInputCurrent...");
 }
 
 /**
- * @brief This test case aims to verify the functionality of the platform_hal_getInputCurrent function when invoked with a NULL input pointer.
- *
- * This test case checks if the platform_hal_getInputCurrent function returns the expected error status when called with a NULL input pointer.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 144 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- *  | Variation / Step | Description | Test Data                    | Expected Result                | Notes            |
- *  | :--------------: | ----------- | ---------------------------- | ------------------------------ | ---------------- |
- *  |       01         | Invoking platform_hal_getInputCurrent with pValue = NULL | pValue = NULL | RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_getInputCurrent(void) {
+* @brief This test case aims to verify the functionality of the platform_hal_getInputCurrent function when invoked with a NULL input pointer.
+*
+* This test case checks if the platform_hal_getInputCurrent function returns the expected error status when called with a NULL input pointer.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 144 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+*  | Variation / Step | Description | Test Data | Expected Result| Notes|
+*  | :---------: | ---------| -------------| --------- | ------- |
+*  |01| Invoking platform_hal_getInputCurrent with pValue = NULL | pValue = NULL | RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative1_getInputCurrent(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getInputCurrent...");
     INT *pValue = NULL;
 
     UT_LOG("Invoking platform_hal_getInputCurrent with pValue = NULL.");
     INT status = platform_hal_getInputCurrent(pValue);
 
-    UT_LOG("Return status: %d", status);
+    UT_LOG("platform_hal_getInputCurrent returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getInputCurrent...");
 }
 
 /**
- * @brief Test the function platform_hal_LoadThermalConfig by providing valid uninitialized THERMAL_PLATFORM_CONFIG struct
- * 
- * This test case checks the functionality of the platform_hal_LoadThermalConfig function by providing a valid uninitialized THERMAL_PLATFORM_CONFIG struct as input. The test case verifies the return value of the function and the filled values in the struct.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 145 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_LoadThermalConfig with thermalConfig = valid structure | thermalConfig = valid structure| RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
+* @brief Test the function platform_hal_LoadThermalConfig by providing valid uninitialized THERMAL_PLATFORM_CONFIG struct
+* 
+* This test case checks the functionality of the platform_hal_LoadThermalConfig function by providing a valid uninitialized THERMAL_PLATFORM_CONFIG struct as input. The test case verifies the return value of the function and the filled values in the struct.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 145 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_LoadThermalConfig with thermalConfig = valid structure | thermalConfig = valid structure| RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_LoadThermalConfig(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_LoadThermalConfig...");
     THERMAL_PLATFORM_CONFIG *thermalConfig = (THERMAL_PLATFORM_CONFIG*)malloc(sizeof(THERMAL_PLATFORM_CONFIG));
     if(thermalConfig != NULL)
@@ -5532,6 +5762,7 @@ void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
     else
     {
         UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_LoadThermalConfig...");
 }
@@ -5550,12 +5781,12 @@ void test_l1_platform_hal_positive1_LoadThermalConfig(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 * 
 * **Test Procedure:** @n
-* 
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_LoadThermalConfig with thermalConfig = NULL | thermalConfig = NULL |  RETURN_ERR | Should return an error |
+* | 01| Invoking platform_hal_LoadThermalConfig with thermalConfig = NULL | thermalConfig = NULL |  RETURN_ERR | Should return an error |
 */
-void test_l1_platform_hal_negative1_LoadThermalConfig(void) {
+void test_l1_platform_hal_negative1_LoadThermalConfig(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_LoadThermalConfig...");   
     THERMAL_PLATFORM_CONFIG *thermalConfig = NULL;
 
@@ -5570,23 +5801,23 @@ void test_l1_platform_hal_negative1_LoadThermalConfig(void) {
 #endif
 
 /**
- * @brief Test case to verify the functionality of platform_hal_GetMACsecOperationalStatus API.
- *
- * This test case checks the correctness of the platform_hal_GetMACsecOperationalStatus API by verifying the return value and output flag parameter.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 147 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_GetMACsecOperationalStatus with ethPort = 0 and flag = FALSE| ethPort = 0, flag = FALSE| RETURN_OK | Should be successful |
- */
+* @brief Test case to verify the functionality of platform_hal_GetMACsecOperationalStatus API.
+*
+* This test case checks the correctness of the platform_hal_GetMACsecOperationalStatus API by verifying the return value and output flag parameter.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 147 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetMACsecOperationalStatus with ethPort = 0 and flag = FALSE| ethPort = 0, flag = FALSE| RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMACsecOperationalStatus...");
@@ -5597,7 +5828,7 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
     INT ret = platform_hal_GetMACsecOperationalStatus(ethPort, &flag);
     
     UT_LOG("platform_hal_GetMACsecOperationalStatus returns: %d", ret);
-    UT_LOG("Status : %d", flag);
+    UT_LOG("MAC sec Operational Status : %d", flag);
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     if(flag == TRUE || flag == FALSE )
     { 
@@ -5613,23 +5844,23 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 }
 
 /** 
- * @brief This is a unit test to verify the functionality of the platform_hal_GetMACsecOperationalStatus API in a negative scenario.
- *
- * The objective of this test is to check the behavior of the platform_hal_GetMACsecOperationalStatus API when the ethPort is 0 and pFlag is NULL.
- * 
- * **Test Group ID**: Basic: 01 @n
- * **Test Case ID**: 148 @n
- * **Priority**: High @n@n
- *
- * **Pre-Conditions**: None @n
- * **Dependencies**: None @n
- * **User Interaction**: If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure**: @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_GetMACsecOperationalStatus with ethPort =0, pFlag=NULL | ethPort = 0, pFlag = NULL | RETURN_ERR | Should return error |
- */
+* @brief This is a unit test to verify the functionality of the platform_hal_GetMACsecOperationalStatus API in a negative scenario.
+*
+* The objective of this test is to check the behavior of the platform_hal_GetMACsecOperationalStatus API when the ethPort is 0 and pFlag is NULL.
+* 
+* **Test Group ID**: Basic: 01 @n
+* **Test Case ID**: 148 @n
+* **Priority**: High @n@n
+*
+* **Pre-Conditions**: None @n
+* **Dependencies**: None @n
+* **User Interaction**: If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure**: @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01| Invoking platform_hal_GetMACsecOperationalStatus with ethPort =0, pFlag=NULL | ethPort = 0, pFlag = NULL | RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetMACsecOperationalStatus...");
@@ -5646,24 +5877,25 @@ void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 }
 
 /**
- * @brief This test case verifies the functionality of the platform_hal_setFanMaxOverride function.
- *
- * The objective of this test is to ensure that the platform_hal_setFanMaxOverride function sets the maximum fan override flag and fan index correctly.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 149 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanMaxOverride with bOverrideFlag= TRUE, fanIndex = 0  | bOverrideFlag = TRUE, fanIndex = 0 | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_setFanMaxOverride(void) {
+* @brief This test case verifies the functionality of the platform_hal_setFanMaxOverride function.
+*
+* The objective of this test is to ensure that the platform_hal_setFanMaxOverride function sets the maximum fan override flag and fan index correctly.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 149 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanMaxOverride with bOverrideFlag= TRUE, fanIndex = 0 | bOverrideFlag = TRUE, fanIndex = 0 | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_setFanMaxOverride...");    
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 0;
@@ -5693,9 +5925,10 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 |  Invoking the platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 0 | bOverrideFlag = FALSE, fanIndex = 0 | RETURN_OK | Should be successful |
+* | 01 | Invoking the platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 0 | bOverrideFlag = FALSE, fanIndex = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_setFanMaxOverride(void) {
+void test_l1_platform_hal_positive2_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 0;
@@ -5710,24 +5943,25 @@ void test_l1_platform_hal_positive2_setFanMaxOverride(void) {
 }
 
 /**
- * @brief Test for setting the maximum fan override in the platform HAL
- *
- * This test verifies that the platform_hal_setFanMaxOverride function correctly sets the maximum fan override value in the platform HAL.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 151 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 |Invoke the platform_hal_setFanMaxOverride API with bOverrideFlag = TRUE, fanIndex = 1| bOverrideFlag = TRUE, fanIndex = 1 | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive3_setFanMaxOverride(void) {
+* @brief Test for setting the maximum fan override in the platform HAL
+*
+* This test verifies that the platform_hal_setFanMaxOverride function correctly sets the maximum fan override value in the platform HAL.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 151 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 |Invoke the platform_hal_setFanMaxOverride API with bOverrideFlag = TRUE, fanIndex = 1| bOverrideFlag = TRUE, fanIndex = 1 | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive3_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 1;
@@ -5757,9 +5991,10 @@ void test_l1_platform_hal_positive3_setFanMaxOverride(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 1 | bOverrideFlag = FALSE, fanIndex = 1 | RETURN_OK | Should be successful |
+* | 01|Invoking platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 1 | bOverrideFlag = FALSE, fanIndex = 1 | RETURN_OK | Should be successful |
 */ 
-void test_l1_platform_hal_positive4_setFanMaxOverride(void) {
+void test_l1_platform_hal_positive4_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive4_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 1;
@@ -5774,24 +6009,25 @@ void test_l1_platform_hal_positive4_setFanMaxOverride(void) {
 }
 
 /**
- * @brief Test case to verify the behavior of platform_hal_setFanMaxOverride when the provided arguments are invalid.
- *
- * This test case verifies if the platform_hal_setFanMaxOverride API returns the expected status when the provided arguments are invalid.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 153 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                  | Test Data                                         | Expected Result               | Notes           |
- * | :--------------: | ------------------------------------------------------------ | ------------------------------------------------ | ----------------------------- | --------------- |
- * |       01         | Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag = TRUE, invalid fanIndex = 2| bOverrideFlag = TRUE, fanIndex = 2  | Status to be RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_setFanMaxOverride(void) {
+* @brief Test case to verify the behavior of platform_hal_setFanMaxOverride when the provided arguments are invalid.
+*
+* This test case verifies if the platform_hal_setFanMaxOverride API returns the expected status when the provided arguments are invalid.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 153 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description| Test Data | Expected Result| Notes|
+* | :--------: | ---------| -----------| ----------| -------- |
+* |01| Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag = TRUE, invalid fanIndex = 2| bOverrideFlag = TRUE, fanIndex = 2| Status to be RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative1_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_setFanMaxOverride..."); 
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 2;
@@ -5819,11 +6055,12 @@ void test_l1_platform_hal_negative1_setFanMaxOverride(void) {
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
 * **Test Procedure:** @n
-* | Variation / Step | Description | Test Data                           | Expected Result | Notes            |
-* | :--------------: | ----------- | ----------------------------------- | --------------- | ---------------- |
-* | 01   | Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag = FALSE, invalid fanIndex = 2  | bOverrideFlag = FALSE, fanIndex = 2 | RETURN_ERR  | Should return error |
+* | Variation / Step | Description | Test Data | Expected Result | Notes|
+* | :-------: | ------| ---------| -------| ----------|
+* | 01| Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag = FALSE, invalid fanIndex = 2 | bOverrideFlag = FALSE, fanIndex = 2 | RETURN_ERR| Should return error |
 */
-void test_l1_platform_hal_negative2_setFanMaxOverride(void) {
+void test_l1_platform_hal_negative2_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_setFanMaxOverride...");   
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 2;
@@ -5838,24 +6075,25 @@ void test_l1_platform_hal_negative2_setFanMaxOverride(void) {
 }
 
 /**
- * @brief Test case to verify the behavior of the platform_hal_setFanMaxOverride function when the bOverrideFlag is set to a value other than 0 or 1.
- *
- * This test case checks the behavior of the platform_hal_setFanMaxOverride function when an invalid value is passed as the bOverrideFlag argument.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 155 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chooses to run the test in interactive mode, they should select this test case via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                                                                                  | Test Data                                   | Expected Result     | Notes              |
- * | :--------------: | ------------------------------------------------------------------------------------------- | ---------------------------------------------| --------------------| ------------------ |
- * |       01         | Invoke the platform_hal_setFanMaxOverride function with invalid bOverrideFlag = 2, valid fanIndex = 0  | bOverrideFlag = 2, fanIndex = 0   | status = RETURN_ERR  | Should return error |
- */
-void test_l1_platform_hal_negative3_setFanMaxOverride(void) {
+* @brief Test case to verify the behavior of the platform_hal_setFanMaxOverride function when the bOverrideFlag is set to a value other than 0 or 1.
+*
+* This test case checks the behavior of the platform_hal_setFanMaxOverride function when an invalid value is passed as the bOverrideFlag argument.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 155 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, they should select this test case via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :--------: | --------- | --------| --------| --------- |
+* |01| Invoke the platform_hal_setFanMaxOverride function with invalid bOverrideFlag = 2, valid fanIndex = 0 | bOverrideFlag = 2, fanIndex = 0| status = RETURN_ERR | Should return error|
+*/
+void test_l1_platform_hal_negative3_setFanMaxOverride(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = 2;
     UINT fanIndex = 0;
@@ -5886,9 +6124,10 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :--------: | ----------- | --------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 0, fanSpeed = FAN_SPEED_OFF ,pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01| Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 0, fanSpeed = FAN_SPEED_OFF ,pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
-void test_l1_platform_hal_positive1_setFanSpeed(void) {
+void test_l1_platform_hal_positive1_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_setFanSpeed...");
     INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
@@ -5922,7 +6161,8 @@ void test_l1_platform_hal_positive1_setFanSpeed(void) {
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
-void test_l1_platform_hal_positive2_setFanSpeed(void) {
+void test_l1_platform_hal_positive2_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_setFanSpeed...");
     INT fanIndex = 1;
     FAN_SPEED fanSpeed = FAN_SPEED_SLOW;
@@ -5939,24 +6179,25 @@ void test_l1_platform_hal_positive2_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 158 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive3_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 158 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive3_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_setFanSpeed...");
     INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_MEDIUM;
@@ -5973,24 +6214,25 @@ void test_l1_platform_hal_positive3_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 159 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive4_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 159 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive4_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive4_setFanSpeed...");
     INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_FAST;
@@ -6007,24 +6249,25 @@ void test_l1_platform_hal_positive4_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_SLOW, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 160 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive5_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_SLOW, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 160 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive5_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive5_setFanSpeed...");
     INT fanIndex = 0; 
     FAN_SPEED fanSpeed = FAN_SPEED_SLOW;
@@ -6041,24 +6284,25 @@ void test_l1_platform_hal_positive5_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 161 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
- */
-void test_l1_platform_hal_positive6_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 161 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
+*/
+void test_l1_platform_hal_positive6_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive6_setFanSpeed...");
     INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_FAST;
@@ -6075,24 +6319,25 @@ void test_l1_platform_hal_positive6_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MAX, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 162 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
- */
-void test_l1_platform_hal_positive7_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MAX, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 162 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
+*/
+void test_l1_platform_hal_positive7_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive7_setFanSpeed...");
     INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_MAX;
@@ -6109,24 +6354,25 @@ void test_l1_platform_hal_positive7_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_OFF, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 163 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive8_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_OFF, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 163 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive8_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive8_setFanSpeed...");
     INT fanIndex = 1;
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
@@ -6143,24 +6389,25 @@ void test_l1_platform_hal_positive8_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 164 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive9_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 164 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive9_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive9_setFanSpeed...");
     INT fanIndex = 1; 
     FAN_SPEED fanSpeed = FAN_SPEED_MEDIUM;
@@ -6177,24 +6424,25 @@ void test_l1_platform_hal_positive9_setFanSpeed(void) {
 }
 
 /**
- * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
- *
- * This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MAX, and the error reason is FAN_ERR_NONE.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 165 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer  | fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
- */
-void test_l1_platform_hal_positive10_setFanSpeed(void) {
+* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
+*
+* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MAX, and the error reason is FAN_ERR_NONE.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 165 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer  | fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+*/
+void test_l1_platform_hal_positive10_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive10_setFanSpeed...");
     INT fanIndex = 1; 
     FAN_SPEED fanSpeed = FAN_SPEED_MAX;
@@ -6295,11 +6543,9 @@ void test_l1_platform_hal_negative2_setFanSpeed(void) {
 }
 
 /**
-* @brief This test case is used to verify the negative scenario 
-* of the platform_hal_setFanSpeed API.
+* @brief This test case is used to verify the negative scenario of the platform_hal_setFanSpeed API.
 *
-* The objective of this test is to check the behavior of the 
-* platform_hal_setFanSpeed API when invalid fan speed is passed.
+* The objective of this test is to check the behavior of the platform_hal_setFanSpeed API when invalid fan speed is passed.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 168 @n
@@ -6312,9 +6558,10 @@ void test_l1_platform_hal_negative2_setFanSpeed(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 |  Invoking platform_hal_setFanSpeed with invalid fanIndex = 2, valid fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | fanIndex = 2, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_ERR | The function should return RETURN_ERR |
+* | 01 |  Invoking platform_hal_setFanSpeed with invalid fanIndex = 2, valid fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | fanIndex = 2, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | RETURN_ERR | The function should return RETURN_ERR |
 */
-void test_l1_platform_hal_negative3_setFanSpeed(void) {
+void test_l1_platform_hal_negative3_setFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_setFanSpeed...");
     INT fanIndex = 2;
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;  
@@ -6345,32 +6592,33 @@ void test_l1_platform_hal_negative3_setFanSpeed(void) {
 }
 
 /**
- * @brief Test case for platform_hal_getInputPower function normal operation
- *
- * This test case tests the normal operation of the platform_hal_getInputPower function.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 169 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_getInputPower with value = 0  | value = 0 | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_getInputPower(void) {
+* @brief Test case for platform_hal_getInputPower function normal operation
+*
+* This test case tests the normal operation of the platform_hal_getInputPower function.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 169 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_getInputPower with value = valid buffer | value = valid buffer | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_getInputPower(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getInputPower...");
     INT value = 0;
 
-    UT_LOG("Invoking platform_hal_getInputPower with value = %d.",value);
+    UT_LOG("Invoking platform_hal_getInputPower with value = valid buffer");
     INT status = platform_hal_getInputPower(&value);
 
     UT_LOG("platform_hal_getInputPower returns : %d", status);
-    UT_LOG("Output value: %d", value);
+    UT_LOG("Input Power: %d", value);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if(value > 0)
@@ -6406,7 +6654,8 @@ void test_l1_platform_hal_positive1_getInputPower(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_getInputPower with value = NULL | value = NULL | RETURN_ERR | Should return error status |
 */
-void test_l1_platform_hal_negative1_getInputPower(void) {
+void test_l1_platform_hal_negative1_getInputPower(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getInputPower...");
     INT *value = NULL; 
     UT_LOG("Invoking platform_hal_getInputPower with value = NULL");
@@ -6436,7 +6685,8 @@ void test_l1_platform_hal_negative1_getInputPower(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetCPUSpeed with buffer = valid buffer | buffer = valid buffer  |  RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetCPUSpeed(void) {
+void test_l1_platform_hal_positive1_GetCPUSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetCPUSpeed...");
     char buffer[16]= {"\0"};
 
@@ -6444,7 +6694,7 @@ void test_l1_platform_hal_positive1_GetCPUSpeed(void) {
     INT ret = platform_hal_GetCPUSpeed(buffer);
 
     UT_LOG("The processor speed is: %s", buffer);
-    UT_LOG("Return value: %d", ret);
+    UT_LOG("platform_hal_GetCPUSpeed returns : %d", ret);
     UT_ASSERT_EQUAL(ret, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetCPUSpeed...");
@@ -6468,14 +6718,15 @@ void test_l1_platform_hal_positive1_GetCPUSpeed(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetCPUSpeed with value = NULL | value = NULL | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative1_GetCPUSpeed(void) {
+void test_l1_platform_hal_negative1_GetCPUSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetCPUSpeed...");
     CHAR *value = NULL;
 
     UT_LOG("Invoking platform_hal_GetCPUSpeed with value = NULL");
     INT ret = platform_hal_GetCPUSpeed(value);
 
-    UT_LOG("Return value: %d", ret);
+    UT_LOG("platform_hal_GetCPUSpeed returns : %d", ret);
     UT_ASSERT_EQUAL(ret, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetCPUSpeed...");
@@ -6496,17 +6747,18 @@ void test_l1_platform_hal_negative1_GetCPUSpeed(void) {
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :--------------: | ----------- | --------- | --------------- | ----- |
-* |       01         | Invoking platform_hal_GetFreeMemorySize with size = 0 | size = 0 | RETURN_OK  | Should be successful |
+* | :--------: | ---------| ------ | -------------| ----- |
+* | 01| Invoking platform_hal_GetFreeMemorySize with size = valid buffer | size = valid buffer | RETURN_OK  | Should be successful |
 */
-void test_l1_platform_hal_positive1_GetFreeMemorySize(void) {
+void test_l1_platform_hal_positive1_GetFreeMemorySize(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetFreeMemorySize...");    
     ULONG size = 0;
 
-    UT_LOG("Invoking platform_hal_GetFreeMemorySize with size = %d.", size);
+    UT_LOG("Invoking platform_hal_GetFreeMemorySize with size = valid buffer");
     int result = platform_hal_GetFreeMemorySize(&size);
     
-    UT_LOG("Return value: %d, size: %lu", result, size);
+    UT_LOG("platform_hal_GetFreeMemorySize returns : %d, size: %lu", result, size);
     UT_ASSERT_EQUAL(result, RETURN_OK);
     if(size > 0)
     { 
@@ -6522,55 +6774,57 @@ void test_l1_platform_hal_positive1_GetFreeMemorySize(void) {
 }
 
 /**
- * @brief Test case to verify the behavior of the platform_hal_GetFreeMemorySize function when called with a NULL pointer.
- *
- * This test case checks if the platform_hal_GetFreeMemorySize function returns the expected result when called with a NULL pointer as the input parameter.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 174 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_GetFreeMemorySize with pulSize = NULL| pulSize = NULL | RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_GetFreeMemorySize(void) {
+* @brief Test case to verify the behavior of the platform_hal_GetFreeMemorySize function when called with a NULL pointer.
+*
+* This test case checks if the platform_hal_GetFreeMemorySize function returns the expected result when called with a NULL pointer as the input parameter.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 174 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetFreeMemorySize with pulSize = NULL| pulSize = NULL | RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative1_GetFreeMemorySize(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetFreeMemorySize...");
     ULONG *pulSize = NULL;
 
     UT_LOG("Invoking platform_hal_GetFreeMemorySize with pulSize = NULL");
     int result = platform_hal_GetFreeMemorySize(pulSize);
     
-    UT_LOG("Return value: %d", result);
+    UT_LOG("platform_hal_GetFreeMemorySize returns : %d", result);
     UT_ASSERT_EQUAL(result, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetFreeMemorySize...");
 }
 
 /**
- * @brief Test function to verify the behavior of platform_hal_getTimeOffSet API.
- *
- * This test function verifies the behavior of the platform_hal_getTimeOffSet API by checking the return value and expected values of the timeOffSet buffer.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 175 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via the console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoke platform_hal_getTimeOffSet API with timeOffSet = valid buffer | timeOffSet = valid buffer | Status = RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive1_getTimeOffSet(void) {
+* @brief Test function to verify the behavior of platform_hal_getTimeOffSet API.
+*
+* This test function verifies the behavior of the platform_hal_getTimeOffSet API by checking the return value and expected values of the timeOffSet buffer.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 175 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via the console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoke platform_hal_getTimeOffSet API with timeOffSet = valid buffer | timeOffSet = valid buffer | Status = RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_getTimeOffSet(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getTimeOffSet...");
     CHAR timeOffSet[256] = {"\0"};
 
@@ -6594,24 +6848,25 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void) {
 }
 
 /**
- * @brief Test case to verify the behavior of platform_hal_getTimeOffSet API with a null pointer.
- *
- * This test case verifies whether platform_hal_getTimeOffSet API returns RETURN_ERR when invoked with a null pointer.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 176 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoke platform_hal_getTimeOffSet() with timeOffSet=NULL | timeOffSet=NULL | RETURN_ERR | Should return error |
- */
-void test_l1_platform_hal_negative1_getTimeOffSet(void) {
+* @brief Test case to verify the behavior of platform_hal_getTimeOffSet API with a null pointer.
+*
+* This test case verifies whether platform_hal_getTimeOffSet API returns RETURN_ERR when invoked with a null pointer.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 176 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoke platform_hal_getTimeOffSet() with timeOffSet=NULL | timeOffSet=NULL | RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative1_getTimeOffSet(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getTimeOffSet...");
     CHAR *timeOffSet = NULL;
 
@@ -6651,7 +6906,7 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
     UT_LOG("Invoking platform_hal_getFactoryPartnerId with pValue = valid buffer.");
     INT status = platform_hal_getFactoryPartnerId(pValue);
     
-    UT_LOG("Return status: %d and Factory Partner Id is : %s", status, pValue);
+    UT_LOG("platform_hal_getFactoryPartnerId returns : %d and Factory Partner Id is : %s", status, pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
     if (!strcmp(pValue,"unknown") || !strcmp(pValue,"eUnprogrammed")|| !strcmp(pValue,"eComcast") || !strcmp(pValue,"eCharter") || !strcmp(pValue,"eCox") || !strcmp(pValue,"eRogers") || !strcmp(pValue,"eVodafone") || !strcmp(pValue,"eShaw") || !strcmp(pValue,"eVideotron"))
@@ -6668,23 +6923,23 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
 }
 
 /**
- * @brief This test case is to verify the functionality of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter.
- *
- * The objective of this test is to check the return status of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter. The expected result is RETURN_ERR.
- * 
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 178 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- * 
- * **Test Procedure:** @n
- *  | Variation / Step | Description | Test Data | Expected Result | Notes |
- *  | :----: | --------- | ---------- | -------------- | ----- |
- *  | 01 | Invoking platform_hal_getFactoryPartnerId with pValue = NULL | pValue = NULL | RETURN_ERR | Should return error |
- */
+* @brief This test case is to verify the functionality of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter.
+*
+* The objective of this test is to check the return status of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter. The expected result is RETURN_ERR.
+* 
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 178 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+* 
+* **Test Procedure:** @n
+*  | Variation / Step | Description | Test Data | Expected Result | Notes |
+*  | :----: | --------- | ---------- | -------------- | ----- |
+*  | 01 | Invoking platform_hal_getFactoryPartnerId with pValue = NULL | pValue = NULL | RETURN_ERR | Should return error |
+*/
 void test_l1_platform_hal_negative1_getFactoryPartnerId(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_getFactoryPartnerId...");
@@ -6755,16 +7010,16 @@ void test_l1_platform_hal_positive1_initLed( void )
 */
 void test_l1_platform_hal_negative1_initLed( void )
 {
-	UT_LOG("Entering test_l1_platform_hal_negative1_initLed...");
-	INT result = 0;
+    UT_LOG("Entering test_l1_platform_hal_negative1_initLed...");
+    INT result = 0;
     CHAR *config_file_name = NULL;
-	UT_LOG("Invoking the API platform_hal_initLed with config_file_name = NULL.");
-	result = platform_hal_initLed(config_file_name);
-    
-    UT_LOG("platform_hal_initLed API returns : %d", result);
-	UT_ASSERT_EQUAL( result, RETURN_ERR );
+    UT_LOG("Invoking the API platform_hal_initLed with config_file_name = NULL.");
+    result = platform_hal_initLed(config_file_name);
 
-	UT_LOG("Exiting test_l1_platform_hal_negative1_initLed...");
+    UT_LOG("platform_hal_initLed API returns : %d", result);
+    UT_ASSERT_EQUAL( result, RETURN_ERR );
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_initLed...");
 }
 #endif
 /**
@@ -6781,9 +7036,9 @@ void test_l1_platform_hal_negative1_initLed( void )
 * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 * 
 * **Test Procedure:** @n
-* | Variation / Step | Description                                 | Test Data       | Expected Result         | Notes             |
-* | :----:           | ---------                                   | ----------      |--------------           | -----             |
-* | 01               | Invoking the API platform_hal_getFanStatus with fanIndex = 0  | fanIndex = 0     | Returns 0 or 1 | Should be successful |
+* | Variation / Step | Description| Test Data | Expected Result| Notes|
+* | :----:| ---------| ----------|-----------| -----|
+* | 01| Invoking the API platform_hal_getFanStatus with fanIndex = 0| fanIndex = 0| Returns 0 or 1 | Should be successful |
 */
 void test_l1_platform_hal_positive1_getFanStatus(void)
 {
@@ -6827,9 +7082,9 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
 * 
 * **Test Procedure:** @n
 * 
-* | Variation / Step | Description                                 | Test Data       | Expected Result         | Notes             |
-* | :----:           | ---------                                   | ----------      |--------------           | -----             |
-* | 01               | Invoking the API platform_hal_getFanStatus  with fanIndex as 1 | fanIndex = 1   | Returns 0 or 1  | Should be successful |
+* | Variation / Step | Description| Test Data| Expected Result| Notes|
+* | :----: | ---------| ----------|--------------| -----|
+* | 01| Invoking the API platform_hal_getFanStatus  with fanIndex as 1 | fanIndex = 1| Returns 0 or 1  | Should be successful |
 */
 void test_l1_platform_hal_positive2_getFanStatus(void)
 {
@@ -6842,18 +7097,18 @@ void test_l1_platform_hal_positive2_getFanStatus(void)
     UT_LOG("Status of the fan is %d",status);
     if(status == 0)
     { 
-            UT_LOG("Status of the fan is %d and it is disabled.", status);
-            UT_PASS("Get Fan Status Validation success");
+        UT_LOG("Status of the fan is %d and it is disabled.", status);
+        UT_PASS("Get Fan Status Validation success");
     }
     else if(status == 1 )
     { 
-            UT_LOG("Status of the fan is %d and it is enabled", status);
-            UT_PASS("Get Fan Status Validation success");
+        UT_LOG("Status of the fan is %d and it is enabled", status);
+        UT_PASS("Get Fan Status Validation success");
     }
     else
     {
-            UT_LOG("Status of the fan is %d", status);
-            UT_FAIL("Get Fan Status Validation Failed");  
+        UT_LOG("Status of the fan is %d", status);
+        UT_FAIL("Get Fan Status Validation Failed");  
     }  
     UT_LOG("Exiting test_l1_platform_hal_positive2_getFanStatus...");
 }
@@ -6876,53 +7131,55 @@ void test_l1_platform_hal_positive2_getFanStatus(void)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_getFanSpeed with fanIndex = 0 | fanIndex = 0 | fanSpeed >= 0 |  Should be successful|
 */
-void test_l1_platform_hal_positive1_getFanSpeed(void) {
+void test_l1_platform_hal_positive1_getFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanSpeed...");
     INT fanIndex = 0;
 
     UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", fanIndex);
     UINT fanSpeed = platform_hal_getFanSpeed(fanIndex);
 
-    UT_LOG("Received fanSpeed=%d", fanSpeed);
+    UT_LOG("Received fanSpeed = %d", fanSpeed);
     if (fanSpeed >= 0)
     {
-            UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-            UT_PASS("Get Fan Speed validation success");
+        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
+        UT_PASS("Get Fan Speed validation success");
     }
     else
     {
-            UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-            UT_FAIL("Get Fan Speed validation success");
+        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
+        UT_FAIL("Get Fan Speed validation success");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanSpeed...");
 }
 
 /**
- * @brief This test case is used to validate the functionality of the platform_hal_getFanSpeed() API.
- *
- * The purpose of this test is to verify that the API returns the correct fan speed for a given fan index.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 184 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | ----------- | --------- | --------------- | ----- |
- * | 01     | Invoke platform_hal_getFanSpeed with fanIndex = 1 | fanIndex = 1 | fanSpeed >= 0 | Should be successful |
- */
-void test_l1_platform_hal_positive2_getFanSpeed(void) {
+* @brief This test case is used to validate the functionality of the platform_hal_getFanSpeed() API.
+*
+* The purpose of this test is to verify that the API returns the correct fan speed for a given fan index.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 184 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | ----------- | --------- | --------------- | ----- |
+* | 01| Invoke platform_hal_getFanSpeed with fanIndex = 1 | fanIndex = 1 | fanSpeed >= 0 | Should be successful |
+*/
+void test_l1_platform_hal_positive2_getFanSpeed(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_getFanSpeed...");
     INT fanIndex = 1;
 
     UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", fanIndex);
     UINT fanSpeed = platform_hal_getFanSpeed(fanIndex);
 
-    UT_LOG("Received fanSpeed=%d", fanSpeed);
+    UT_LOG("Received fanSpeed = %d", fanSpeed);
     if (fanSpeed >= 0)
     {
         UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
@@ -6937,31 +7194,32 @@ void test_l1_platform_hal_positive2_getFanSpeed(void) {
 }
 
 /**
- * @brief Test case to verify the functionality of platform_hal_GetSSHEnable function
- *
- * This test case validates the functionality of the platform_hal_GetSSHEnable function.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 185 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description                | Test Data                     | Expected Result       | Notes               |
- * | :--------------: | -------------------------- | ----------------------------- | ----------------------| ------------------- |
- * |       01         | Invoking platform_hal_GetSSHEnable with pFlag = FALSE  | pFlag = FALSE    | RETURN_OK |Should be successful|
- */
-void test_l1_platform_hal_positive1_GetSSHEnable(void) {
+* @brief Test case to verify the functionality of platform_hal_GetSSHEnable function
+*
+* This test case validates the functionality of the platform_hal_GetSSHEnable function.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 185 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data| Expected Result | Notes|
+* | :--------: | -----------| ---------| ----------| --------- |
+* |01| Invoking platform_hal_GetSSHEnable with pFlag = FALSE  | pFlag = FALSE| RETURN_OK |Should be successful|
+*/
+void test_l1_platform_hal_positive1_GetSSHEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_GetSSHEnable...");
     BOOLEAN pFlag = FALSE;
     
     UT_LOG("Invoking platform_hal_GetSSHEnable with pFlag =%d.", pFlag);
     INT status = platform_hal_GetSSHEnable(&pFlag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetSSHEnable returns : %d", status);
     UT_LOG("pFlag: %d", pFlag);
     UT_ASSERT_EQUAL(status, RETURN_OK);
     if(pFlag == TRUE || pFlag == FALSE )
@@ -6995,14 +7253,15 @@ void test_l1_platform_hal_positive1_GetSSHEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Test function platform_hal_GetSSHEnable with pFlag = NULL| pFlag = NULL | RETURN_ERR| Should return error |
 */
-void test_l1_platform_hal_negative1_GetSSHEnable(void) {
+void test_l1_platform_hal_negative1_GetSSHEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_GetSSHEnable...");
     BOOLEAN *pFlag = NULL;
 
     UT_LOG("Invoking platform_hal_GetSSHEnable with pFlag = NULL");
     INT status = platform_hal_GetSSHEnable(pFlag);
 
-    UT_LOG("Returned status: %d", status);
+    UT_LOG("platform_hal_GetSSHEnable returns : %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetSSHEnable...");
@@ -7024,17 +7283,17 @@ void test_l1_platform_hal_negative1_GetSSHEnable(void) {
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking SetSSHEnable with pFlag = TRUE | pFlag = TRUE | RETURN_OK | Should be successful|
+* | 01 | Invoking platform_hal_SetSSHEnable with pFlag = TRUE | pFlag = TRUE | RETURN_OK | Should be successful|
 */
 void test_l1_platform_hal_positive1_SetSSHEnable( void )
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSSHEnable...");
     BOOLEAN pFlag = TRUE;
 
-    UT_LOG("Invoking SetSSHEnable with pFlag = %d.", pFlag);
+    UT_LOG("Invoking platform_hal_SetSSHEnable with pFlag = %d.", pFlag);
     INT returnValue = platform_hal_SetSSHEnable(pFlag);
     
-    UT_LOG("Returned value: %d", returnValue);
+    UT_LOG("platform_hal_SetSSHEnable returns : %d", returnValue);
     UT_ASSERT_EQUAL(returnValue, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetSSHEnable...");
@@ -7056,17 +7315,17 @@ void test_l1_platform_hal_positive1_SetSSHEnable( void )
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 |Invoking SetSSHEnable with  pFlag = FALSE| pFlag = FALSE | RETURN_OK | Should be successful|
+* | 01 |Invoking platform_hal_SetSSHEnable with  pFlag = FALSE| pFlag = FALSE | RETURN_OK | Should be successful|
 */
 void test_l1_platform_hal_positive2_SetSSHEnable( void )
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_SetSSHEnable...");
     BOOLEAN pFlag = TRUE;
 
-    UT_LOG("Invoking SetSSHEnable with  pFlag = %d.", pFlag);
+    UT_LOG("Invoking platform_hal_SetSSHEnable with  pFlag = %d.", pFlag);
     INT returnValue = platform_hal_SetSSHEnable(pFlag);
     
-    UT_LOG("Returned value: %d", returnValue);
+    UT_LOG("platform_hal_SetSSHEnable returns: %d", returnValue);
     UT_ASSERT_EQUAL(returnValue, RETURN_OK);
     
     UT_LOG("Exiting test_l1_platform_hal_positive2_SetSSHEnable...");
@@ -7088,17 +7347,17 @@ void test_l1_platform_hal_positive2_SetSSHEnable( void )
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking SetSSHEnable with invalid pFlag = 2 | pFlag = 2 | RETURN_ERR | Should return error  |
+* | 01 | Invoking platform_hal_SetSSHEnable with invalid pFlag = 2 | pFlag = 2 | RETURN_ERR | Should return error  |
 */
 void test_l1_platform_hal_negative1_SetSSHEnable( void )
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_SetSSHEnable...");
     BOOLEAN pFlag = 2;
 
-    UT_LOG("Invoking SetSSHEnable with invalid pFlag = %d.", pFlag);
+    UT_LOG("Invoking platform_hal_SetSSHEnable with invalid pFlag = %d.", pFlag);
     INT returnValue = platform_hal_SetSSHEnable(pFlag);
     
-    UT_LOG("Returned value: %d", returnValue);
+    UT_LOG("platform_hal_SetSSHEnable returns : %d", returnValue);
     UT_ASSERT_EQUAL(returnValue, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative1_SetSSHEnable...");
@@ -7120,17 +7379,17 @@ void test_l1_platform_hal_negative1_SetSSHEnable( void )
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking SetSSHEnable with invalid flag = 'a' | pFlag = 'a' | RETURN_ERR | Should return error |
+* | 01 | Invoking platform_hal_SetSSHEnable with invalid flag = 'a' | pFlag = 'a' | RETURN_ERR | Should return error |
 */
 void test_l1_platform_hal_negative2_SetSSHEnable( void )
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_SetSSHEnable...");
     BOOLEAN pFlag = 'a';
 
-    UT_LOG("Invoking SetSSHEnable with invalid flag = 'a'.");
+    UT_LOG("Invoking platform_hal_SetSSHEnable with invalid flag = 'a'.");
     INT returnValue = platform_hal_SetSSHEnable(pFlag);
     
-    UT_LOG("Returned value: %d", returnValue);
+    UT_LOG("platform_hal_SetSSHEnable returns : %d", returnValue);
     UT_ASSERT_EQUAL(returnValue, RETURN_ERR);
     
     UT_LOG("Exiting test_l1_platform_hal_negative2_SetSSHEnable...");
@@ -7154,7 +7413,8 @@ void test_l1_platform_hal_negative2_SetSSHEnable( void )
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_resetDscpCounts with interfaceType = DOCSIS | interfaceType = DOCSIS | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_resetDscpCounts(void) {
+void test_l1_platform_hal_positive1_resetDscpCounts(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_resetDscpCounts...");
     WAN_INTERFACE interfaceType = DOCSIS;
 
@@ -7168,24 +7428,25 @@ void test_l1_platform_hal_positive1_resetDscpCounts(void) {
 }
 
 /**
- * @brief Test the function platform_hal_resetDscpCounts for positive cases.
- *
- * This test case is used to verify the functionality of the platform_hal_resetDscpCounts function when the interface type is EWAN.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 192 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- |-------------- | ----- |
- * | 01 | Invoking platform_hal_resetDscpCounts with interfaceType = EWAN | interfaceType = EWAN | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive2_resetDscpCounts(void) {
+* @brief Test the function platform_hal_resetDscpCounts for positive cases.
+*
+* This test case is used to verify the functionality of the platform_hal_resetDscpCounts function when the interface type is EWAN.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 192 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_resetDscpCounts with interfaceType = EWAN | interfaceType = EWAN | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive2_resetDscpCounts(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_resetDscpCounts...");
     WAN_INTERFACE interfaceType = EWAN;
 
@@ -7216,7 +7477,8 @@ void test_l1_platform_hal_positive2_resetDscpCounts(void) {
 * | :----: | --------- | ---------- | --------------- | ----- |
 * | 01 | Invoking platform_hal_resetDscpCounts with an invalid interfaceType = 5| interfaceType = 5 | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative1_resetDscpCounts(void) {
+void test_l1_platform_hal_negative1_resetDscpCounts(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_resetDscpCounts...");
     WAN_INTERFACE interfaceType = 5;
 
@@ -7385,7 +7647,8 @@ void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_SetTelnetEnable with Flag = TRUE | Flag = TRUE | RETURN_OK | Should be Successful |
 */
-void test_l1_platform_hal_positive1_SetTelnetEnable(void) {
+void test_l1_platform_hal_positive1_SetTelnetEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_SetTelnetEnable...");
     BOOLEAN Flag = TRUE;
 
@@ -7416,7 +7679,8 @@ void test_l1_platform_hal_positive1_SetTelnetEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_SetTelnetEnable with Flag = FALSE | Flag = FALSE | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_SetTelnetEnable(void) {
+void test_l1_platform_hal_positive2_SetTelnetEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_SetTelnetEnable...");
     BOOLEAN Flag = FALSE;
 
@@ -7447,7 +7711,8 @@ void test_l1_platform_hal_positive2_SetTelnetEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_SetTelnetEnable with invalid Flag = 2 | Flag = 2 | RETURN_ERR | Should Fail |
 */
-void test_l1_platform_hal_negative1_SetTelnetEnable(void) {
+void test_l1_platform_hal_negative1_SetTelnetEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_SetTelnetEnable...");
     BOOLEAN Flag = 2;
 
@@ -7478,7 +7743,8 @@ void test_l1_platform_hal_negative1_SetTelnetEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_SetTelnetEnable with Flag = 'a' | Flag = 'a' | RETURN_ERR | Should Fail |
 */
-void test_l1_platform_hal_negative2_SetTelnetEnable(void) {
+void test_l1_platform_hal_negative2_SetTelnetEnable(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_SetTelnetEnable...");
     BOOLEAN Flag = 'a';
 
@@ -7509,7 +7775,8 @@ void test_l1_platform_hal_negative2_SetTelnetEnable(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec with valid ethPort = 0| ethPort = 0 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_StopMACsec(void) {
+void test_l1_platform_hal_positive1_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive1_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = 0;
@@ -7541,7 +7808,8 @@ void test_l1_platform_hal_positive1_StopMACsec(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec valid ethPort = MaxEthPort-1   | ethPort = MaxEthPort - 1 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive2_StopMACsec(void) {
+void test_l1_platform_hal_positive2_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive2_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = MaxEthPort - 1;
@@ -7573,7 +7841,8 @@ void test_l1_platform_hal_positive2_StopMACsec(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec valid ethPort = 2 | ethPort = 2 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive3_StopMACsec(void) {
+void test_l1_platform_hal_positive3_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_positive3_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = rand() % (MaxEthPort-1);
@@ -7605,7 +7874,8 @@ void test_l1_platform_hal_positive3_StopMACsec(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec invalid ethPort = -1  | ethPort = -1 | RETURN_ERR | Should return error |
 */
-void test_l1_platform_hal_negative1_StopMACsec(void) {
+void test_l1_platform_hal_negative1_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = -1; 
@@ -7637,7 +7907,8 @@ void test_l1_platform_hal_negative1_StopMACsec(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec invalid ethPort = MaxEthPort| ethPort = MaxEthPort | RETURN_ERR | Should return error|
 */
-void test_l1_platform_hal_negative2_StopMACsec(void) {
+void test_l1_platform_hal_negative2_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative2_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = MaxEthPort; 
@@ -7669,7 +7940,8 @@ void test_l1_platform_hal_negative2_StopMACsec(void) {
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoke platform_hal_StopMACsec invalid ethPort = MaxEthPort + 1| ethPort = MaxEthPort + 1 | RETURN_ERR | Should return error|
 */
-void test_l1_platform_hal_negative3_StopMACsec(void) {
+void test_l1_platform_hal_negative3_StopMACsec(void) 
+{
     UT_LOG("Entering test_l1_platform_hal_negative3_StopMACsec...");
     /*TODO : Define MaxEthPort*/
     INT ethPort = MaxEthPort + 1;
@@ -7727,6 +7999,7 @@ int register_hal_tests(void)
 int main(int argc, char** argv)
 {
     int registerReturn = 0;
+    
     /* get MaxEthPort value */
     if (get_MaxEthPort() == 0)
     {
@@ -7736,6 +8009,7 @@ int main(int argc, char** argv)
     {
         printf("failed to get MaxEthport value\n");
     }
+    
     /* Register tests as required, then call the UT-main to support switches and triggering */
     UT_init( argc, argv );
     /* Check if tests are registered successfully */
