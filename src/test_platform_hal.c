@@ -38,9 +38,6 @@
 #include "platform_hal.h"
 #include "cJSON.h"
 
-int MaxEthPort = 0;
-char configFile[] =  "./platform_config";
-
 /**function to read the json config file and return its content as a string
 *IN : json file name
 *OUT : content of json file as string
@@ -61,7 +58,7 @@ static char* read_file(const char *filename)
     }
     else
     {
-    /* get the length */
+        /* get the length */
         if (fseek(file, 0, SEEK_END) == 0)
         {
             length = ftell(file);
@@ -106,48 +103,35 @@ static cJSON *parse_file(const char *filename)
     char *content = read_file(filename);
     parsed = cJSON_Parse(content);
 
-    if (content != NULL)
+    if(content != NULL)
     {
         free(content);
     }
 
     return parsed;
 }
-/* decode the value from json object */
-static int decode_param_integer(cJSON  *json, char *key, cJSON  **value)
-{
-    *value = cJSON_GetObjectItem(json, key);
-    if ((*value == NULL) || (cJSON_IsNumber(*value) == FALSE)) 
-    {
-        printf("%s:%d: Validation failed for key:%s\n", __func__, __LINE__, key);
-        return -1;
-    }
-    return 0;
-}
 
 /* get the MaxEthPort from configuration file */
 int get_MaxEthPort(void)
 {
+    int MaxEthPort = 0;
+    char configFile[] =  "./platform_config";
     cJSON *value = NULL;
     cJSON *json = NULL;
     UT_LOG("Checking MaxEthPort");
     json = parse_file(configFile);
-    if (json==NULL)
+    if(json == NULL)
     {
         printf("Failed to parse config\n");
         return -1;
     }
     value = cJSON_GetObjectItem(json, "MaxEthPort");
     // null check and object is number, value->valueint
-    if( (value!=NULL) && (cJSON_IsNumber(value)) )
+    if((value != NULL) && (cJSON_IsNumber(value)))
     {
-        if(0 == decode_param_integer(json, "MaxEthPort", &value))
-        {
-                MaxEthPort = value->valueint;
-        }
+        MaxEthPort = value->valueint;
     }
-    printf(" MaxEthPort = %d\n",MaxEthPort);
-    UT_LOG("Checking MaxEthport is  ================== %d",MaxEthPort);
+    UT_LOG("MaxEthPort from config file is : %d",MaxEthPort);
     return 0;	
 }  
 
@@ -8003,11 +7987,11 @@ int main(int argc, char** argv)
     /* get MaxEthPort value */
     if (get_MaxEthPort() == 0)
     {
-        printf("got the MaxEthPort value\n");
+        UT_LOG("Got the MaxEthPort value\n");
     }
     else
     {
-        printf("failed to get MaxEthport value\n");
+        printf("Failed to get MaxEthport value\n");
     }
     
     /* Register tests as required, then call the UT-main to support switches and triggering */
@@ -8016,7 +8000,7 @@ int main(int argc, char** argv)
     registerReturn = register_hal_tests();
     if (registerReturn == 0)
     {
-        printf("register_hal_tests() returned success");
+        UT_LOG("register_hal_tests() returned success");
     }
     else
     {
