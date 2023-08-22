@@ -4611,7 +4611,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
         UT_LOG("platform_hal_GetFirmwareBankInfo returns: %d", result);
         UT_LOG("Firmware name = %s and firmware state = %s of Firmware BankInfo.",fwBankInfo->fw_name, fwBankInfo->fw_state);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        if(!strcmp(fwBankInfo->fw_state,"confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
+        if(!strcmp(fwBankInfo->fw_state,"Confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
         {
             UT_LOG(" Firmware state of Firmware BankInfo  is %s which is a valid string",fwBankInfo->fw_state);
             UT_PASS("Firmware state of Firmware BankInfo validation success");
@@ -4664,7 +4664,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
         UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
         UT_LOG("Firmware name = %s and firmware state = %s of Firmware BankInfo.",fwBankInfo->fw_name, fwBankInfo->fw_state);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        if(!strcmp(fwBankInfo->fw_state,"confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
+        if(!strcmp(fwBankInfo->fw_state,"Confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
         {
             UT_LOG(" Firmware state of Firmware BankInfo  is %s which is a valid string",fwBankInfo->fw_state);
             UT_PASS("Firmware state of Firmware BankInfo validation success");
