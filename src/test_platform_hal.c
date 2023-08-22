@@ -152,7 +152,7 @@ int get_MaxEthPort(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description| Test Data| Expected Result| Notes|
 * | :-----: |------------|----------|----------------|------|
-* |01 | Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize=256|pValue = valid buffer, maxSize=256| RETURN_OK| Should Pass|
+* |01 | Invoking platform_hal_GetFirmwareName() with pValue = valid buffer, maxSize = 256|pValue = valid buffer, maxSize = 256| RETURN_OK| Should Pass|
 */
 void test_l1_platform_hal_positive1_GetFirmwareName(void)
 {
@@ -290,7 +290,7 @@ void test_l1_platform_hal_negative1_GetSoftwareVersion(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | ----------- | --------- | --------------- | ----- |
-* | 01 | Invoking platform_hal_GetSerialNumber function with serialNumber = valid Buffer | serialNumber= valid Buffer | RETURN_OK | Should Pass |
+* | 01 | Invoking platform_hal_GetSerialNumber function with serialNumber = valid Buffer | serialNumber = valid Buffer | RETURN_OK | Should Pass |
 */
 void test_l1_platform_hal_positive1_GetSerialNumber(void)
 {
@@ -378,7 +378,7 @@ void test_l1_platform_hal_positive1_GetSNMPEnable(void)
     else
     {
         UT_LOG("SNMP Enable value from the device %s which is an Invalid value", pValue);
-        UT_FAIL("Get SNMP Enable validation fail");
+        UT_FAIL("Get SNMP Enable validation failed");
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetSNMPEnable...");
@@ -528,9 +528,7 @@ void test_l1_platform_hal_positive1_GetHardwareVersion(void)
 /**
 * @brief Test case for the platform_hal_GetHardwareVersion function with negative input.
 *
-* This test case is used to verify the behavior of the platform_hal_GetHardwareVersion function
-* when provided with negative input. The objective of this test is to ensure that the function
-* correctly handles negative input and returns the expected error code.
+* This test case is used to verify the behavior of the platform_hal_GetHardwareVersion function when provided with negative input. The objective of this test is to ensure that the function correctly handles negative input and returns the expected error code.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 012 @n
@@ -595,8 +593,7 @@ void test_l1_platform_hal_positive1_GetModelName(void)
 /**
 * @brief Test case to verify the behavior of the platform_hal_GetModelName function when invoked with a NULL input parameter.
 *
-* This test case checks if the platform_hal_GetModelName function returns the expected result when invoked with a NULL input parameter.
-* The objective of this test case is to ensure that the function can handle NULL input correctly and return the appropriate status code.
+* This test case checks if the platform_hal_GetModelName function returns the expected result when invoked with a NULL input parameter. The objective of this test case is to ensure that the function can handle NULL input correctly and return the appropriate status code.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 014 @n
@@ -663,7 +660,7 @@ void test_l1_platform_hal_positive1_GetRouterRegion(void)
     else
     {
         UT_LOG("Router region is %s which is an invalid value", pValue);
-        UT_FAIL("Get Router Region validation fail");
+        UT_FAIL("Get Router Region validation failed");
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetRouterRegion...");
@@ -809,18 +806,16 @@ void test_l1_platform_hal_positive1_GetHardware(void)
     else
     {
         UT_LOG("The hardware value  of the device is %d which is an invalid value", flash_size);
-        UT_FAIL("Get Hardware validation fail");
+        UT_FAIL("Get Hardware validation failed");
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetHardware...");
 }
 
 /**
-* @brief This test case is used to verify the functionality of the platform_hal_GetHardware() function
-* when a NULL pointer is passed as one of the arguments.
+* @brief This test case is used to verify the functionality of the platform_hal_GetHardware() function when a NULL pointer is passed as one of the arguments.
 *
-* The objective of this test is to ensure that the function returns a specific error code when a NULL pointer is passed
-* as the argument "pValue" to platform_hal_GetHardware().
+* The objective of this test is to ensure that the function returns a specific error code when a NULL pointer is passed as the argument "pValue" to platform_hal_GetHardware().
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 020 @n
@@ -852,8 +847,7 @@ void test_l1_platform_hal_negative1_GetHardware(void)
 /**
  * @brief Test the function platform_hal_SetSNMPEnable for positive scenario.
  *
- * This test case verifies the behavior of the function platform_hal_SetSNMPEnable
- * when it is invoked with valid input parameters.
+ * This test case verifies the behavior of the function platform_hal_SetSNMPEnable when it is invoked with valid input parameters.
  *
  * **Test Group ID:** Basic: 01 @n
  * **Test Case ID:** 021 @n
@@ -1240,7 +1234,7 @@ void test_l1_platform_hal_positive1_GetWebUITimeout(void)
     else
     {
         UT_LOG("Web UI Timeout value is %lu", value);
-        UT_FAIL("Web UI Timeout validation failure");
+        UT_FAIL("Web UI Timeout validation failed");
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetWebUITimeout...");
@@ -1302,6 +1296,7 @@ void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
     CHAR macAddress[256] = {"\0"};
     int count = 0;
     int len = 0;
+    int flag = 1;
 
     UT_LOG("Invoking platform_hal_GetBaseMacAddress with  macAddress = valid buffer");
     INT status = platform_hal_GetBaseMacAddress(macAddress);
@@ -1318,6 +1313,7 @@ void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
             // Check for valid characters: 0-9, A-F, a-f, and ':'
             if (!(isdigit(macAddress[i]) || (macAddress[i] >= 'A' && macAddress[i] <= 'F') || (macAddress[i] >= 'a' && macAddress[i] <= 'f') || macAddress[i] == ':'))
             {
+                flag = 0;
                 break;
             }
             // Count colons
@@ -1326,7 +1322,7 @@ void test_l1_platform_hal_positive1_GetBaseMacAddress(void)
                 count++;
             }
         }
-        if (count == 5)
+        if (count == 5 && flag == 1)
         {
             UT_LOG("MAC string is %s which is valid MAC address.",macAddress);
             UT_PASS("Get CMTS MAC validation success");
@@ -2074,7 +2070,7 @@ void test_l1_platform_hal_positive1_getRotorLock(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getRotorLock...");
     int fanIndex = 0;
 
-    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=0");
+    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = 0");
     INT status = platform_hal_getRotorLock(fanIndex);
 
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
@@ -2118,14 +2114,14 @@ void test_l1_platform_hal_positive1_getRotorLock(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getRotorLock with fanIndex=1 | fanIndex = 1 | Return can be 0 or 1 | Should be successful |
+* | 01 | Invoking platform_hal_getRotorLock with fanIndex = 1 | fanIndex = 1 | Return can be 0 or 1 | Should be successful |
 */
 void test_l1_platform_hal_positive2_getRotorLock(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_getRotorLock...");
     int fanIndex = 1;
 
-    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex=1.");
+    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = 1.");
     INT status = platform_hal_getRotorLock(fanIndex);
 
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
@@ -2176,7 +2172,7 @@ void test_l1_platform_hal_negative1_getRotorLock(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_getRotorLock...");
     int fanIndex = 2;
 
-    UT_LOG("Invoking platform_hal_getRotorLock with invalid fanIndex=2");
+    UT_LOG("Invoking platform_hal_getRotorLock with invalid fanIndex = 2");
     INT status = platform_hal_getRotorLock(fanIndex);
 
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
@@ -2670,8 +2666,7 @@ void test_l1_platform_hal_negative1_setLed(void)
 /**
 * @brief Unit test to verify the behavior of the platform_hal_setLed function when an invalid LedColor value is provided.
 *
-* This test case verifies the behavior of the platform_hal_setLed function when an invalid LedColor value (8) is provided.
-* The test checks if the function returns the expected error code.
+* This test case verifies the behavior of the platform_hal_setLed function when an invalid LedColor value (8) is provided. The test checks if the function returns the expected error code.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 071 @n
@@ -3098,8 +3093,7 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
 /**
 * @brief Test to validate the platform_hal_getRadioTemperature function with negative input.
 *
-* This test case verifies the behavior of the platform_hal_getRadioTemperature function
-* when negative input values are provided.
+* This test case verifies the behavior of the platform_hal_getRadioTemperature function when negative input values are provided.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 081 @n
@@ -3387,8 +3381,7 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void)
 /**
 * @brief Test function to validate the platform_hal_SetMACsecEnable API in negative scenario
 *
-* This test case is to verify the behavior of platform_hal_SetMACsecEnable API
-* when it is provided with invalid input values.
+* This test case is to verify the behavior of platform_hal_SetMACsecEnable API when it is provided with invalid input values.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 089 @n
@@ -3697,7 +3690,7 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_GetMACsecEnable with ethPort = 0 with NULL pFlag | ethPort = 0, pFlag = NULL | RETURN_ERR | Should return an error code |
+* | 01 | Invoking platform_hal_GetMACsecEnable with valid ethPort = 0 with NULL pFlag | ethPort = 0, pFlag = NULL | RETURN_ERR | Should return an error code |
 */
 void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 {
@@ -3705,7 +3698,7 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
     INT ethPort = 0;
     BOOLEAN *pFlag = NULL;
 
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with ethPort = %d with NULL pFlag .", ethPort);
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with valid ethPort = %d with NULL pFlag .", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, pFlag);
 
     UT_LOG("platform_hal_GetMACsecEnable returns : %d", status);
@@ -3738,7 +3731,7 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
     INT ethPort = -1;
     BOOLEAN flag = FALSE;
 
-    UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort = %d, flag = valid buffer.", ethPort, flag);
+    UT_LOG("Invoking platform_hal_GetMACsecEnable with invalid ethPort = %d, flag = valid buffer.", ethPort);
     INT status = platform_hal_GetMACsecEnable(ethPort, &flag);
 
     UT_LOG("platform_hal_GetMACsecEnable returns : %d", status);
@@ -4364,8 +4357,7 @@ void test_l1_platform_hal_negative2_setDscp(void)
 /**
 * @brief Test to verify the behavior of platform_hal_setDscp() function when invalid DSCP values are provided.
 *
-* This test case focuses on testing the platform_hal_setDscp() function by passing invalid DSCP values (e.g., "100000,200000")
-* for a particular interface type and traffic count command.
+* This test case focuses on testing the platform_hal_setDscp() function by passing invalid DSCP values (e.g., "100000,200000") for a particular interface type and traffic count command.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 114 @n
@@ -4559,8 +4551,7 @@ void test_l1_platform_hal_negative1_SetLowPowerModeState(void)
 /**
 * @brief Tests the scenario where the low power mode state is not supported by the platform_hal_SetLowPowerModeState function.
 *
-* This test is used to verify the behavior of platform_hal_SetLowPowerModeState function when the low power mode state is not supported by the platform.
-* The function should return an error status code in this scenario.
+* This test is used to verify the behavior of platform_hal_SetLowPowerModeState function when the low power mode state is not supported by the platform. The function should return an error status code in this scenario.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 120 @n
@@ -4620,8 +4611,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
         UT_LOG("platform_hal_GetFirmwareBankInfo returns: %d", result);
         UT_LOG("Firmware name = %s and firmware state = %s of Firmware BankInfo.",fwBankInfo->fw_name, fwBankInfo->fw_state);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-
-        if(!strcmp(fwBankInfo->fw_state,"Confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
+        if(!strcmp(fwBankInfo->fw_state,"confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
         {
             UT_LOG(" Firmware state of Firmware BankInfo  is %s which is a valid string",fwBankInfo->fw_state);
             UT_PASS("Firmware state of Firmware BankInfo validation success");
@@ -4629,7 +4619,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
         else
         {
             UT_LOG("Firmware state of Firmware BankInfo %s which is an invalid value",fwBankInfo->fw_state);
-            UT_FAIL("Firmware state of Firmware BankInfo validation fail");
+            UT_FAIL("Firmware state of Firmware BankInfo validation failed");
         }
 
         free(fwBankInfo);
@@ -4646,8 +4636,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 /**
 * @brief Test case for retrieving firmware bank information.
 *
-* This test case verifies the functionality of the platform_hal_GetFirmwareBankInfo function,
-* which is responsible for retrieving the firmware bank information based on the provided bank index.
+* This test case verifies the functionality of the platform_hal_GetFirmwareBankInfo function, which is responsible for retrieving the firmware bank information based on the provided bank index.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 122 @n
@@ -4675,8 +4664,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
         UT_LOG("platform_hal_GetFirmwareBankInfo returns : %d", result);
         UT_LOG("Firmware name = %s and firmware state = %s of Firmware BankInfo.",fwBankInfo->fw_name, fwBankInfo->fw_state);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-
-        if(!strcmp(fwBankInfo->fw_state,"Confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
+        if(!strcmp(fwBankInfo->fw_state,"confirmed") || strstr(fwBankInfo->fw_state,"TrialBoot#"))
         {
             UT_LOG(" Firmware state of Firmware BankInfo  is %s which is a valid string",fwBankInfo->fw_state);
             UT_PASS("Firmware state of Firmware BankInfo validation success");
@@ -4684,7 +4672,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
         else
         {
             UT_LOG("Firmware state of Firmware BankInfo %s which is an invalid value",fwBankInfo->fw_state);
-            UT_FAIL("Firmware state of Firmware BankInfo validation fail");
+            UT_FAIL("Firmware state of Firmware BankInfo validation failed");
         }
 
         free(fwBankInfo);
@@ -4830,6 +4818,7 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
     CHAR pValue[100] ={"\0"};
     int count = 0;
     int len = 0;
+    int flag = 1;
 
     UT_LOG("Invoking platform_hal_getCMTSMac with pValue = valid buffer");
     INT status = platform_hal_getCMTSMac(pValue);
@@ -4846,6 +4835,7 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
             // Check for valid characters: 0-9, A-F, a-f, and ':'
             if (!(isdigit(pValue[i]) || (pValue[i] >= 'A' && pValue[i] <= 'F') || (pValue[i] >= 'a' && pValue[i] <= 'f') || pValue[i] == ':'))
             {
+                flag = 0;
                 break;
             }
             // Count colons
@@ -4854,7 +4844,7 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
                 count++;
             }
         }
-        if (count == 5)
+        if (count == 5 && flag == 1)
         {
             UT_LOG("MAC string is %s which is valid MAC address.",pValue);
             UT_PASS("Get CMTS MAC validation success");
@@ -5114,6 +5104,7 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
     WAN_INTERFACE interfaceType = DOCSIS;
     int len = 0;
     int count = 0;
+    int flag = 1;
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t));
     if(pDSCP_List != NULL)
     {
@@ -5164,11 +5155,13 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
                     if(len == 17)
                     {
                         count = 0;
+                        flag = 1;
                         for (int i = 0; pTraffic_client->mac[i] != '\0'; i++)
                         {
                             // Check for valid characters: 0-9, A-F, a-f, and ':'
                             if (!(isdigit(pTraffic_client->mac[i]) || (pTraffic_client->mac[i] >= 'A' && pTraffic_client->mac[i] <= 'F') || (pTraffic_client->mac[i] >= 'a' && pTraffic_client->mac[i] <= 'f') || pTraffic_client->mac[i] == ':'))
                             {
+                                flag = 0;
                                 break;
                             }
                             // Count colons
@@ -5177,7 +5170,7 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
                                 count++;
                             }
                         }
-                        if (count == 5)
+                        if (count == 5 && flag == 1)
                         {
                             UT_LOG("MAC string is %s which is valid MAC address.",pTraffic_client->mac);
                             UT_PASS("Get CMTS MAC validation success");
@@ -5243,6 +5236,7 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
     pDSCP_list_t pDSCP_List = malloc(sizeof(DSCP_list_t));
     int count = 0;
     int len = 0;
+    int flag = 1;
     if(pDSCP_List != NULL)
     {
         UT_LOG("Invoking platform_hal_getDscpClientList with interfaceType = %d, pDSCP_List = valid structure.",interfaceType);
@@ -5293,11 +5287,13 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
                     if(len == 17)
                     {
                         count = 0;
+                        flag = 1;
                         for (int i = 0; pTraffic_client->mac[i] != '\0'; i++)
                         {
                             // Check for valid characters: 0-9, A-F, a-f, and ':'
                             if (!(isdigit(pTraffic_client->mac[i]) || (pTraffic_client->mac[i] >= 'A' && pTraffic_client->mac[i] <= 'F') || (pTraffic_client->mac[i] >= 'a' && pTraffic_client->mac[i] <= 'f') || pTraffic_client->mac[i] == ':'))
                             {
+                                flag = 0;
                                 break;
                             }
                             // Count colons
@@ -5306,7 +5302,7 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
                                 count++;
                             }
                         }
-                        if (count == 5)
+                        if (count == 5 && flag == 1)
                         {
                             UT_LOG("MAC string is %s which is valid MAC address.", pTraffic_client->mac);
                             UT_PASS("Get CMTS MAC validation success");
@@ -5855,7 +5851,7 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
     else
     {
         UT_LOG("MAC sec Operational Status is %d", flag);
-        UT_FAIL("MAC sec Operational Status validation failure");
+        UT_FAIL("MAC sec Operational Status validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_GetMACsecOperationalStatus...");
 }
@@ -6016,7 +6012,7 @@ void test_l1_platform_hal_positive4_setFanMaxOverride(void)
     BOOLEAN bOverrideFlag = FALSE;
     UINT fanIndex = 1;
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag=%d, fanIndex=%d", bOverrideFlag, fanIndex);
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
 
     UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
@@ -6049,7 +6045,7 @@ void test_l1_platform_hal_negative1_setFanMaxOverride(void)
     BOOLEAN bOverrideFlag = TRUE;
     UINT fanIndex = 2;
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag=%d, invalid fanIndex=%d", bOverrideFlag, fanIndex);
+    UT_LOG("Invoking platform_hal_setFanMaxOverride with valid bOverrideFlag = %d, invalid fanIndex = %d", bOverrideFlag, fanIndex);
     INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
 
     UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
@@ -6128,7 +6124,7 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 /**
 * @brief This function tests the functionality of the platform_hal_setFanSpeed() API
 *
-* This test case checks the functionality of the platform_hal_setFanSpeed() API by invoking when provided when the fan index is 0, the fan speed is set to FAN_SPEED_OFF, and the error reason is a valid buffer
+* This test case checks the functionality of the platform_hal_setFanSpeed() API by invoking with fan index value as 0,fan speed value as FAN_SPEED_OFF, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 156 @n
@@ -6163,7 +6159,7 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
 /**
 * @brief Test for the platform_hal_setFanSpeed function with positive input
 *
-* This test is performed to verify the functionality of the platform_hal_setFanSpeed function when provided when the fan index is 1, the fan speed is set to FAN_SPEED_SLOW, and the error reason is a valid buffer
+* This test is performed to verify the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 157 @n
@@ -6185,7 +6181,7 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_SLOW;
     FAN_ERR pErrReason = FAN_ERR_NONE;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=%d, fanSpeed=%d, pErrReason = valid buffer.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
@@ -6198,7 +6194,7 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 158 @n
@@ -6233,7 +6229,7 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 159 @n
@@ -6268,7 +6264,7 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_SLOW, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 160 @n
@@ -6303,7 +6299,7 @@ void test_l1_platform_hal_positive5_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_FAST, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 161 @n
@@ -6338,7 +6334,7 @@ void test_l1_platform_hal_positive6_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 0, the fan speed is set to FAN_SPEED_MAX, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_MAX, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 162 @n
@@ -6360,7 +6356,7 @@ void test_l1_platform_hal_positive7_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_MAX;
     FAN_ERR pErrReason = FAN_ERR_NONE;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed=%d, pErrReason = valid buffer.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
@@ -6373,7 +6369,7 @@ void test_l1_platform_hal_positive7_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_OFF, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_OFF, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 163 @n
@@ -6395,7 +6391,7 @@ void test_l1_platform_hal_positive8_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
     FAN_ERR pErrReason = FAN_ERR_NONE;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed= %d , pErrReason = valid buffer.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d , pErrReason = valid buffer.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
@@ -6408,7 +6404,7 @@ void test_l1_platform_hal_positive8_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MEDIUM, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 164 @n
@@ -6443,7 +6439,7 @@ void test_l1_platform_hal_positive9_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies that the platform_hal_setFanSpeed function sets the fan speed correctly when the fan index is 1, the fan speed is set to FAN_SPEED_MAX, and the error reason is a valid buffer.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_MAX,  and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 165 @n
@@ -6465,7 +6461,7 @@ void test_l1_platform_hal_positive10_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_MAX;
     FAN_ERR pErrReason = FAN_ERR_NONE;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=%d, fanSpeed=%d, pErrReason = valid buffer.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
@@ -6528,7 +6524,7 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
 /**
 * @brief This test function is used to verify the negative scenario of the platform_hal_setFanSpeed API.
 *
-* This test checks the behavior of the platform_hal_setFanSpeed API when the fanIndex is 0, fanSpeed is FAN_SPEED_OFF, and the error reason is valid buffer.
+* This test checks the behavior of the platform_hal_setFanSpeed API when the fanIndex is 0, fanSpeed is FAN_SPEED_OFF, and the error reason is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
 * **Test Case ID:** 167 @n
@@ -6550,7 +6546,7 @@ void test_l1_platform_hal_negative2_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
     FAN_ERR *pErrReason = NULL;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason=NULL.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
@@ -7203,7 +7199,7 @@ void test_l1_platform_hal_positive2_getFanSpeed(void)
     else
     {
         UT_LOG("Fan Speed is %d, which is an invalid value.", fanSpeed);
-        UT_FAIL("Get Fan Speed validation failure");
+        UT_FAIL("Get Fan Speed validation failed");
     }
     UT_LOG("Exiting test_l1_platform_hal_positive2_getFanSpeed...");
 }
@@ -7796,7 +7792,6 @@ void test_l1_platform_hal_negative2_SetTelnetEnable(void)
 void test_l1_platform_hal_positive1_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
     INT ethPort = 0;
 
     UT_LOG("Invoking platform_hal_StopMACsec with valid ethPort = %d", ethPort);
@@ -7895,7 +7890,6 @@ void test_l1_platform_hal_positive3_StopMACsec(void)
 void test_l1_platform_hal_negative1_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
     INT ethPort = -1;
 
     UT_LOG("Invoking platform_hal_StopMACsec with invalid ethPort = %d", ethPort);
