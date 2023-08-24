@@ -1976,7 +1976,7 @@ void test_l1_platform_hal_positive1_getLed(void)
         UT_LOG("Interval:%d",params->Interval);
 
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        if (params->LedColor >= 0 && params->LedColor <= 7)
+        if((params->LedColor >= 0) && (params->LedColor <= 7))
         {
             UT_LOG("Led Color is %d which is a valid value", params->LedColor);
             UT_PASS("Led Color validation success");
@@ -1986,7 +1986,7 @@ void test_l1_platform_hal_positive1_getLed(void)
             UT_LOG("Led Color is  %d which is an invalid value", params->LedColor);
             UT_FAIL("Led Color validation failed");
         }
-        if (params->State == 0 || params->State == 1)
+        if((params->State == 0) || (params->State == 1))
         {
             UT_LOG("State is %d which is a valid value", params->State);
             UT_PASS("State validation success");
