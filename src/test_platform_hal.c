@@ -1967,45 +1967,52 @@ void test_l1_platform_hal_positive1_getLed(void)
     PLEDMGMT_PARAMS params = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
     if(params != NULL)
     {
+	memset(params, 0, sizeof(LEDMGMT_PARAMS));
         UT_LOG("Invoking platform_hal_getLed with params = valid structure");
         INT result = platform_hal_getLed(params);
+	if(result == RETURN_OK)
+	{
+            UT_LOG("platform_hal_getLed API returns:%d", result);
+            UT_LOG("LED colour:%d",params->LedColor);
+            UT_LOG("State:%d",params->State);
+            UT_LOG("Interval:%d",params->Interval);
 
-        UT_LOG("platform_hal_getLed API returns:%d", result);
-        UT_LOG("LED colour:%d",params->LedColor);
-        UT_LOG("State:%d",params->State);
-        UT_LOG("Interval:%d",params->Interval);
-
-        UT_ASSERT_EQUAL(result, RETURN_OK);
-        if((params->LedColor >= 0) && (params->LedColor <= 7))
-        {
-            UT_LOG("Led Color is %d which is a valid value", params->LedColor);
-            UT_PASS("Led Color validation success");
-        }
-        else
-        {
-            UT_LOG("Led Color is  %d which is an invalid value", params->LedColor);
-            UT_FAIL("Led Color validation failed");
-        }
-        if((params->State == 0) || (params->State == 1))
-        {
-            UT_LOG("State is %d which is a valid value", params->State);
-            UT_PASS("State validation success");
-        }
-        else
-        {
-            UT_LOG("State is  %d which is an invalid value", params->State);
-            UT_FAIL("State validation failed");
-        }
-        if (params->Interval >= 0)
-        {
-            UT_LOG("Interval is %d which is a valid value", params->Interval);
-            UT_PASS("Interval validation success");
-        }
-        else
-        {
-            UT_LOG("Interval is  %d which is an invalid value", params->Interval);
-            UT_FAIL("Interval validation failed");
-        }
+            UT_ASSERT_EQUAL(result, RETURN_OK);
+            if((params->LedColor >= 0) && (params->LedColor <= 7))
+            {
+                UT_LOG("Led Color is %d which is a valid value", params->LedColor);
+                UT_PASS("Led Color validation success");
+            }
+            else
+            {
+                UT_LOG("Led Color is  %d which is an invalid value", params->LedColor);
+                UT_FAIL("Led Color validation failed");
+            }
+            if((params->State == 0) || (params->State == 1))
+            {
+                UT_LOG("State is %d which is a valid value", params->State);
+                UT_PASS("State validation success");
+            }
+            else
+            {
+                UT_LOG("State is  %d which is an invalid value", params->State);
+                UT_FAIL("State validation failed");
+            }
+            if (params->Interval >= 0)
+            {
+                UT_LOG("Interval is %d which is a valid value", params->Interval);
+                UT_PASS("Interval validation success");
+            }
+            else
+            {
+                UT_LOG("Interval is  %d which is an invalid value", params->Interval);
+                UT_FAIL("Interval validation failed");
+            }
+	}
+	else
+	{
+	    UT_LOG("platform_hal_getLed API returns:%d", result);
+	}
     }
     else
     {
