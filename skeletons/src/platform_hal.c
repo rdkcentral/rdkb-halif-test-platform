@@ -311,7 +311,6 @@ INT platform_hal_setFanMaxOverride(BOOLEAN bOverrideFlag, UINT fanIndex)
   return (INT)0;
 }
 #ifdef FEATURE_RDKB_THERMAL_MANAGER
-
 INT platform_hal_initThermal(THERMAL_PLATFORM_CONFIG* pThermalPlatformConfig)
 {
   /*TODO: Implement Me!*/
@@ -335,7 +334,7 @@ INT platform_hal_setFanSpeed(UINT fanIndex, FAN_SPEED fanSpeed, FAN_ERR* pErrRea
   return (INT)0;
 }
 
-INT platform_hal_getFanTemperature(int* pTemp)
+INT platform_hal_getFanTemperature(INT* pTemp)
 {
   /*TODO: Implement Me!*/
   (void)pTemp;

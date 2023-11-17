@@ -16,6 +16,7 @@
 # * See the License for the specific language governing permissions and
 # * limitations under the License.
 # *
+
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BIN_DIR := $(ROOT_DIR)/bin
 TOP_DIR := $(ROOT_DIR)
@@ -33,15 +34,14 @@ endif
 
 $(info TARGET [$(TARGET)])
 
-HAL_LIB_DIR := $(ROOT_DIR)/libs
 ifeq ($(TARGET),arm)
+HAL_LIB_DIR := $(ROOT_DIR)/libs	
 CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
 YLDFLAGS = -Wl,-rpath,$(HAL_LIB_DIR) -L$(HAL_LIB_DIR) -lhal_platform
 endif
 
 .PHONY: clean list all
 
-# Here is a list of exports from this makefile to the next
 export YLDFLAGS
 export BIN_DIR
 export SRC_DIRS
