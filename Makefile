@@ -24,19 +24,22 @@ TOP_DIR := $(ROOT_DIR)
 SRC_DIRS = $(ROOT_DIR)/src
 INC_DIRS := $(ROOT_DIR)/../include
 
+# To enable thermal manager and led manager apis and its test
+CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
+TARGET_EXEC := platform_hal_test
+
 ifeq ($(TARGET),)
 $(info TARGET NOT SET )
 $(info TARGET FORCED TO Linux)
 TARGET=linux
-CFLAGS = -DBUILD_LINUX -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
+CFLAGS += -DBUILD_LINUX
 SRC_DIRS += $(ROOT_DIR)/skeletons/src
 endif
 
 $(info TARGET [$(TARGET)])
 
+HAL_LIB_DIR := $(ROOT_DIR)/libs
 ifeq ($(TARGET),arm)
-HAL_LIB_DIR := $(ROOT_DIR)/libs	
-CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
 YLDFLAGS = -Wl,-rpath,$(HAL_LIB_DIR) -L$(HAL_LIB_DIR) -lhal_platform
 endif
 
@@ -50,6 +53,7 @@ export TARGET
 export TOP_DIR
 export HAL_LIB_DIR
 export CFLAGS
+export TARGET_EXEC
 
 .PHONY: clean list build
 

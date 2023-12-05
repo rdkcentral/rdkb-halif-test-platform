@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
- 
+
 /* L1 Testing Functions */
 extern int test_platform_hal_l1_register(void);
 
@@ -24,6 +24,6 @@ int register_hal_l1_tests( void )
     int registerFailed=0;
 
     registerFailed |= test_platform_hal_l1_register();
- 
+
     return registerFailed;
 }

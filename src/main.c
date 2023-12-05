@@ -15,115 +15,134 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
- 
+
 #include <ut.h>
 #include <ut_log.h>
 #include <stdlib.h>
-#include "cJSON.h"
+#include "platform_hal.h"
+
+extern int MaxEthPort;
+extern char PartnerID[512] ;
+extern char** factoryCmVariant;
+extern int num_FactoryCmVariant;
+extern RDK_CPUS *supportedCpus;
+extern int num_SupportedCPUs;
+extern PSM_STATE *Supported_PSM_STATE;
+extern int num_Supported_PSM_STATE;
 
 extern int register_hal_l1_tests( void );
+extern int get_MaxEthPort(void);
+extern int get_PartnerID(void);
+extern int get_FactoryCmVariant(void);
+extern int get_SupportedCPUs(void);
+extern int get_LowPowerModeStates(void);
 
-int MaxEthPort = 0;
-
-/**function to read the json config file and return its content as a string
-*IN : json file name
-*OUT : content of json file as string
-**/
-static char* read_file(const char *filename)
+int init_platform_hal_init(void)
 {
-    FILE *file = NULL;
-    long length = 0;
-    char *content = NULL;
-    size_t read_chars = 0;
-
-    /* open in read mode */
-    file = fopen(filename, "r");
-    if (file == NULL)
+    int ret = 0;
+    ret = platform_hal_PandMDBInit();
+    if (ret == 0)
     {
-        printf("Please place platform_config file ,where your binary is placed\n");
-        exit(1);
+        UT_LOG("platform_hal_PandMDBInit returned success");
     }
     else
     {
-        /* get the length */
-        if (fseek(file, 0, SEEK_END) == 0)
+        UT_LOG("platform_hal_PandMDBInit returned failure");
+        UT_FAIL("platform_hal_PandMDBInit initialization failed");
+    }
+
+    ret = platform_hal_DocsisParamsDBInit();
+    if (ret == 0)
+    {
+        UT_LOG("platform_hal_DocsisParamsDBInit returned success");
+    }
+    else
+    {
+        UT_LOG("platform_hal_DocsisParamsDBInit returned failure");
+        UT_FAIL("platform_hal_DocsisParamsDBInit initialization failed");
+    }
+#ifdef FEATURE_RDKB_THERMAL_MANAGER
+    THERMAL_PLATFORM_CONFIG *thermalConfig = (THERMAL_PLATFORM_CONFIG*)malloc(sizeof(THERMAL_PLATFORM_CONFIG));
+    if(thermalConfig != NULL)
+    {
+        ret = platform_hal_initThermal(thermalConfig);
+        if (ret == 0)
         {
-            length = ftell(file);
-            if (length > 0)
-            {
-                if (fseek(file, 0, SEEK_SET) == 0)
-                {
-                    /* allocate content buffer */
-                    content = (char*)malloc((size_t)length + sizeof(""));
-                    if (content != NULL)
-                    {
-                        /* read the file into memory */
-                        read_chars = fread(content, sizeof(char), (size_t)length, file);
-                        if ((long)read_chars != length)
-                        {
-                            free(content);
-                            content = NULL;
-                        }
-                        else
-                            content[read_chars] = '\0';
-                    }
-                }
-            }
-            else
-            {
-                printf("platform_config file is empty. please add configuration\n");
-                exit(1);
-            }
+            UT_LOG("platform_hal_initThermal returned success");
         }
-        fclose(file);
+        else
+        {
+            UT_LOG("platform_hal_initThermal returned failure");
+            UT_FAIL("platform_hal_initThermal initialization failed");
+        }
     }
-    return content;
-}
-
-/**function to read the json config file and return its content as a json object
-*IN : json file name
-*OUT : content of json file as a json object
-**/
-static cJSON *parse_file(const char *filename)
-{
-    cJSON *parsed = NULL;
-    char *content = read_file(filename);
-    parsed = cJSON_Parse(content);
-
-    if(content != NULL)
+    else
     {
-        free(content);
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
     }
-
-    return parsed;
-}
-
-/* get the MaxEthPort from configuration file */
-int get_MaxEthPort(void)
-{
-    char configFile[] =  "./platform_config";
-    cJSON *value = NULL;
-    cJSON *json = NULL;
-    UT_LOG("Checking MaxEthPort");
-    json = parse_file(configFile);
-    if(json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "MaxEthPort");
-    // null check and object is number, value->valueint
-    if((value != NULL) && (cJSON_IsNumber(value)))
-    {
-        MaxEthPort = value->valueint;
-    }
-    UT_LOG("MaxEthPort from config file is : %d",MaxEthPort);
+#endif
     return 0;
 }
 
 int main(int argc, char** argv)
 {
     int registerReturn = 0;
+    int i = 0;
+    if (get_MaxEthPort() == 0)
+    {
+        UT_LOG("Got the MaxEthPort value : %d", MaxEthPort);
+    }
+    else
+    {
+        printf("Failed to get MaxEthPort value\n");
+    }
+
+    if (get_PartnerID() == 0)
+    {
+        UT_LOG("Got the PartnerID value : %s", PartnerID);
+    }
+    else
+    {
+        printf("Failed to get PartnerID value\n");
+    }
+    if (get_FactoryCmVariant() == 0)
+    {
+        UT_LOG("Got the FactoryCmVariant values :\n");
+        for (i=0;i < num_FactoryCmVariant; i++)
+        {
+            UT_LOG("%s \n", factoryCmVariant[i]);
+        }
+    }
+    else
+    {
+        printf("Failed to get FactoryCmVariant value\n");
+    }
+    if (get_SupportedCPUs() == 0)
+    {
+        UT_LOG("Got the SupportedCPUs values :\n");
+        for (i=0;i < num_SupportedCPUs; i++)
+        {
+            UT_LOG("%d \n", supportedCpus[i]);
+        }
+    }
+    else
+    {
+        printf("Failed to get SupportedCPUs value\n");
+    }
+    if (get_LowPowerModeStates() == 0)
+    {
+        UT_LOG("Got the LowPowerModeStates values : ");
+        for (i=0;i < num_Supported_PSM_STATE; i++)
+        {
+            UT_LOG("%d \n", Supported_PSM_STATE[i]);
+        }
+    }
+    else
+    {
+        printf("Failed to get LowPowerModeStates value\n");
+    }
+
     /* Register tests as required, then call the UT-main to support switches and triggering */
     UT_init( argc, argv );
     /* Check if tests are registered successfully */
@@ -137,9 +156,7 @@ int main(int argc, char** argv)
         printf("register_hal_l1_tests() returned failure");
         return 1;
     }
-
     UT_run_tests();
-    
     return 0;
 }
 
