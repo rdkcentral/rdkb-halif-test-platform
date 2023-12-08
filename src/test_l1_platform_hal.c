@@ -17,7 +17,7 @@
 */
 
 /**
-* @file test_platform_hal.c
+* @file test_l1_platform_hal.c
 * @page platform_hal Level 1 Tests
 *
 * ## Module's Role
@@ -6824,7 +6824,7 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void)
 * | 01 | Invoke platform_hal_getTimeOffSet() with timeOffSet = NULL | timeOffSet = NULL | RETURN_ERR | Should return error |
 */
 void test_l1_platform_hal_negative1_getTimeOffSet(void)
-{i
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_getTimeOffSet...");
     CHAR *timeOffSet = NULL;
 
