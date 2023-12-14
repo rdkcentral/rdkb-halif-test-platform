@@ -29,6 +29,8 @@ extern RDK_CPUS *supportedCpus;
 extern int num_SupportedCPUs;
 extern PSM_STATE *Supported_PSM_STATE;
 extern int num_Supported_PSM_STATE;
+extern int *FanIndex;
+extern int num_FanIndex;
 
 extern int register_hal_l1_tests( void );
 extern int get_MaxEthPort(void);
@@ -36,6 +38,7 @@ extern int get_PartnerID(void);
 extern int get_FactoryCmVariant(void);
 extern int get_SupportedCPUs(void);
 extern int get_LowPowerModeStates(void);
+extern int get_FanIndex(void);
 
 int init_platform_hal_init(void)
 {
@@ -109,7 +112,7 @@ int main(int argc, char** argv)
     if (get_FactoryCmVariant() == 0)
     {
         UT_LOG("Got the FactoryCmVariant values :\n");
-        for (i=0;i < num_FactoryCmVariant; i++)
+        for (i = 0;i < num_FactoryCmVariant; i++)
         {
             UT_LOG("%s \n", factoryCmVariant[i]);
         }
@@ -121,7 +124,7 @@ int main(int argc, char** argv)
     if (get_SupportedCPUs() == 0)
     {
         UT_LOG("Got the SupportedCPUs values :\n");
-        for (i=0;i < num_SupportedCPUs; i++)
+        for (i = 0;i < num_SupportedCPUs; i++)
         {
             UT_LOG("%d \n", supportedCpus[i]);
         }
@@ -133,7 +136,7 @@ int main(int argc, char** argv)
     if (get_LowPowerModeStates() == 0)
     {
         UT_LOG("Got the LowPowerModeStates values : ");
-        for (i=0;i < num_Supported_PSM_STATE; i++)
+        for (i = 0;i < num_Supported_PSM_STATE; i++)
         {
             UT_LOG("%d \n", Supported_PSM_STATE[i]);
         }
@@ -141,6 +144,19 @@ int main(int argc, char** argv)
     else
     {
         printf("Failed to get LowPowerModeStates value\n");
+    }
+
+    if (get_FanIndex() == 0)
+    {
+        UT_LOG("Got the FanIndex values : ");
+        for (i = 0;i < num_FanIndex; i++)
+        {
+            UT_LOG("%d \n", FanIndex[i]);
+        }
+    }
+    else
+    {
+        printf("Failed to get FanIndex value\n");
     }
 
     /* Register tests as required, then call the UT-main to support switches and triggering */

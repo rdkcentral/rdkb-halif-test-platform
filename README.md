@@ -10,7 +10,7 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
 
 1. Fill the param MaxEthPort with Number of Ethernet ports. "MaxEthPort" : x , where x is the number of ethernet ports
 
-2. For PartnerID, fill with Partner ID of the device. Refer the example given below
+2. For PartnerID, fill with Partner ID of the device. Refer the example given below :
 
     "PartnerID": "comcast"
 
@@ -27,7 +27,7 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
         c. Both HOST_CPU and PEER_CPU are supported then "Supported_CPUS" : [0,1]
 
     * where 0 refers to HOST_CPU and 1 refers to PEER_CPU of enum RDK_CPUS.
-    
+
 5. For Supported_PSM_STATE :
 
         a. If only PSM_AC is supported , fill this param  with "Supported_PSM_STATE" : [1]
@@ -38,6 +38,14 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
 
         d. If only PSM_COOLED is supported , fill this param  with "Supported_PSM_STATE" : [4]
 
-    * Platform can support multiple Power Saving Mode States. Specify as a comma separated list. Refer the example given below    
+    * Platform can support multiple Power Saving Mode States. Specify as a comma separated list. Refer the example given below :
 
         "Supported_PSM_STATE" : [1,2]
+
+6. For FanIndex:
+
+        a. If platform supports only 1 fan , fill this parm with "FanIndex" : [0]
+
+        b. If platform supports 2 fans , fill this param with "FanIndex" : [0,1]
+
+    *  The range of FanIndex is from 0 to 1.
