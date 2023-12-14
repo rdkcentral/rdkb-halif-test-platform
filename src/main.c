@@ -39,6 +39,7 @@ extern int get_FactoryCmVariant(void);
 extern int get_SupportedCPUs(void);
 extern int get_LowPowerModeStates(void);
 extern int get_FanIndex(void);
+extern void freeFactoryCmVariant(void);
 
 int init_platform_hal_init(void)
 {
@@ -173,6 +174,12 @@ int main(int argc, char** argv)
         return 1;
     }
     UT_run_tests();
+
+    freeFactoryCmVariant();
+    free(supportedCpus);
+    free(Supported_PSM_STATE);
+    free(FanIndex);
+
     return 0;
 }
 

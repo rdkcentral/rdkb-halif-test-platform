@@ -171,12 +171,12 @@ int get_PartnerID(void)
 }
 
 /* Free memory allocated for factoryCmVariant */
-void freeFactoryCmVariant()
+void freeFactoryCmVariant(void)
 {
     int i = 0;
     if (factoryCmVariant != NULL)
     {
-        for (i = 0; i < num_FactoryCmVariant; ++i)
+        for (i = 0; i < num_FactoryCmVariant; i++)
         {
             free(factoryCmVariant[i]);
         }
@@ -201,7 +201,7 @@ int get_FactoryCmVariant(void)
         return -1;
     }
     value = cJSON_GetObjectItem(json, "FactoryCmVariant");
-    // null check and object is string, value->valuestring
+    // null check and object is Array, value->valuestring
     if ((value != NULL) && (cJSON_IsArray(value)))
     {
         num_FactoryCmVariant = cJSON_GetArraySize(value);
@@ -255,7 +255,7 @@ int get_SupportedCPUs(void)
     }
     value = cJSON_GetObjectItem(json, "Supported_CPUS");
 
-    // null check and object is string, value->valuestring
+    // Null check and object is an array
     if ((value != NULL) && (cJSON_IsArray(value)))
     {
         num_SupportedCPUs = cJSON_GetArraySize(value);
@@ -269,15 +269,15 @@ int get_SupportedCPUs(void)
             return -1;
         }
 
-        for (i = 0; i < num_SupportedCPUs; ++i)
+        for (i = 0; i < num_SupportedCPUs; i++)
         {
             cJSON *cpuItem = cJSON_GetArrayItem(value, i);
             if (!cJSON_IsNumber(cpuItem))
             {
+                printf("Invalid CPU type in Supported_CPUS array\n"); // Invalid CPU type
                 free(supportedCpus);
                 cJSON_Delete(json);
-                printf("Invalid CPU type in Supported_CPUS array\n");
-                return 0; // Invalid CPU type
+                return 0;
             }
             supportedCpus[i] = (RDK_CPUS)cJSON_GetNumberValue(cpuItem);
         }
@@ -303,7 +303,7 @@ int get_LowPowerModeStates(void)
     }
     value = cJSON_GetObjectItem(json, "Supported_PSM_STATE");
 
-    // null check and object is string, value->valuestring
+    // Null check and object is an array
     if ((value != NULL) && (cJSON_IsArray(value)))
     {
         num_Supported_PSM_STATE = cJSON_GetArraySize(value);
@@ -317,15 +317,15 @@ int get_LowPowerModeStates(void)
             cJSON_Delete(json);
             return -1;
         }
-        for (i = 0; i < num_Supported_PSM_STATE; ++i)
+        for (i = 0; i < num_Supported_PSM_STATE; i++)
         {
             cJSON *PSMItem = cJSON_GetArrayItem(value, i);
             if (!cJSON_IsNumber(PSMItem))
             {
+                printf("Invalid PSM state in Supported_PSM_STATE array\n"); // Invalid PSM state
                 free(Supported_PSM_STATE);
                 cJSON_Delete(json);
-                printf("Invalid PSM state in Supported_PSM_STATE array\n");
-                return 0; // Invalid PSM state
+                return 0;
             }
             Supported_PSM_STATE[i] = (PSM_STATE)cJSON_GetNumberValue(PSMItem);
         }
@@ -351,7 +351,7 @@ int get_FanIndex(void)
     }
     value = cJSON_GetObjectItem(json, "FanIndex");
 
-    // null check and object is string, value->valuestring
+    // Null check and object is an array
     if ((value != NULL) && (cJSON_IsArray(value)))
     {
         num_FanIndex = cJSON_GetArraySize(value);
@@ -365,15 +365,15 @@ int get_FanIndex(void)
             cJSON_Delete(json);
             return -1;
         }
-        for (i = 0; i < num_FanIndex; ++i)
+        for (i = 0; i < num_FanIndex; i++)
         {
             cJSON *FanItem = cJSON_GetArrayItem(value, i);
             if (!cJSON_IsNumber(FanItem))
             {
+                printf("Invalid FanIndex in array\n"); // Invalid FanIndex
                 free(FanIndex);
                 cJSON_Delete(json);
-                printf("Invalid FanIndex in array\n");
-                return 0; // Invalid FanIndex
+                return 0;
             }
             FanIndex[i] = (int)cJSON_GetNumberValue(FanItem);
         }
@@ -1992,10 +1992,11 @@ void test_l1_platform_hal_positive1_setFactoryCmVariant(void)
     int i = 0;
     UT_LOG("Number of FactoryCmVariant values : %d ", num_FactoryCmVariant);
 
-    for (i=0; i < num_FactoryCmVariant; i++ )
+    for (i = 0; i < num_FactoryCmVariant; i++ )
     {
         status = 0;
         memset(pValue, 0, sizeof(pValue));
+        //FactoryCmVariant should be configured in platform_config file
         strcpy(pValue, factoryCmVariant[i]);
         UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
         status = platform_hal_setFactoryCmVariant(pValue);
@@ -2106,7 +2107,7 @@ void test_l1_platform_hal_positive1_getLed(void)
             UT_LOG("Interval:%d",params->Interval);
 
             UT_ASSERT_EQUAL(result, RETURN_OK);
-            if((params->LedColor >= 0) && (params->LedColor <= 7))
+            if((params->LedColor >= 0) && (params->LedColor <= 6))
             {
                 UT_LOG("Led Color is %d which is a valid value", params->LedColor);
                 UT_PASS("Led Color validation success");
@@ -2208,6 +2209,7 @@ void test_l1_platform_hal_positive1_getRotorLock(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = %d",FanIndex[i]);
         status = platform_hal_getRotorLock(FanIndex[i]);
 
@@ -2965,6 +2967,7 @@ void test_l1_platform_hal_positive1_getRPM(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", FanIndex[i]);
         fanRPM = platform_hal_getRPM(FanIndex[i]);
 
@@ -3547,6 +3550,7 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void)
         memset(ppinfo, 0, sizeof(PLAT_PROC_MEM_INFO));
         for(i=0;i<num_SupportedCPUs; i++)
         {
+            //Supported_CPUS should be configured in platform_config file
             UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer",supportedCpus[i]);
             result = platform_hal_GetMemoryPaths(supportedCpus[i], &ppinfo);
 
@@ -4475,6 +4479,7 @@ void test_l1_platform_hal_positive1_SetLowPowerModeState(void)
 
     for(i = 0;i < num_Supported_PSM_STATE; i++)
     {
+        //Supported_PSM_STATE should be configured in platform_config file
         UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", Supported_PSM_STATE[i]);
         status = platform_hal_SetLowPowerModeState(&Supported_PSM_STATE[i]);
 
@@ -5883,6 +5888,7 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
         status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
@@ -5919,6 +5925,7 @@ void test_l1_platform_hal_positive2_setFanMaxOverride(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
         status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
@@ -6022,6 +6029,7 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanMaxOverride with invalid bOverrideFlag = %d, valid fanIndex = %d", bOverrideFlag, FanIndex[i]);
         status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
@@ -6060,6 +6068,7 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d,pErrReason = valid buffer.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6099,6 +6108,7 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6137,6 +6147,7 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6176,6 +6187,7 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6215,6 +6227,7 @@ void test_l1_platform_hal_positive5_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6254,6 +6267,7 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d, invalid fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
@@ -6308,6 +6322,7 @@ void test_l1_platform_hal_negative2_setFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", FanIndex[i], fanSpeed);
         status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, pErrReason);
 
@@ -6828,6 +6843,7 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", FanIndex[i]);
         status = platform_hal_getFanStatus(FanIndex[i]);
 
@@ -6877,6 +6893,7 @@ void test_l1_platform_hal_positive1_getFanSpeed(void)
 
     for( i = 0;i < num_FanIndex; i++)
     {
+        //FanIndex should be configured in platform_config file
         UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", FanIndex[i]);
         fanSpeed = platform_hal_getFanSpeed(FanIndex[i]);
 
