@@ -17,7 +17,7 @@
 */
 
 /**
-* @file test_platform_hal.c
+* @file test_l1_platform_hal.c
 * @page platform_hal Level 1 Tests
 *
 * ## Module's Role
@@ -35,10 +35,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "platform_hal.h"
 #include "cJSON.h"
+#include "platform_hal.h"
 
 int MaxEthPort = 0;
+char PartnerID[512] = { '\0' };
+char** factoryCmVariant = NULL;
+int num_FactoryCmVariant = 0;
+RDK_CPUS *supportedCpus = NULL;
+int num_SupportedCPUs = 0;
+PSM_STATE *Supported_PSM_STATE = NULL;
+int num_Supported_PSM_STATE = 0;
+int *FanIndex = NULL;
+int num_FanIndex = 0;
+
+extern int init_platform_hal_init(void);
 
 /**function to read the json config file and return its content as a string
 *IN : json file name
@@ -133,6 +144,242 @@ int get_MaxEthPort(void)
         MaxEthPort = value->valueint;
     }
     UT_LOG("MaxEthPort from config file is : %d",MaxEthPort);
+    return 0;
+}
+
+/* get the PartnerID from configuration file */
+int get_PartnerID(void)
+{
+    char configFile[] =  "./platform_config";
+    cJSON *value = NULL;
+    cJSON *json = NULL;
+    UT_LOG("Checking PartnerID");
+    json = parse_file(configFile);
+    if(json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "PartnerID");
+    // null check and object is string, value->valuestring
+    if((value != NULL) && (cJSON_IsString(value)))
+    {
+       strcpy(PartnerID, value->valuestring);
+    }
+    UT_LOG("PartnerID from config file is : %s",PartnerID);
+    return 0;
+}
+
+/* Free memory allocated for factoryCmVariant */
+void freeFactoryCmVariant(void)
+{
+    int i = 0;
+    if (factoryCmVariant != NULL)
+    {
+        for (i = 0; i < num_FactoryCmVariant; i++)
+        {
+            free(factoryCmVariant[i]);
+        }
+        free(factoryCmVariant);
+    }
+}
+
+/* get the FactoryCmVariant from configuration file */
+int get_FactoryCmVariant(void)
+{
+    char configFile[] = "./platform_config";
+    cJSON* value = NULL;
+    cJSON* json = NULL;
+    cJSON* item = NULL;
+    int i = 0;
+
+    UT_LOG("Checking FactoryCmVariant");
+    json = parse_file(configFile);
+    if (json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "FactoryCmVariant");
+    // null check and object is Array, value->valuestring
+    if ((value != NULL) && (cJSON_IsArray(value)))
+    {
+        num_FactoryCmVariant = cJSON_GetArraySize(value);
+        printf("Number of FactoryCmVariant : %d \n", num_FactoryCmVariant);
+
+        // Allocate memory for factoryCmVariant
+        factoryCmVariant = (char**)malloc(num_FactoryCmVariant * sizeof(char*));
+        if (factoryCmVariant == NULL)
+	{
+            printf("Memory allocation failed\n");
+            cJSON_Delete(json);
+            return -1;
+        }
+        cJSON_ArrayForEach(item, value)
+        {
+            if (i < num_FactoryCmVariant && cJSON_IsString(item))
+            {
+                // Allocate memory for each string and copy the content
+                factoryCmVariant[i] = (char*)malloc((strlen(item->valuestring) + 1) * sizeof(char));
+                if (factoryCmVariant[i] == NULL)
+                {
+                    printf("Memory allocation failed\n");
+                    freeFactoryCmVariant();
+                    cJSON_Delete(json);
+                    return -1;
+                }
+
+                strcpy(factoryCmVariant[i], item->valuestring);
+                i++;
+            }
+        }
+    }
+    // Free cJSON object as it is no longer needed
+    cJSON_Delete(json);
+    return 0;
+}
+
+/* get the Supported CPUs from configuration file */
+int get_SupportedCPUs(void)
+{
+    char configFile[] = "./platform_config";
+    cJSON* value = NULL;
+    cJSON* json = NULL;
+    int i = 0;
+    UT_LOG("Checking SupportedCPUs");
+    json = parse_file(configFile);
+    if (json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "Supported_CPUS");
+
+    // Null check and object is an array
+    if ((value != NULL) && (cJSON_IsArray(value)))
+    {
+        num_SupportedCPUs = cJSON_GetArraySize(value);
+        printf("Number of SupportedCPUs : %d\n", num_SupportedCPUs);
+        // Allocate memory for SupportedCPUs
+        supportedCpus = (RDK_CPUS*)malloc(num_SupportedCPUs * sizeof(RDK_CPUS));
+        if (!*supportedCpus)
+        {
+            printf("Memory allocation failed\n");
+            cJSON_Delete(json);
+            return -1;
+        }
+
+        for (i = 0; i < num_SupportedCPUs; i++)
+        {
+            cJSON *cpuItem = cJSON_GetArrayItem(value, i);
+            if (!cJSON_IsNumber(cpuItem))
+            {
+                printf("Invalid CPU type in Supported_CPUS array\n"); // Invalid CPU type
+                free(supportedCpus);
+                cJSON_Delete(json);
+                return 0;
+            }
+            supportedCpus[i] = (RDK_CPUS)cJSON_GetNumberValue(cpuItem);
+        }
+    }
+    // Free cJSON object as it is no longer needed
+    cJSON_Delete(json);
+    return 0;
+}
+
+/* get the LowPowerModeStates from configuration file */
+int get_LowPowerModeStates(void)
+{
+    char configFile[] = "./platform_config";
+    cJSON* value = NULL;
+    cJSON* json = NULL;
+    int i = 0;
+    UT_LOG("Checking LowPowerModeStates");
+    json = parse_file(configFile);
+    if (json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "Supported_PSM_STATE");
+
+    // Null check and object is an array
+    if ((value != NULL) && (cJSON_IsArray(value)))
+    {
+        num_Supported_PSM_STATE = cJSON_GetArraySize(value);
+        printf("Number of Supported_PSM_STATE : %d\n", num_Supported_PSM_STATE);
+
+        // Allocate memory for SupportedCPUs
+        Supported_PSM_STATE = (PSM_STATE*)malloc(num_Supported_PSM_STATE * sizeof(PSM_STATE));
+        if (!*Supported_PSM_STATE)
+        {
+            printf("Memory allocation failed\n");
+            cJSON_Delete(json);
+            return -1;
+        }
+        for (i = 0; i < num_Supported_PSM_STATE; i++)
+        {
+            cJSON *PSMItem = cJSON_GetArrayItem(value, i);
+            if (!cJSON_IsNumber(PSMItem))
+            {
+                printf("Invalid PSM state in Supported_PSM_STATE array\n"); // Invalid PSM state
+                free(Supported_PSM_STATE);
+                cJSON_Delete(json);
+                return 0;
+            }
+            Supported_PSM_STATE[i] = (PSM_STATE)cJSON_GetNumberValue(PSMItem);
+        }
+    }
+    // Free cJSON object as it is no longer needed
+    cJSON_Delete(json);
+    return 0;
+}
+
+/* get the FanIndex from configuration file */
+int get_FanIndex(void)
+{
+    char configFile[] = "./platform_config";
+    cJSON* value = NULL;
+    cJSON* json = NULL;
+    int i = 0;
+    UT_LOG("Checking FanIndex");
+    json = parse_file(configFile);
+    if (json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "FanIndex");
+
+    // Null check and object is an array
+    if ((value != NULL) && (cJSON_IsArray(value)))
+    {
+        num_FanIndex = cJSON_GetArraySize(value);
+        printf("Number of FanIndex : %d\n", num_FanIndex);
+
+        // Allocate memory for FanIndex
+        FanIndex = (int*)malloc(num_FanIndex * sizeof(int));
+        if (!*FanIndex)
+        {
+            printf("Memory allocation failed\n");
+            cJSON_Delete(json);
+            return -1;
+        }
+        for (i = 0; i < num_FanIndex; i++)
+        {
+            cJSON *FanItem = cJSON_GetArrayItem(value, i);
+            if (!cJSON_IsNumber(FanItem))
+            {
+                printf("Invalid FanIndex in array\n"); // Invalid FanIndex
+                free(FanIndex);
+                cJSON_Delete(json);
+                return 0;
+            }
+            FanIndex[i] = (int)cJSON_GetNumberValue(FanItem);
+        }
+    }
+    // Free cJSON object as it is no longer needed
+    cJSON_Delete(json);
     return 0;
 }
 
@@ -845,23 +1092,23 @@ void test_l1_platform_hal_negative1_GetHardware(void)
 }
 
 /**
- * @brief Test the function platform_hal_SetSNMPEnable for positive scenario.
- *
- * This test case verifies the behavior of the function platform_hal_SetSNMPEnable when it is invoked with valid input parameters.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 021 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "rgWan" | pValue = "rgWan" | RETURN_OK | Should be successful |
- */
+* @brief Test the function platform_hal_SetSNMPEnable for positive scenario.
+*
+* This test case verifies the behavior of the function platform_hal_SetSNMPEnable when it is invoked with valid input parameters.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 021 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_SetSNMPEnable with pValue = "rgWan" | pValue = "rgWan" | RETURN_OK | Should be successful |
+*/
 void test_l1_platform_hal_positive1_SetSNMPEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetSNMPEnable...");
@@ -1197,23 +1444,23 @@ void test_l1_platform_hal_negative2_SetWebUITimeout(void)
 }
 
 /**
- * @brief This test case is used to verify the functionality of the platform_hal_GetWebUITimeout function.
- *
- * The objective of this test is to ensure that the platform_hal_GetWebUITimeout function returns the correct status and outputs the expected value.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 032 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data| Expected Result | Notes |
- * | :----------: | --------| ------- | -----------| -------- |
- * | 01| Invoke platform_hal_GetWebUITimeout function with valid buffer | value = valid buffer | RETURN_OK| Should be successful |
- */
+* @brief This test case is used to verify the functionality of the platform_hal_GetWebUITimeout function.
+*
+* The objective of this test is to ensure that the platform_hal_GetWebUITimeout function returns the correct status and outputs the expected value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 032 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data| Expected Result | Notes |
+* | :----------: | --------| ------- | -----------| -------- |
+* | 01| Invoke platform_hal_GetWebUITimeout function with valid buffer | value = valid buffer | RETURN_OK| Should be successful |
+*/
 void test_l1_platform_hal_positive1_GetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetWebUITimeout...");
@@ -1241,23 +1488,23 @@ void test_l1_platform_hal_positive1_GetWebUITimeout(void)
 }
 
 /**
- * @brief Test function to verify the behavior of platform_hal_GetWebUITimeout function when a NULL pointer is passed as input.
- *
- * This test case is used to verify the behavior of the platform_hal_GetWebUITimeout function when a NULL pointer is passed as input. The objective of this test is to ensure that the function returns an error code when a NULL pointer is passed as input.
- *
- * **Test Group ID:** Basic: 01 @n
- * **Test Case ID:** 033 @n
- * **Priority:** High @n@n
- *
- * **Pre-Conditions:** None @n
- * **Dependencies:** None @n
- * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
- *
- * **Test Procedure:** @n
- * | Variation / Step | Description | Test Data | Expected Result | Notes |
- * | :----: | --------- | ---------- | -------------- | ----- |
- * | 01 | Invoking platform_hal_GetWebUITimeout with value = NULL | value = NULL| RETURN_ERR | Should return an error code |
- */
+* @brief Test function to verify the behavior of platform_hal_GetWebUITimeout function when a NULL pointer is passed as input.
+*
+* This test case is used to verify the behavior of the platform_hal_GetWebUITimeout function when a NULL pointer is passed as input. The objective of this test is to ensure that the function returns an error code when a NULL pointer is passed as input.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 033 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetWebUITimeout with value = NULL | value = NULL| RETURN_ERR | Should return an error code |
+*/
 void test_l1_platform_hal_negative1_GetWebUITimeout(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_GetWebUITimeout...");
@@ -1735,148 +1982,30 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageValid(void)
 * **Test Procedure:**  @n
 *  | Variation / Step | Description | Test Data | Expected Result | Notes |
 *  | :----: | --------- | ---------- |-------------- | ----- |
-*  | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20" | pValue = "pc20" | RETURN_OK | Should be successful |
+*  | 01 | Invoking platform_hal_setFactoryCmVariant with pValue values from config file  | pValue from config value | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_setFactoryCmVariant(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_setFactoryCmVariant...");
-    CHAR pValue[512] = "pc20";
+    INT status = 0;
+    CHAR pValue[512] = {'\0'};
+    int i = 0;
+    UT_LOG("Number of FactoryCmVariant values : %d ", num_FactoryCmVariant);
 
-    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
-    INT status = platform_hal_setFactoryCmVariant(pValue);
+    for (i = 0; i < num_FactoryCmVariant; i++ )
+    {
+        status = 0;
+        memset(pValue, 0, sizeof(pValue));
+        //FactoryCmVariant should be configured in platform_config file
+        strcpy(pValue, factoryCmVariant[i]);
+        UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
+        status = platform_hal_setFactoryCmVariant(pValue);
 
-    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFactoryCmVariant...");
-}
-
-/**
-* @brief This test case is used to verify the functionality of the platform_hal_setFactoryCmVariant API when provided with valid input.
-*
-* The objective of this test is to ensure that the platform_hal_setFactoryCmVariant API correctly sets the factory CM variant.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 047 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "unknown" | pValue = "unknown" | RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive2_setFactoryCmVariant(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_setFactoryCmVariant...");
-    CHAR pValue[512] = "unknown";
-
-    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
-    INT status = platform_hal_setFactoryCmVariant(pValue);
-
-    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive2_setFactoryCmVariant...");
-}
-
-/**
-* @brief Test for the function platform_hal_setFactoryCmVariant.
-*
-* This test verifies the correct functionality of the platform_hal_setFactoryCmVariant function by setting the factory CM variant value and checking the return status.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 048 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |---------| --------|
-* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc20genband" | pValue = "pc20genband" | RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive3_setFactoryCmVariant(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive3_setFactoryCmVariant...");
-    CHAR pValue[512] = "pc20genband";
-
-    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    INT status = platform_hal_setFactoryCmVariant(pValue);
-
-    UT_LOG("platform_hal_setFactoryCmVariant returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive3_setFactoryCmVariant...");
-}
-
-/**
-* @brief This test case verifies the functionality of the platform_hal_setFactoryCmVariant function.
-*
-* This test case checks if the platform_hal_setFactoryCmVariant function sets the factory CM variant correctly.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 049 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc15sip"| pValue = "pc15sip" | RETURN_OK | Should be successful |
- */
-void test_l1_platform_hal_positive4_setFactoryCmVariant(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive4_setFactoryCmVariant...");
-    CHAR pValue[512] = "pc15sip";
-
-    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    INT status = platform_hal_setFactoryCmVariant(pValue);
-
-    UT_LOG("platform_hal_setFactoryCmVariant returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive4_setFactoryCmVariant...");
-}
-
-/**
-* @brief Test to verify the functionality of the platform_hal_setFactoryCmVariant API when provided with correct input parameters.
-*
-* The objective of this test is to verify that the platform_hal_setFactoryCmVariant API correctly sets the factory CM variant when provided with valid input parameters.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 050 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFactoryCmVariant with pValue = "pc15mgcp" | pValue = "pc15mgcp" | RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive5_setFactoryCmVariant(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive5_setFactoryCmVariant...");
-    CHAR pValue[512] = "pc15mgcp";
-
-    UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s", pValue);
-    INT status = platform_hal_setFactoryCmVariant(pValue);
-
-    UT_LOG("platform_hal_setFactoryCmVariant returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive5_setFactoryCmVariant...");
 }
 
 /**
@@ -1885,7 +2014,7 @@ void test_l1_platform_hal_positive5_setFactoryCmVariant(void)
 * The objective of this test is to ensure that the function returns the correct error code when the input parameter pValue is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 051 @n
+* **Test Case ID:** 047 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -1917,7 +2046,7 @@ void test_l1_platform_hal_negative1_setFactoryCmVariant(void)
 * This test is used to verify that the function 'platform_hal_setFactoryCmVariant' returns an error when an invalid value is passed as the argument 'pValue'.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 052 @n
+* **Test Case ID:** 048 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -1949,7 +2078,7 @@ void test_l1_platform_hal_negative2_setFactoryCmVariant(void)
 * This test case verifies the functionality of the platform_hal_getLed function when invoked with valid input parameters.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 053 @n
+* **Test Case ID:** 049 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -1967,18 +2096,18 @@ void test_l1_platform_hal_positive1_getLed(void)
     PLEDMGMT_PARAMS params = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
     if(params != NULL)
     {
-	memset(params, 0, sizeof(LEDMGMT_PARAMS));
+        memset(params, 0, sizeof(LEDMGMT_PARAMS));
         UT_LOG("Invoking platform_hal_getLed with params = valid structure");
         INT result = platform_hal_getLed(params);
-	if(result == RETURN_OK)
-	{
+        if(result == RETURN_OK)
+        {
             UT_LOG("platform_hal_getLed API returns:%d", result);
             UT_LOG("LED colour:%d",params->LedColor);
             UT_LOG("State:%d",params->State);
             UT_LOG("Interval:%d",params->Interval);
 
             UT_ASSERT_EQUAL(result, RETURN_OK);
-            if((params->LedColor >= 0) && (params->LedColor <= 7))
+            if((params->LedColor >= 0) && (params->LedColor <= 6))
             {
                 UT_LOG("Led Color is %d which is a valid value", params->LedColor);
                 UT_PASS("Led Color validation success");
@@ -2008,11 +2137,11 @@ void test_l1_platform_hal_positive1_getLed(void)
                 UT_LOG("Interval is  %d which is an invalid value", params->Interval);
                 UT_FAIL("Interval validation failed");
             }
-	}
+        }
 	else
-	{
-	    UT_LOG("platform_hal_getLed API returns:%d", result);
-	}
+        {
+            UT_LOG("platform_hal_getLed API returns:%d", result);
+        }
     }
     else
     {
@@ -2028,7 +2157,7 @@ void test_l1_platform_hal_positive1_getLed(void)
 * This test is intended to verify the behavior of the platform_hal_getLed function when a null pointer is passed as an argument. The objective of this test is to ensure that the function returns the expected error code in this scenario.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 054 @n
+* **Test Case ID:** 050 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2055,12 +2184,12 @@ void test_l1_platform_hal_negative1_getLed(void)
 }
 
 /**
-* @brief Test case to verify the functionality of platform_hal_getRotorLock API when called with a valid fanIndex value (0)
+* @brief Test case to verify the functionality of platform_hal_getRotorLock API when called with a valid fanIndex values.
 *
-* This test case is to verify the functionality of platform_hal_getRotorLock API when called with a valid fanIndex value (0). It checks whether the API returns the correct status indicating whether the rotor is locked or not.
+* This test case is to verify the functionality of platform_hal_getRotorLock API when called with a valid fanIndex values from config file. It checks whether the API returns the correct status indicating whether the rotor is locked or not.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 055 @n
+* **Test Case ID:** 051 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2070,90 +2199,44 @@ void test_l1_platform_hal_negative1_getLed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getRotorLock with fanIndex = 0 | fanIndex = 0 |Return can be 0 or 1 | Should be successful |
+* | 01 | Invoking platform_hal_getRotorLock with valid fanIndex from config file | fanIndex from config file |Return can be 0 or 1 | Should be successful |
 */
 void test_l1_platform_hal_positive1_getRotorLock(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRotorLock...");
-    int fanIndex = 0;
+    int i = 0;
+    INT status = 0;
 
-    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = 0");
-    INT status = platform_hal_getRotorLock(fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = %d",FanIndex[i]);
+        status = platform_hal_getRotorLock(FanIndex[i]);
 
-    UT_LOG("platform_hal_getRotorLock returns : %d", status);
-    if(status == 1)
-    {
-        UT_LOG("Status of the Rotor is: %d locked ",status);
-        UT_PASS("Get Rotor locked Validation success");
-    }
-    else if (status == 0)
-    {
-        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
-        UT_PASS("Get Rotor NOT locked Validation success");
-    }
-    else if(status == -1)
-    {
-        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-        UT_FAIL("Get Rotor Validation failed");
-    }
-    else
-    {
-        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-        UT_FAIL("Get Rotor Validation failed");
+        UT_LOG("platform_hal_getRotorLock returns : %d", status);
+        if(status == 1)
+        {
+            UT_LOG("Status of the Rotor is: %d locked ",status);
+            UT_PASS("Get Rotor locked Validation success");
+        }
+        else if (status == 0)
+        {
+            UT_LOG("Status of the Rotor is: %d NOT locked ",status);
+            UT_PASS("Get Rotor NOT locked Validation success");
+        }
+        else if(status == -1)
+        {
+            UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
+            UT_FAIL("Get Rotor Validation failed");
+        }
+        else
+        {
+            UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
+            UT_FAIL("Get Rotor Validation failed");
+        }
     }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRotorLock...");
-}
-
-/**
-* @brief Unit test to verify the functionality of the platform_hal_getRotorLock function
-*
-* The purpose of this test is to verify the behavior of the platform_hal_getRotorLock function.This test checks if the function returns the correct status value when called with a valid fanIndex value.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 056 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getRotorLock with fanIndex = 1 | fanIndex = 1 | Return can be 0 or 1 | Should be successful |
-*/
-void test_l1_platform_hal_positive2_getRotorLock(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_getRotorLock...");
-    int fanIndex = 1;
-
-    UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = 1.");
-    INT status = platform_hal_getRotorLock(fanIndex);
-
-    UT_LOG("platform_hal_getRotorLock returns : %d", status);
-    if(status == 1)
-    {
-        UT_LOG("Status of the Rotor is: %d locked ",status);
-        UT_PASS("Get Rotor locked Validation success");
-    }
-    else if (status == 0)
-    {
-        UT_LOG("Status of the Rotor is: %d NOT locked ",status);
-        UT_PASS("Get Rotor NOT locked Validation success");
-    }
-    else if(status == -1)
-    {
-        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-        UT_FAIL("Get Rotor Validation failed");
-    }
-    else
-    {
-        UT_LOG("Status of the Rotor is: %d  which is an invalid value",status);
-        UT_FAIL("Get Rotor Validation failed");
-    }
-
-    UT_LOG("Exiting test_l1_platform_hal_positive2_getRotorLock...");
 }
 
 /**
@@ -2162,7 +2245,7 @@ void test_l1_platform_hal_positive2_getRotorLock(void)
 * This test case is to verify that platform_hal_getRotorLock API returns -1 when invoked with an invalid fanIndex value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 057 @n
+* **Test Case ID:** 052 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2179,7 +2262,7 @@ void test_l1_platform_hal_negative1_getRotorLock(void)
     UT_LOG("Entering test_l1_platform_hal_negative1_getRotorLock...");
     int fanIndex = 2;
 
-    UT_LOG("Invoking platform_hal_getRotorLock with invalid fanIndex = 2");
+    UT_LOG("Invoking platform_hal_getRotorLock with invalid fanIndex = %d", fanIndex);
     INT status = platform_hal_getRotorLock(fanIndex);
 
     UT_LOG("platform_hal_getRotorLock returns : %d", status);
@@ -2206,7 +2289,7 @@ void test_l1_platform_hal_negative1_getRotorLock(void)
 * @brief This test case verifies the functionality of the GetTotalMemorySize API by checking if it returns a positive value and does not return an error status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 058 @n
+* **Test Case ID:** 053 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2249,7 +2332,7 @@ void test_l1_platform_hal_positive1_GetTotalMemorySize(void)
 * This test case verifies whether the platform_hal_GetTotalMemorySize function returns an error status when the input parameter pulSize is NULL. It checks if the function behaves correctly in this scenario.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 059 @n
+* **Test Case ID:** 054 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2269,8 +2352,8 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
     UT_LOG("Invoking platform_hal_GetTotalMemorySize with pulSize pointer= NULL.");
     INT status = platform_hal_GetTotalMemorySize(pulSize);
 
-    UT_ASSERT_EQUAL(status, RETURN_ERR);
     UT_LOG("platform_hal_GetTotalMemorySize returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_GetTotalMemorySize...");
 }
@@ -2281,7 +2364,7 @@ void test_l1_platform_hal_negative1_GetTotalMemorySize(void)
 * This test verifies the functionality of the platform_hal_GetFactoryResetCount function by invoking it and checking the return status and pulSize.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 060 @n
+* **Test Case ID:** 055 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2323,7 +2406,7 @@ void test_l1_platform_hal_positive1_GetFactoryResetCount(void)
 * The objective of this test is to verify the behavior of the platform_hal_GetFactoryResetCount function when the pulSize pointer is NULL. This test ensures that the function returns an error code as expected.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 061 @n
+* **Test Case ID:** 056 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2355,7 +2438,7 @@ void test_l1_platform_hal_negative1_GetFactoryResetCount(void)
 * This test verifies that the platform_hal_SetDeviceCodeImageTimeout function sets the timeout value correctly for the device code image.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 062 @n
+* **Test Case ID:** 057 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2387,7 +2470,7 @@ void test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout(void)
 * The purpose of this test is to ensure that the platform_hal_SetDeviceCodeImageTimeout function correctly sets the device code image timeout value to 0 minutes and returns RETURN_OK.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 063 @n
+* **Test Case ID:** 058 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2419,7 +2502,7 @@ void test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout(void)
 * This test verifies that the platform_hal_SetDeviceCodeImageTimeout API sets the device code image timeout correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 064 @n
+* **Test Case ID:** 059 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2451,7 +2534,7 @@ void test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout(void)
 * In this test, the platform_hal_SetDeviceCodeImageTimeout function is called with a timeout value of -1 to test its behavior when an invalid timeout value is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 065 @n
+* **Test Case ID:** 060 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2483,7 +2566,7 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void)
 * The platform_hal_SetDeviceCodeImageTimeout function is tested in this test case to verify if it correctly sets the device code image timeout.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 066 @n
+* **Test Case ID:** 061 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2492,7 +2575,7 @@ void test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout(void)
 *
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes|
-* | :--------------: | ----------- | --------- | --------------- | -------------------- |
+* | :--------: | --------- | --------- | --------- | -------- |
 * | 01| Invoking platform_hal_SetDeviceCodeImageTimeout with timeout = 61 minutes | timeout = 3660 | RETURN_ERR | Should return an error |
 */
 void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void)
@@ -2515,7 +2598,7 @@ void test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout(void)
 * This test case verifies the functionality of the platform_hal_getFactoryCmVariant API by invoking it with a valid buffer of size 512 bytes and checking the return status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 067 @n
+* **Test Case ID:** 062 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2558,7 +2641,7 @@ void test_l1_platform_hal_positive1_getFactoryCmVariant(void)
 * This test case checks whether platform_hal_getFactoryCmVariant function returns RETURN_ERR when a null pointer is passed as the parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 068 @n
+* **Test Case ID:** 063 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2590,7 +2673,7 @@ void test_l1_platform_hal_negative1_getFactoryCmVariant(void)
 * This test covers the scenario where the platform_hal_setLed function is called with valid parameters (LedColor, State, and Interval). The objective of this test is to ensure that the function is able to set the LED to the specified color, state, and interval successfully.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 069 @n
+* **Test Case ID:** 064 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2600,15 +2683,15 @@ void test_l1_platform_hal_negative1_getFactoryCmVariant(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_setLed with valid params structure | LedColor = 0-7, State = 0-1, Interval = 0,1,3,5 | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_setLed with valid params structure | LedColor = 0-6, State = 0-1, Interval = 0,1,3,5 | RETURN_OK | Should be successful |
 */
-void test_l1_platform_hal_positive1_setLed()
+void test_l1_platform_hal_positive1_setLed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_setLed...");
     PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
     if (pValue != NULL)
     {
-        for (int ledColor = 0; ledColor <= 7; ledColor++)
+        for (int ledColor = 0; ledColor <= 6; ledColor++)
         {
             for (int state = 0; state <= 1; state++)
             {
@@ -2622,6 +2705,7 @@ void test_l1_platform_hal_positive1_setLed()
 
                         UT_LOG("Invoking platform_hal_setLed with LedColor: %d, State: %d, Interval: %d", ledColor, state, interval);
                         INT result = platform_hal_setLed(pValue);
+                        UT_LOG("platform_hal_setLed returns: %d",result);
                         UT_ASSERT_EQUAL(result, RETURN_OK);
                     }
                 }
@@ -2644,7 +2728,7 @@ void test_l1_platform_hal_positive1_setLed()
 * The purpose of this test is to ensure that the function handles the NULL pointer gracefully and returns the expected result.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 070 @n
+* **Test Case ID:** 065 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2676,7 +2760,7 @@ void test_l1_platform_hal_negative1_setLed(void)
 * This test case verifies the behavior of the platform_hal_setLed function when an invalid LedColor value (8) is provided. The test checks if the function returns the expected error code.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 071 @n
+* **Test Case ID:** 066 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2721,7 +2805,7 @@ void test_l1_platform_hal_negative2_setLed(void)
 * This test verifies that the platform_hal_setLed function returns an error code (RETURN_ERR) when an invalid state  value is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 072 @n
+* **Test Case ID:** 067 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2765,7 +2849,7 @@ void test_l1_platform_hal_negative3_setLed(void)
 * This test verifies that the platform_hal_setLed function returns an error code (RETURN_ERR) when a negative Interval value is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 073 @n
+* **Test Case ID:** 068 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2805,12 +2889,65 @@ void test_l1_platform_hal_negative4_setLed(void)
 }
 
 /**
-* @brief Test case to validate the platform_hal_getRPM function.
+* @brief This test is to verify the platform_hal_setLed function with invalid enum LedColour as NOT_SUPPORTED.
 *
-* This test case verifies the correctness of the platform_hal_getRPM function by invoking it with different inputs and checking the returned value.
+* This test covers the scenario where the platform_hal_setLed function is called with invalid Led colour enum as NOT_SUPPORTED , valid State, and Interval. The objective of this test is to ensure that the function is able to handle the invalid Led color successfully.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 074 @n
+* **Test Case ID:** 069 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_setLed with invalid Led colour enum as NOT_SUPPORTED , valid State, and Interval | LedColor = 7, State = 0-1, Interval = 0,1,3,5 | RETURN_ERR | Should return error |
+*/
+void test_l1_platform_hal_negative5_setLed(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative5_setLed...");
+    INT result = 0;
+    PLEDMGMT_PARAMS pValue = (PLEDMGMT_PARAMS)malloc(sizeof(LEDMGMT_PARAMS));
+    if (pValue != NULL)
+    {
+        pValue->LedColor = 7;
+        for (int state = 0; state <= 1; state++)
+        {
+            for (int interval = 0; interval <= 5; interval++)
+            {
+                if(interval == 0 || interval == 1 ||interval == 3 || interval == 5)
+                {
+                    pValue->State = state;
+                    pValue->Interval = interval;
+
+                    UT_LOG("Invoking platform_hal_setLed with invalid LedColor: %d, valid State: %d, valid Interval: %d", pValue->LedColor, pValue->State, pValue->Interval);
+                    result = platform_hal_setLed(pValue);
+                    UT_LOG("platform_hal_setLed returns: %d",result);
+                    UT_ASSERT_EQUAL(result, RETURN_ERR);
+                    }
+                }
+            }
+        free(pValue);
+        pValue = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+    UT_LOG("Exiting test_l1_platform_hal_positive1_setLed...");
+}
+
+/**
+* @brief Test case to validate the platform_hal_getRPM function.
+*
+* This test case verifies the correctness of the platform_hal_getRPM function by invoking it with different fanIndex from config file and checking the returned value.
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 070 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2820,68 +2957,33 @@ void test_l1_platform_hal_negative4_setLed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking getRPM function with fanIndex = 0 | fanIndex = 0 | fanRPM >= 0 | Should pass |
+* | 01 | Invoking getRPM function with fanIndex from config file | fanIndex from config file | fanRPM >= 0 | Should pass |
 */
 void test_l1_platform_hal_positive1_getRPM(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getRPM...");
-    UINT fanIndex = 0;
+    int i = 0;
+    UINT fanRPM = 0;
 
-    UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", fanIndex);
-    UINT fanRPM = platform_hal_getRPM(fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", FanIndex[i]);
+        fanRPM = platform_hal_getRPM(FanIndex[i]);
 
-    UT_LOG("FanRPM = %d", fanRPM);
-    if(fanRPM >= 0)
-    {
-        UT_LOG("RPM is %d which is a valid value.", fanRPM);
-        UT_PASS("Get RPM validation success");
-    }
-    else
-    {
-        UT_LOG("RPM is %d which is an invalid value.", fanRPM);
-        UT_FAIL("Get RPM validation failed");
+        UT_LOG("FanRPM = %d", fanRPM);
+        if(fanRPM >= 0)
+        {
+            UT_LOG("RPM is %d which is a valid value.", fanRPM);
+            UT_PASS("Get RPM validation success");
+        }
+        else
+        {
+            UT_LOG("RPM is %d which is an invalid value.", fanRPM);
+            UT_FAIL("Get RPM validation failed");
+        }
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getRPM...");
-}
-
-/**
-* @brief Test case to validate the platform_hal_getRPM function.
-*
-* This test case verifies the correctness of the platform_hal_getRPM function by invoking it with different inputs and checking the returned value.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 075 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getRPM with fanIndex = 1 | fanIndex = 1 |fanRPM >= 0 | Should be successful |
-*/
-void test_l1_platform_hal_positive2_getRPM(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_getRPM...");
-    UINT fanIndex = 1;
-
-    UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", fanIndex);
-    UINT fanRPM = platform_hal_getRPM(fanIndex);
-
-    UT_LOG("FanRPM = %d", fanRPM);
-    if(fanRPM >= 0)
-    {
-        UT_LOG("RPM is %d which is a valid value.", fanRPM);
-        UT_PASS("Get RPM validation success");
-    }
-    else
-    {
-        UT_LOG("RPM is %d which is an invalid value.", fanRPM);
-        UT_FAIL("Get RPM validation failed");
-    }
-    UT_LOG("Exiting test_l1_platform_hal_positive2_getRPM...");
 }
 
 #ifdef FEATURE_RDKB_THERMAL_MANAGER
@@ -2891,7 +2993,7 @@ void test_l1_platform_hal_positive2_getRPM(void)
 * The objective of this test is to ensure that the platform_hal_initThermal function initializes the thermal platform configuration correctly and returns the expected status value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 076 @n
+* **Test Case ID:** 071 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2923,7 +3025,7 @@ void test_l1_platform_hal_positive1_initThermal(void)
             UT_PASS("Fan Count validation success");
         }
         else
-       {
+        {
             UT_LOG("Fan Count is %d which is an invalid value", thermalConfig->FanCount);
             UT_FAIL("Fan Count validation failed");
         }
@@ -2953,7 +3055,7 @@ void test_l1_platform_hal_positive1_initThermal(void)
 * This test verifies that the platform_hal_initThermal function returns RETURN_ERR when invoked with a NULL input parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 077 @n
+* **Test Case ID:** 072 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -2965,7 +3067,8 @@ void test_l1_platform_hal_positive1_initThermal(void)
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_initThermal with thermalConfig = NULL | thermalConfig = NULL | RETURN_ERR | Should return RETURN_ERR |
 */
-void test_l1_platform_hal_negative1_initThermal() {
+void test_l1_platform_hal_negative1_initThermal(void)
+{
     UT_LOG("Entering test_l1_platform_hal_negative1_initThermal...");
     THERMAL_PLATFORM_CONFIG* thermalConfig = NULL;
 
@@ -2984,7 +3087,7 @@ void test_l1_platform_hal_negative1_initThermal() {
 * This test case is used to verify the platform_hal_getFanTemperature function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 078 @n
+* **Test Case ID:** 073 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3027,7 +3130,7 @@ void test_l1_platform_hal_positive1_getFanTemperature(void)
 * The platform_hal_getFanTemperature function is tested with a NULL pointer as input to check if the function properly handles this condition and returns the expected status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 079 @n
+* **Test Case ID:** 074 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3046,7 +3149,7 @@ void test_l1_platform_hal_negative1_getFanTemperature(void)
     UT_LOG("Invoking platform_hal_getFanTemperature with pTemp = NULL");
     int status = platform_hal_getFanTemperature(temp);
 
-    UT_LOG("Return Status: %d", status);
+    UT_LOG("platform_hal_getFanTemperature returns: %d", status);
     UT_ASSERT_EQUAL(status, RETURN_ERR);
 
     UT_LOG("Exiting test_l1_platform_hal_negative1_getFanTemperature...");
@@ -3058,7 +3161,7 @@ void test_l1_platform_hal_negative1_getFanTemperature(void)
 * This test case is used to verify the functionality of the platform_hal_getRadioTemperature API.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 080 @n
+* **Test Case ID:** 075 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3103,7 +3206,7 @@ void test_l1_platform_hal_positive1_getRadioTemperature(void)
 * This test case verifies the behavior of the platform_hal_getRadioTemperature function when negative input values are provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 081 @n
+* **Test Case ID:** 076 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3136,7 +3239,7 @@ void test_l1_platform_hal_negative1_getRadioTemperature(void)
 * This test verifies the behavior of platform_hal_getRadioTemperature API when a negative scenario is encountered.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 082 @n
+* **Test Case ID:** 077 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3169,7 +3272,7 @@ void test_l1_platform_hal_negative2_getRadioTemperature(void)
 * This test is used to verify the correctness of the platform_hal_getRadioTemperature API. The API is responsible for retrieving the temperature of a given radio identified by its index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 083 @n
+* **Test Case ID:** 078 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3213,7 +3316,7 @@ void test_l1_platform_hal_positive2_getRadioTemperature(void)
 * This test case verifies the functionality of the platform_hal_getRadioTemperature API by invoking the API with different input values and checking the return status and returned value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 084 @n
+* **Test Case ID:** 079 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3258,7 +3361,7 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
 * The objective of this test is to verify the functionality of the platform_hal_SetMACsecEnable function in setting the MACsec enable flag for a given Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 085 @n
+* **Test Case ID:** 080 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None  @n
@@ -3291,7 +3394,7 @@ void test_l1_platform_hal_positive1_SetMACsecEnable(void)
 * The test case verifies that the platform_hal_SetMACsecEnable function sets the MACsec enable flag correctly for the specified ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 086 @n
+* **Test Case ID:** 081 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3324,7 +3427,7 @@ void test_l1_platform_hal_positive2_SetMACsecEnable(void)
 * This test case is used to validate the behavior of the platform_hal_SetMACsecEnable API when called with invalid ethPort value and Flag value as 1.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 087 @n
+* **Test Case ID:** 082 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3357,7 +3460,7 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void)
 * This test case validates the ability of the API to set the MACsec enable flag for a given Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 088 @n
+* **Test Case ID:** 083 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3391,7 +3494,7 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void)
 * This test case is to verify the behavior of platform_hal_SetMACsecEnable API when it is provided with invalid input values.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 089 @n
+* **Test Case ID:** 084 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3419,12 +3522,12 @@ void test_l1_platform_hal_negative2_SetMACsecEnable(void)
 }
 
 /**
-* @brief This test case is used to verify the functionality of the platform_hal_GetMemoryPaths() API when called with HOST_CPU index.
+* @brief This test case is used to verify the functionality of the platform_hal_GetMemoryPaths() API when called with valid index from config file.
 *
 * The objective of this test is to ensure that the API returns the expected results and does not encounter any errors.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 090 @n
+* **Test Case ID:** 085 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3434,31 +3537,35 @@ void test_l1_platform_hal_negative2_SetMACsecEnable(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* |01| Invoking platform_hal_GetMemoryPaths with index = HOST_CPU, ppinfo = valid pointer| index = HOST_CPU, ppinfo = valid pointer| RETURN_OK | Should be successful |
+* |01| Invoking platform_hal_GetMemoryPaths with index from config file, ppinfo = valid pointer| index from config file, ppinfo = valid pointer| RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_GetMemoryPaths(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_GetMemoryPaths...");
-    RDK_CPUS index = HOST_CPU;
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
-
+    INT result = 0;
+    int i = 0;
     if (ppinfo != NULL)
     {
-        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer",index);
-        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
+        memset(ppinfo, 0, sizeof(PLAT_PROC_MEM_INFO));
+        for(i=0;i<num_SupportedCPUs; i++)
+        {
+            //Supported_CPUS should be configured in platform_config file
+            UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer",supportedCpus[i]);
+            result = platform_hal_GetMemoryPaths(supportedCpus[i], &ppinfo);
 
-        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
-        UT_ASSERT_EQUAL(result, RETURN_OK);
+            UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
+            UT_ASSERT_EQUAL(result, RETURN_OK);
+            UT_ASSERT_PTR_NOT_NULL(ppinfo);
+            UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
 
-        UT_ASSERT_PTR_NOT_NULL(ppinfo);
-        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
+            UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
+            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
+            UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
 
-        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
-
-        free(ppinfo);
-        ppinfo = NULL;
+            free(ppinfo);
+            ppinfo = NULL;
+        }
     }
     else
     {
@@ -3469,61 +3576,12 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void)
 }
 
 /**
-* @brief Test the functionality of the platform_hal_GetMemoryPaths() function.
-*
-* This test case verifies the platform_hal_GetMemoryPaths() function to ensure that it returns the correct memory paths for the peer CPU.
-*
-* **Test Group ID:** Basic : 01  @n
-* **Test Case ID:** 091 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* |01|Invoking platform_hal_GetMemoryPaths with index = PEER_CPU, ppinfo = valid pointer| index = PEER_CPU, ppinfo = valid pointer| RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive2_GetMemoryPaths(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_GetMemoryPaths...");
-    RDK_CPUS index = PEER_CPU;
-    PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
-
-    if (ppinfo != NULL)
-    {
-        UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer",index);
-        INT result = platform_hal_GetMemoryPaths(index, &ppinfo);
-
-        UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
-        UT_ASSERT_EQUAL(result, RETURN_OK);
-        UT_ASSERT_PTR_NOT_NULL(ppinfo);
-        UT_LOG("Values in the structure are, dramPath: %s, emmcpath1: %s, emmcPath2: %s", ppinfo->dramPath, ppinfo->emmcPath1,ppinfo->emmcPath2);
-
-        UT_ASSERT_STRING_EQUAL(ppinfo->dramPath, "/tmp");
-        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath1, "/nvram");
-        UT_ASSERT_STRING_EQUAL(ppinfo->emmcPath2, "/nvram2");
-
-        free(ppinfo);
-        ppinfo = NULL;
-    }
-    else
-    {
-        UT_LOG("Malloc operation failed");
-        UT_FAIL("Memory allocation with malloc failed");
-    }
-    UT_LOG("Exiting test_l1_platform_hal_positive2_GetMemoryPaths...");
-}
-
-/**
 * @brief Test case to verify the behavior of platform_hal_GetMemoryPaths function when provided with an invalid CPU index.
 *
 * This test case verifies that the platform_hal_GetMemoryPaths function returns an error when called with an invalid CPU index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 092 @n
+* **Test Case ID:** 086 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3566,7 +3624,7 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void)
 * This test case checks whether the platform_hal_GetMemoryPaths function handles the case when a null pointer is passed as the ppinfo argument. The objective of this test is to ensure that the function returns RETURN_ERR when a null pointer is provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 093 @n
+* **Test Case ID:** 087 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3600,7 +3658,7 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void)
 * This test case is used to verify the behavior of the platform_hal_GetMemoryPaths function when it is given an out of bounds CPU index. The out of bounds CPU index is defined as a value greater than the total number of available CPUs.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 094 @n
+* **Test Case ID:** 088 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3642,7 +3700,7 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void)
 * This test checks whether the platform_hal_GetMACsecEnable function is able to successfully retrieve the MACsec enable status for a given ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 095 @n
+* **Test Case ID:** 089 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3687,7 +3745,7 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 * The objective of this test is to ensure that the function returns an error code when a NULL pointer is passed as the pFlag argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 096 @n
+* **Test Case ID:** 090 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3720,7 +3778,7 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 * This test case checks the functionality of platform_hal_GetMACsecEnable() function when an invalid Ethernet port is provided as input. This test is important to ensure that the function handles invalid input correctly and returns the expected error status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 097 @n
+* **Test Case ID:** 091 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3753,7 +3811,7 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 098 @n
+* **Test Case ID:** 092 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3797,7 +3855,7 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 099 @n
+* **Test Case ID:** 093 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3842,7 +3900,7 @@ void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 * This test verifies that the platform_hal_StartMACsec API can start MACsec on the specified Ethernet port with the given timeout value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 100 @n
+* **Test Case ID:** 94 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3875,7 +3933,7 @@ void test_l1_platform_hal_positive1_StartMACsec(void)
 * This test case verifies the behavior of the platform_hal_StartMACsec API in a negative scenario. It checks if the API handles the case when the ethPort is set to -1 and the timeoutSec is set to 0.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 101 @n
+* **Test Case ID:** 95 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3908,7 +3966,7 @@ void test_l1_platform_hal_negative1_StartMACsec(void)
 * This test case checks the functionality and correctness of the StartMACsec API in the L1 platform HAL. The API is responsible for starting MACsec on a given Ethernet port with a specified timeout.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 102 @n
+* **Test Case ID:** 96 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3941,7 +3999,7 @@ void test_l1_platform_hal_positive2_StartMACsec(void)
 * This test is used to verify the functionality of the platform_hal_StartMACsec function. The function is invoked with valid input values for ethPort and timeoutSec parameters to validate if it returns the expected status code (RETURN_OK).
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 103 @n
+* **Test Case ID:** 97 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3975,7 +4033,7 @@ void test_l1_platform_hal_positive3_StartMACsec(void)
 * This test verifies the functionality of platform_hal_GetDhcpv6_Options function by checking the return value and output parameters when the function is invoked in normal conditions.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 104 @n
+* **Test Case ID:** 98 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4044,7 +4102,7 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void)
 * In this test case, the objective is to verify that if the request option list is NULL, the API returns RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 105 @n
+* **Test Case ID:** 99 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4087,7 +4145,7 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void)
 * This test verifies the behavior of the platform_hal_GetDhcpv6_Options function when a NULL send option list is passed as an argument. The test aims to check if the function returns RETURN_ERR as expected.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 106 @n
+* **Test Case ID:** 100 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4130,7 +4188,7 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void)
 * This test is intended to check if the platform_hal_GetDhcpv6_Options function returns RETURN_ERR when both the req_opt_list and send_opt_list are NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 107 @n
+* **Test Case ID:** 101 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4163,7 +4221,7 @@ void test_l1_platform_hal_negative3_GetDhcpv6_Options(void)
 * This test case verifies the functionality of the setDscp function when invoked with valid inputs in positive conditions.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 108 @n
+* **Test Case ID:** 102 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4197,7 +4255,7 @@ void test_l1_platform_hal_positive1_setDscp(void)
 * This test function is used to validate the platform_hal_setDscp API functionality.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 109 @n
+* **Test Case ID:** 103 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4231,7 +4289,7 @@ void test_l1_platform_hal_positive2_setDscp(void)
 * This test function is used to validate the platform_hal_setDscp API functionality.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 110 @n
+* **Test Case ID:** 104 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4265,7 +4323,7 @@ void test_l1_platform_hal_positive3_setDscp(void)
 * This test case checks whether the platform_hal_setDscp API sets the Differentiated Services Code Point (DSCP) values correctly for the given interfaceType and cmd.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 111 @n
+* **Test Case ID:** 105 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4299,7 +4357,7 @@ void test_l1_platform_hal_positive4_setDscp(void)
 * The objective of this test is to verify the behavior of the platform_hal_setDscp API when an invalid interface type is passed as an argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 112 @n
+* **Test Case ID:** 106 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4333,7 +4391,7 @@ void test_l1_platform_hal_negative1_setDscp(void)
 * This test case verifies the behavior of the platform_hal_setDscp function when an invalid command is provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 113 @n
+* **Test Case ID:** 107 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4367,7 +4425,7 @@ void test_l1_platform_hal_negative2_setDscp(void)
 * This test case focuses on testing the platform_hal_setDscp() function by passing invalid DSCP values (e.g., "100000,200000") for a particular interface type and traffic count command.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 114 @n
+* **Test Case ID:** 108 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4396,12 +4454,12 @@ void test_l1_platform_hal_negative3_setDscp(void)
 }
 
 /**
-* @brief This function is used to test the functionality of the platform_hal_SetLowPowerModeState API with PSM_AC state.
+* @brief This function is used to test the functionality of the platform_hal_SetLowPowerModeState API with pState from config file.
 *
-* The objective of this test is to ensure that the platform_hal_SetLowPowerModeState API correctly sets the low power mode state to PSM_AC and returns the expected status.
+* The objective of this test is to ensure that the platform_hal_SetLowPowerModeState API correctly sets the low power mode state value from config file and returns the expected status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 115 @n
+* **Test Case ID:** 109 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4411,116 +4469,25 @@ void test_l1_platform_hal_negative3_setDscp(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description| Test Data| Expected Result| Notes|
 * | :-------: | --------- | ---------| --------| -------|
-* |01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_AC| pState = PSM_AC| RETURN_OK| Should be successful |
+* |01| Invoking platform_hal_SetLowPowerModeState with valid pState from config file | pState from config file | RETURN_OK| Should be successful |
 */
 void test_l1_platform_hal_positive1_SetLowPowerModeState(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_SetLowPowerModeState...");
-    PSM_STATE pState = PSM_AC;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
-    INT status = platform_hal_SetLowPowerModeState(&pState);
+    for(i = 0;i < num_Supported_PSM_STATE; i++)
+    {
+        //Supported_PSM_STATE should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", Supported_PSM_STATE[i]);
+        status = platform_hal_SetLowPowerModeState(&Supported_PSM_STATE[i]);
 
-    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_SetLowPowerModeState...");
-}
-
-/**
-* @brief Test case to verify the behavior of SetLowPowerModeState function with battery power state.
-*
-* This test case verifies the functionality of platform_hal_SetLowPowerModeState function with battery power state.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 116 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----------: | ----------- | --------- | ---------| ----- |
-* |01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_BATT | pState = PSM_BATT |RETURN_OK| Should be successful |
- */
-void test_l1_platform_hal_positive2_SetLowPowerModeState(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_SetLowPowerModeState...");
-    PSM_STATE pState = PSM_BATT;
-
-    UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
-    INT status = platform_hal_SetLowPowerModeState(&pState);
-
-    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive2_SetLowPowerModeState...");
-}
-
-/**
-* @brief Test case to verify the functionality of the platform_hal_SetLowPowerModeState API when the PSM state is HOT.
-*
-* This test case verifies whether the platform_hal_SetLowPowerModeState API sets the PSM state to HOT correctly.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 117 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 |Invoking platform_hal_SetLowPowerModeState with pState = PSM_HOT| pState = PSM_HOT| RETURN_OK| Should be successful |
-*/
-void test_l1_platform_hal_positive3_SetLowPowerModeState(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive3_SetLowPowerModeState...");
-    PSM_STATE pState = PSM_HOT;
-
-    UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
-    INT status = platform_hal_SetLowPowerModeState(&pState);
-
-    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive3_SetLowPowerModeState...");
-}
-
-/**
-* @brief Positive test to verify the functionality of the platform_hal_SetLowPowerModeState API in the cooled state
-*
-* This test verifies if the platform_hal_SetLowPowerModeState API correctly sets the low power mode state to cooled. It checks if the return status from the API is equal to RETURN_OK.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 118 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- | -------------- | ----- |
-* | 01| Invoking platform_hal_SetLowPowerModeState with pState = PSM_COOLED| pState = PSM_COOLED| RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive4_SetLowPowerModeState(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive4_SetLowPowerModeState...");
-    PSM_STATE pState = PSM_COOLED;
-
-    UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", pState);
-    INT status = platform_hal_SetLowPowerModeState(&pState);
-
-    UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive4_SetLowPowerModeState...");
 }
 
 /**
@@ -4529,7 +4496,7 @@ void test_l1_platform_hal_positive4_SetLowPowerModeState(void)
 * The objective of this test is to ensure that the platform_hal_SetLowPowerModeState function handles unknown PPSM_STATE values correctly and returns the expected status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 119 @n
+* **Test Case ID:** 110 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4561,7 +4528,7 @@ void test_l1_platform_hal_negative1_SetLowPowerModeState(void)
 * This test is used to verify the behavior of platform_hal_SetLowPowerModeState function when the low power mode state is not supported by the platform. The function should return an error status code in this scenario.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 120 @n
+* **Test Case ID:** 111 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4593,7 +4560,7 @@ void test_l1_platform_hal_negative2_SetLowPowerModeState(void)
 * This test verifies if the function platform_hal_GetFirmwareBankInfo() correctly retrieves firmware bank information.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 121 @n
+* **Test Case ID:** 112 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4646,7 +4613,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 * This test case verifies the functionality of the platform_hal_GetFirmwareBankInfo function, which is responsible for retrieving the firmware bank information based on the provided bank index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 122 @n
+* **Test Case ID:** 113 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4699,7 +4666,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 * The objective of this test is to ensure that the platform_hal_GetFirmwareBankInfo() function returns the expected error code when invoked with an invalid bank index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 123 @n
+* **Test Case ID:** 114 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4741,7 +4708,7 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
 * This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 124 @n
+* **Test Case ID:** 115 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4774,7 +4741,7 @@ void test_l1_platform_hal_negative2_GetFirmwareBankInfo(void)
 *  This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 125 @n
+* **Test Case ID:** 116 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4807,7 +4774,7 @@ void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
 * The purpose of this test is to check if the platform_hal_getCMTSMac function returns the expected status and output value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 126 @n
+* **Test Case ID:** 117 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4874,7 +4841,7 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
 * @brief This test case verifies the behavior of platform_hal_getCMTSMac() function when passed a null pointer as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 127 @n
+* **Test Case ID:** 118 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4906,7 +4873,7 @@ void test_l1_platform_hal_negative1_getCMTSMac(void)
 * This test is used to verify the functionality of the platform_hal_GetDhcpv4_Options API, which is responsible for retrieving DHCPv4 options.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 128 @n
+* **Test Case ID:** 119 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4974,7 +4941,7 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
 * This test case verifies the behavior of the platform_hal_GetDhcpv4_Options function when the req_opt_list argument is NULL. The function should return an error code and also the send_opt_list should be set to NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 129 @n
+* **Test Case ID:** 120 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5017,7 +4984,7 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
 * This test case checks the behavior of the platform_hal_GetDhcpv4_Options function when NULL is passed as the send_opt_list argument. The function is expected to return an error (RETURN_ERR) and set the req_opt_list and send_opt_list pointers to NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 130 @n
+* **Test Case ID:** 121 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5060,7 +5027,7 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
 * The purpose of this test is to verify the behavior of the platform_hal_GetDhcpv4_Options function when NULL pointers are passed as input arguments. It is important to ensure that the function properly handles these invalid inputs.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 131 @n
+* **Test Case ID:** 122 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5093,7 +5060,7 @@ void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 * This test case is used to verify the functionality of the platform_hal_getDscpClientList API. It checks whether the API returns the correct DSCP client list for a given interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 132 @n
+* **Test Case ID:** 123 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5224,7 +5191,7 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
 * This test case verifies that the platform_hal_getDscpClientList function returns the correct list of DSCP clients for the given WAN interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 133 @n
+* **Test Case ID:** 124 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5356,7 +5323,7 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
 * This test case verifies the behavior of the platform_hal_getDscpClientList function when called with an invalid interfaceType and a valid pDSCP_List. The expected result is that the function should return RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 134 @n
+* **Test Case ID:** 125 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5394,11 +5361,10 @@ void test_l1_platform_hal_negative1_getDscpClientList(void)
 /**
 * @brief Function to test the platform_hal_getDscpClientList function when pDSCP_List is NULL
 *
-* This test case is used to verify the behavior of the platform_hal_getDscpClientList function when pDSCP_List is NULL.
-* The objective of this test is to check if the function returns RETURN_ERR when pDSCP_List is NULL.
+* This test case is used to verify the behavior of the platform_hal_getDscpClientList function when pDSCP_List is NULL. The objective of this test is to check if the function returns RETURN_ERR when pDSCP_List is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 135 @n
+* **Test Case ID:** 126 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5431,7 +5397,7 @@ void test_l1_platform_hal_negative2_getDscpClientList(void)
 * The objective of this test is to ensure that the function returns an appropriate error code when passed a NULL pDSCP_List.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 136 @n
+* **Test Case ID:** 127 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5464,7 +5430,7 @@ void test_l1_platform_hal_negative3_getDscpClientList(void)
 * This test case checks if the platform_hal_GetDeviceConfigStatus API returns the correct device configuration status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 137 @n
+* **Test Case ID:** 128 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5507,7 +5473,7 @@ void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void)
 * This test case is designed to verify the return status of platform_hal_GetDeviceConfigStatus() API when it is invoked with invalid input parameters. The return status should be RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 138 @n
+* **Test Case ID:** 129 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5538,7 +5504,7 @@ void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void)
 * This test case verifies if the platform_hal_SetSNMPOnboardRebootEnable function can successfully enable SNMP onboard reboot.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 139 @n
+* **Test Case ID:** 130 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5570,7 +5536,7 @@ void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void)
 * This test checks the functionality of the platform_hal_SetSNMPOnboardRebootEnable() function. The test verifies whether the function returns a successful result when the input parameter is "disable".
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 140 @n
+* **Test Case ID:** 131 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5602,7 +5568,7 @@ void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void)
 * The objective of this test is to verify the behavior of the platform_hal_SetSNMPOnboardRebootEnable API when it is given a NULL input parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 141 @n
+* **Test Case ID:** 132 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5634,7 +5600,7 @@ void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void)
 * The purpose of this test case is to confirm that the platform_hal_SetSNMPOnboardRebootEnable function returns an error when an invalid parameter is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 142 @n
+* **Test Case ID:** 133 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5664,11 +5630,10 @@ void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void)
 /**
 * @brief Unit test for platform_hal_getInputCurrent function
 *
-* This test case is used to verify the functionality of the platform_hal_getInputCurrent function.
-* The objective of this test is to check if the function returns the correct input current value.
+* This test case is used to verify the functionality of the platform_hal_getInputCurrent function. The objective of this test is to check if the function returns the correct input current value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 143 @n
+* **Test Case ID:** 134 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5701,7 +5666,7 @@ void test_l1_platform_hal_positive1_getInputCurrent(void)
 * This test case checks if the platform_hal_getInputCurrent function returns the expected error status when called with a NULL input pointer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 144 @n
+* **Test Case ID:** 135 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5733,7 +5698,7 @@ void test_l1_platform_hal_negative1_getInputCurrent(void)
 * This test case checks the functionality of the platform_hal_LoadThermalConfig function by providing a valid uninitialized THERMAL_PLATFORM_CONFIG struct as input. The test case verifies the return value of the function and the filled values in the struct.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 145 @n
+* **Test Case ID:** 136 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5793,7 +5758,7 @@ void test_l1_platform_hal_positive1_LoadThermalConfig(void)
 * This test case is designed to validate the behavior of the platform_hal_LoadThermalConfig function when called with a null pointer as the argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 146 @n
+* **Test Case ID:** 137 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5826,7 +5791,7 @@ void test_l1_platform_hal_negative1_LoadThermalConfig(void)
 * This test case checks the correctness of the platform_hal_GetMACsecOperationalStatus API by verifying the return value and output flag parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 147 @n
+* **Test Case ID:** 138 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5869,7 +5834,7 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 * The objective of this test is to check the behavior of the platform_hal_GetMACsecOperationalStatus API when the ethPort is 0 and pFlag is NULL.
 *
 * **Test Group ID**: Basic: 01 @n
-* **Test Case ID**: 148 @n
+* **Test Case ID**: 139 @n
 * **Priority**: High @n@n
 *
 * **Pre-Conditions**: None @n
@@ -5899,10 +5864,10 @@ void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 /**
 * @brief This test case verifies the functionality of the platform_hal_setFanMaxOverride function.
 *
-* The objective of this test is to ensure that the platform_hal_setFanMaxOverride function sets the maximum fan override flag and fan index correctly.
+* The objective of this test is to ensure that the platform_hal_setFanMaxOverride function sets the maximum fan override flag and fan index  from config file correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 149 @n
+* **Test Case ID:** 140 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5912,30 +5877,34 @@ void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanMaxOverride with bOverrideFlag = TRUE, fanIndex = 0 | bOverrideFlag = TRUE, fanIndex = 0 | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_setFanMaxOverride with bOverrideFlag = TRUE, fanIndex from config file | bOverrideFlag = TRUE, fanIndex from config file | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_setFanMaxOverride(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = TRUE;
-    UINT fanIndex = 0;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIndex);
-    INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
-    UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
+        UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFanMaxOverride...");
 }
 
 /**
-* @brief This test case verifies the functionality of the platform_hal_setFanMaxOverride function when the override flag is set to FALSE and fan index is 0.
+* @brief This test case verifies the functionality of the platform_hal_setFanMaxOverride function when the override flag is set to FALSE and fan index from config file.
 *
-* This test case validates the platform_hal_setFanMaxOverride function by testing its behavior when the override flag is FALSE and fan index is 0. It checks if the function returns RETURN_OK indicating the successful execution of the API.
+* This test case validates the platform_hal_setFanMaxOverride function by testing its behavior when the override flag is FALSE and fan index from config file. It checks if the function returns RETURN_OK indicating the successful execution of the API.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 150 @n
+* **Test Case ID:** 141 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5945,87 +5914,26 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking the platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 0 | bOverrideFlag = FALSE, fanIndex = 0 | RETURN_OK | Should be successful |
+* | 01 | Invoking the platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex from config file | bOverrideFlag = FALSE, fanIndex from config file | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive2_setFanMaxOverride(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = FALSE;
-    UINT fanIndex = 0;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIndex);
-    INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
-    UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive2_setFanMaxOverride...");
-}
-
-/**
-* @brief Test for setting the maximum fan override in the platform HAL
-*
-* This test verifies that the platform_hal_setFanMaxOverride function correctly sets the maximum fan override value in the platform HAL.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 151 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 |Invoke the platform_hal_setFanMaxOverride API with bOverrideFlag = TRUE, fanIndex = 1| bOverrideFlag = TRUE, fanIndex = 1 | RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive3_setFanMaxOverride(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive3_setFanMaxOverride...");
-    BOOLEAN bOverrideFlag = TRUE;
-    UINT fanIndex = 1;
-
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIndex);
-    INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
-
-    UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive3_setFanMaxOverride...");
-}
-
-/**
-* @brief Test the platform_hal_setFanMaxOverride function.
-*
-* This test case is used to test the platform_hal_setFanMaxOverride function of the L1 Platform HAL module. The objective of this test is to verify the behavior of the function when called with different input values.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 152 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If the user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01|Invoking platform_hal_setFanMaxOverride API with bOverrideFlag = FALSE and fanIndex = 1 | bOverrideFlag = FALSE, fanIndex = 1 | RETURN_OK | Should be successful |
-*/
-void test_l1_platform_hal_positive4_setFanMaxOverride(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive4_setFanMaxOverride...");
-    BOOLEAN bOverrideFlag = FALSE;
-    UINT fanIndex = 1;
-
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIndex);
-    INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
-
-    UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive4_setFanMaxOverride...");
 }
 
 /**
@@ -6034,7 +5942,7 @@ void test_l1_platform_hal_positive4_setFanMaxOverride(void)
 * This test case verifies if the platform_hal_setFanMaxOverride API returns the expected status when the provided arguments are invalid.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 153 @n
+* **Test Case ID:** 142 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6067,7 +5975,7 @@ void test_l1_platform_hal_negative1_setFanMaxOverride(void)
 * This test case verifies the behavior of platform_hal_setFanMaxOverride function when bOverrideFlag is set to FALSE and fanIndex is 2.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 154 @n
+* **Test Case ID:** 143 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6100,7 +6008,7 @@ void test_l1_platform_hal_negative2_setFanMaxOverride(void)
 * This test case checks the behavior of the platform_hal_setFanMaxOverride function when an invalid value is passed as the bOverrideFlag argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 155 @n
+* **Test Case ID:** 144 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6116,14 +6024,18 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_setFanMaxOverride...");
     BOOLEAN bOverrideFlag = 2;
-    UINT fanIndex = 0;
+    int i = 0;
+    INT status = 0;
 
-    UT_LOG("Invoking platform_hal_setFanMaxOverride with invalid bOverrideFlag = %d, valid fanIndex = %d", bOverrideFlag, fanIndex);
-    INT status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with invalid bOverrideFlag = %d, valid fanIndex = %d", bOverrideFlag, FanIndex[i]);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
 
-    UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_ERR);
-
+        UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_ERR);
+    }
     UT_LOG("Exiting test_l1_platform_hal_negative3_setFanMaxOverride...");
 }
 
@@ -6131,10 +6043,10 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 /**
 * @brief This function tests the functionality of the platform_hal_setFanSpeed() API
 *
-* This test case checks the functionality of the platform_hal_setFanSpeed() API by invoking with fan index value as 0,fan speed value as FAN_SPEED_OFF, and a valid buffer for error reason.
+* This test case checks the functionality of the platform_hal_setFanSpeed() API by invoking with fan index value from config file,fan speed value as FAN_SPEED_OFF, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 156 @n
+* **Test Case ID:** 145 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6144,21 +6056,26 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :--------: | ----------- | --------- | --------------- | ----- |
-* | 01| Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01| Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex from config file, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
 void test_l1_platform_hal_positive1_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_setFanSpeed...");
-    INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    int i = 0;
+    INT status = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d,pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d,pErrReason = valid buffer.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive1_setFanSpeed...");
 }
@@ -6166,10 +6083,10 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
 /**
 * @brief Test for the platform_hal_setFanSpeed function with positive input
 *
-* This test is performed to verify the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
+* This test is performed to verify the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 157 @n
+* **Test Case ID:** 146 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6179,32 +6096,36 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer| fanIndex from config file, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
 void test_l1_platform_hal_positive2_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_setFanSpeed...");
-    INT fanIndex = 1;
     FAN_SPEED fanSpeed = FAN_SPEED_SLOW;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    int i = 0;
+    INT status = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
+        UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+    }
     UT_LOG("Exiting test_l1_platform_hal_positive2_setFanSpeed...");
 }
 
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 158 @n
+* **Test Case ID:** 147 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6214,21 +6135,26 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex = 0, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex from config file, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
 void test_l1_platform_hal_positive3_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_setFanSpeed...");
-    INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_MEDIUM;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex=%d, fanSpeed=%d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive3_setFanSpeed...");
 }
@@ -6236,10 +6162,10 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 159 @n
+* **Test Case ID:** 148 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6249,21 +6175,26 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 1, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex from config file, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
 */
 void test_l1_platform_hal_positive4_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive4_setFanSpeed...");
-    INT fanIndex = 1;
     FAN_SPEED fanSpeed = FAN_SPEED_FAST;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive4_setFanSpeed...");
 }
@@ -6271,10 +6202,10 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
 /**
 * @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
 *
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
+* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, the fan speed as FAN_SPEED_MAX, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 160 @n
+* **Test Case ID:** 149 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6284,198 +6215,28 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_SLOW, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | fanIndex from config file, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
 */
 void test_l1_platform_hal_positive5_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive5_setFanSpeed...");
-    INT fanIndex = 0;
-    FAN_SPEED fanSpeed = FAN_SPEED_SLOW;
+    FAN_SPEED fanSpeed = FAN_SPEED_MAX;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_OK);
+        UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_positive5_setFanSpeed...");
-}
-
-/**
-* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
-*
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 161 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_FAST, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
-*/
-void test_l1_platform_hal_positive6_setFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive6_setFanSpeed...");
-    INT fanIndex = 0;
-    FAN_SPEED fanSpeed = FAN_SPEED_FAST;
-    FAN_ERR pErrReason = FAN_ERR_NONE;
-
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
-
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive6_setFanSpeed...");
-}
-
-/**
-* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
-*
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 0, the fan speed as FAN_SPEED_MAX, and a valid buffer for error reason.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 162 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | fanIndex = 0, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE  | Should be successful |
-*/
-void test_l1_platform_hal_positive7_setFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive7_setFanSpeed...");
-    INT fanIndex = 0;
-    FAN_SPEED fanSpeed = FAN_SPEED_MAX;
-    FAN_ERR pErrReason = FAN_ERR_NONE;
-
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
-
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive7_setFanSpeed...");
-}
-
-/**
-* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
-*
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_OFF, and a valid buffer for error reason.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 163 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_OFF, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
-*/
-void test_l1_platform_hal_positive8_setFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive8_setFanSpeed...");
-    INT fanIndex = 1;
-    FAN_SPEED fanSpeed = FAN_SPEED_OFF;
-    FAN_ERR pErrReason = FAN_ERR_NONE;
-
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d , pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
-
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive8_setFanSpeed...");
-}
-
-/**
-* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
-*
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 164 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer| fanIndex = 1, fanSpeed = FAN_SPEED_MEDIUM, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
-*/
-void test_l1_platform_hal_positive9_setFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive9_setFanSpeed...");
-    INT fanIndex = 1;
-    FAN_SPEED fanSpeed = FAN_SPEED_MEDIUM;
-    FAN_ERR pErrReason = FAN_ERR_NONE;
-
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
-
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive9_setFanSpeed...");
-}
-
-/**
-* @brief Test the functionality of the platform_hal_setFanSpeed function with a positive scenario.
-*
-* This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index as 1, the fan speed as FAN_SPEED_MAX,  and a valid buffer for error reason.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 165 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer  | fanIndex = 1, fanSpeed = FAN_SPEED_MAX, pErrReason = valid buffer | status = RETURN_OK, pErrReason = FAN_ERR_NONE | Should be successful |
-*/
-void test_l1_platform_hal_positive10_setFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive10_setFanSpeed...");
-    INT fanIndex = 1;
-    FAN_SPEED fanSpeed = FAN_SPEED_MAX;
-    FAN_ERR pErrReason = FAN_ERR_NONE;
-
-    UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
-
-    UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_OK);
-    UT_ASSERT_EQUAL(pErrReason, FAN_ERR_NONE);
-
-    UT_LOG("Exiting test_l1_platform_hal_positive10_setFanSpeed...");
 }
 
 /**
@@ -6484,7 +6245,7 @@ void test_l1_platform_hal_positive10_setFanSpeed(void)
 * The objective of this test is to check the behavior of the platform_hal_setFanSpeed API when invalid fan speed is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 166 @n
+* **Test Case ID:** 150 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6494,36 +6255,41 @@ void test_l1_platform_hal_positive10_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with valid fanIndex = 0, invalid fanSpeed = 5, pErrReason = valid buffer | fanIndex = 0, fanSpeed = 5, pErrReason = valid buffer | status = RETURN_ERR , pErrReason = FAN_ERR_HW or FAN_ERR_MAX_OVERRIDE_SET | Should return error |
+* | 01 | Invoking platform_hal_setFanSpeed with valid fanIndex from config file, invalid fanSpeed = 5, pErrReason = valid buffer | fanIndex from config file, fanSpeed = 5, pErrReason = valid buffer | status = RETURN_ERR , pErrReason = FAN_ERR_HW or FAN_ERR_MAX_OVERRIDE_SET | Should return error |
 */
 void test_l1_platform_hal_negative1_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative1_setFanSpeed...");
-    INT fanIndex = 0;
     FAN_SPEED fanSpeed = 5;
     FAN_ERR pErrReason = FAN_ERR_NONE;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d, invalid fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d, invalid fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
-    UT_LOG("pErrReason : %d", pErrReason);
-    UT_ASSERT_EQUAL(status, RETURN_ERR);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
+        UT_LOG("pErrReason : %d", pErrReason);
+        UT_ASSERT_EQUAL(status, RETURN_ERR);
 
-    if(pErrReason == 1)
-    {
-        UT_LOG("Status of the Error is: %d  ",pErrReason);
-        UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
-    }
-    else if (pErrReason == 2)
-    {
-        UT_LOG("Status of the Error is: %d  ",pErrReason);
-        UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET.");
-    }
-    else
-    {
-        UT_LOG("Status of the Error is: %d ",pErrReason);
-        UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason.");
+        if(pErrReason == 1)
+        {
+            UT_LOG("Status of the Error is: %d  ",pErrReason);
+            UT_PASS("platform_hal_setFanSpeed validation success with FAN_ERR_HW.");
+        }
+        else if (pErrReason == 2)
+        {
+            UT_LOG("Status of the Error is: %d  ",pErrReason);
+            UT_PASS("platform_hal_setFanSpeed  validation success with FAN_ERR_MAX_OVERRIDE_SET.");
+        }
+        else
+        {
+            UT_LOG("Status of the Error is: %d ",pErrReason);
+            UT_FAIL("platform_hal_setFanSpeed  validation failed with invalid errror reason.");
+        }
     }
     UT_LOG("Exiting test_l1_platform_hal_negative1_setFanSpeed...");
 }
@@ -6531,10 +6297,10 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
 /**
 * @brief This test function is used to verify the negative scenario of the platform_hal_setFanSpeed API.
 *
-* This test checks the behavior of the platform_hal_setFanSpeed API when the fanIndex is 0, fanSpeed is FAN_SPEED_OFF, and the error reason is NULL.
+* This test checks the behavior of the platform_hal_setFanSpeed API when the fanIndex from config file, fanSpeed is FAN_SPEED_OFF, and the error reason is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 167 @n
+* **Test Case ID:** 151 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6544,20 +6310,25 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data |Expected Result |Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_setFanSpeed with fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = NULL | fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = NULL | RETURN_ERR | Should return error|
+* | 01 | Invoking platform_hal_setFanSpeed with fanIndex from config file, fanSpeed = FAN_SPEED_OFF, pErrReason = NULL | fanIndex = 0, fanSpeed = FAN_SPEED_OFF, pErrReason = NULL | RETURN_ERR | Should return error|
 */
 void test_l1_platform_hal_negative2_setFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_setFanSpeed...");
-    INT fanIndex = 0;
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
     FAN_ERR *pErrReason = NULL;
+    INT status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", fanIndex, fanSpeed);
-    INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, pErrReason);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", FanIndex[i], fanSpeed);
+        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, pErrReason);
 
-    UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
-    UT_ASSERT_EQUAL(status, RETURN_ERR);
+        UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
+        UT_ASSERT_EQUAL(status, RETURN_ERR);
+    }
 
     UT_LOG("Exiting test_l1_platform_hal_negative2_setFanSpeed...");
 }
@@ -6568,7 +6339,7 @@ void test_l1_platform_hal_negative2_setFanSpeed(void)
 * The objective of this test is to check the behavior of the platform_hal_setFanSpeed API when invalid fan speed is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 168 @n
+* **Test Case ID:** 152 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6587,7 +6358,7 @@ void test_l1_platform_hal_negative3_setFanSpeed(void)
     FAN_SPEED fanSpeed = FAN_SPEED_OFF;
     FAN_ERR pErrReason = FAN_ERR_NONE;
 
-    UT_LOG("Invoking platform_hal_setFanSpeed with invalid fanIndex = 2, valid fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
+    UT_LOG("Invoking platform_hal_setFanSpeed with invalid fanIndex = %d, valid fanSpeed = %d, pErrReason = valid buffer.", fanIndex, fanSpeed);
     INT status = platform_hal_setFanSpeed(fanIndex, fanSpeed, &pErrReason);
 
     UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
@@ -6617,7 +6388,7 @@ void test_l1_platform_hal_negative3_setFanSpeed(void)
 * This test case tests the normal operation of the platform_hal_getInputPower function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 169 @n
+* **Test Case ID:** 153 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6661,7 +6432,7 @@ void test_l1_platform_hal_positive1_getInputPower(void)
 * This test is for the platform_hal_getInputPower function when passed a NULL pointer as the input parameter. The objective of this test is to verify that the function correctly handles the NULL pointer and returns the appropriate error status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 170 @n
+* **Test Case ID:** 154 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6686,13 +6457,14 @@ void test_l1_platform_hal_negative1_getInputPower(void)
     UT_LOG("Exiting test_l1_platform_hal_negative1_getInputPower...");
 }
 #endif
+
 /**
 * @brief Test the functionality of the platform_hal_GetCPUSpeed() function.
 *
 * This test verifies the functionality of the platform_hal_GetCPUSpeed() function by checking if it returns the expected CPU speed value and if the return value is equal to RETURN_OK.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 171 @n
+* **Test Case ID:** 155 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6725,7 +6497,7 @@ void test_l1_platform_hal_positive1_GetCPUSpeed(void)
 * This test case checks if platform_hal_GetCPUSpeed returns RETURN_ERR when NULL buffer is passed as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 172 @n
+* **Test Case ID:** 156 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6757,7 +6529,7 @@ void test_l1_platform_hal_negative1_GetCPUSpeed(void)
 * This test case verifies that the GetFreeMemorySize API is able to successfully operate and return a total available memory size in the valid range [1, n].
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 173 @n
+* **Test Case ID:** 157 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6798,7 +6570,7 @@ void test_l1_platform_hal_positive1_GetFreeMemorySize(void)
 * This test case checks if the platform_hal_GetFreeMemorySize function returns the expected result when called with a NULL pointer as the input parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 174 @n
+* **Test Case ID:** 158 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6830,7 +6602,7 @@ void test_l1_platform_hal_negative1_GetFreeMemorySize(void)
 * This test function verifies the behavior of the platform_hal_getTimeOffSet API by checking the return value and expected values of the timeOffSet buffer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 175 @n
+* **Test Case ID:** 159 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6872,7 +6644,7 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void)
 * This test case verifies whether platform_hal_getTimeOffSet API returns RETURN_ERR when invoked with a null pointer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 176 @n
+* **Test Case ID:** 160 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6901,10 +6673,10 @@ void test_l1_platform_hal_negative1_getTimeOffSet(void)
 /**
 * @brief Test to verify the platform_hal_getFactoryPartnerId API
 *
-* This test is used to verify the functionality of the platform_hal_getFactoryPartnerId API. The purpose of this test is to check if the API returns the expected status and value for a valid buffer.
+* This test is used to verify the functionality of the platform_hal_getFactoryPartnerId API. The purpose of this test is to check if the API returns the expected status and valid value from config file.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 177 @n
+* **Test Case ID:** 161 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6914,12 +6686,13 @@ void test_l1_platform_hal_negative1_getTimeOffSet(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoking platform_hal_getFactoryPartnerId with pValue = valid buffer| pValue = valid buffer  | RETURN_OK | Should be successful |
+* | 01 | Invoking platform_hal_getFactoryPartnerId with valid pValue from config file| pValue  from config file  | RETURN_OK | Should be successful |
 */
 void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFactoryPartnerId...");
     CHAR pValue[512] = {"\0"};
+    CHAR partnerID[512] = {"\0"};
 
     UT_LOG("Invoking platform_hal_getFactoryPartnerId with pValue = valid buffer.");
     INT status = platform_hal_getFactoryPartnerId(pValue);
@@ -6927,7 +6700,10 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
     UT_LOG("platform_hal_getFactoryPartnerId returns : %d and Factory Partner Id is : %s", status, pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
-    if (!strcmp(pValue,"unknown") || !strcmp(pValue,"eUnprogrammed")|| !strcmp(pValue,"eComcast") || !strcmp(pValue,"eCharter") || !strcmp(pValue,"eCox") || !strcmp(pValue,"eRogers") || !strcmp(pValue,"eVodafone") || !strcmp(pValue,"eShaw") || !strcmp(pValue,"eVideotron"))
+    //PartnerID should be configured in platform_config file
+    strcpy(partnerID, PartnerID);
+
+    if (!strcmp(pValue,partnerID))
     {
         UT_LOG("Factory Patner ID from the device is %s which is a valid value", pValue);
         UT_PASS("Get Factory Patner ID validation success");
@@ -6946,7 +6722,7 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
 * The objective of this test is to check the return status of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter. The expected result is RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 178 @n
+* **Test Case ID:** 162 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6979,7 +6755,7 @@ void test_l1_platform_hal_negative1_getFactoryPartnerId(void)
 * Calls the header function platfom_hal_initLed() with valid parameters
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 179 @n
+* **Test Case ID:** 163 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7014,7 +6790,7 @@ void test_l1_platform_hal_positive1_initLed( void )
 * Calls the header function platfom_hal_initLed() with NULL pointer
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 180 @n
+* **Test Case ID:** 164 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7040,13 +6816,14 @@ void test_l1_platform_hal_negative1_initLed( void )
     UT_LOG("Exiting test_l1_platform_hal_negative1_initLed...");
 }
 #endif
+
 /**
 * @brief This test function is used to verify the functionality of the platform_hal_getFanStatus() API.
 *
-* The objective of this test is to check if the API returns the correct fan status when called with valid input.
+* The objective of this test is to check if the API returns the correct fan status when called with valid famIndex from config file.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 181 @n
+* **Test Case ID:** 165 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7056,88 +6833,47 @@ void test_l1_platform_hal_negative1_initLed( void )
 * **Test Procedure:** @n
 * | Variation / Step | Description| Test Data | Expected Result| Notes|
 * | :----:| ---------| ----------|-----------| -----|
-* | 01| Invoking the API platform_hal_getFanStatus with fanIndex = 0| fanIndex = 0| Returns 0 or 1 | Should be successful |
+* | 01| Invoking the API platform_hal_getFanStatus with fanIndex from config file| fanIndex from config file| Returns 0 or 1 | Should be successful |
 */
 void test_l1_platform_hal_positive1_getFanStatus(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanStatus...");
-    INT fanIndex =0;
+    BOOLEAN status = 0;
+    int i = 0;
 
-    UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", fanIndex);
-    BOOLEAN status = platform_hal_getFanStatus(fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", FanIndex[i]);
+        status = platform_hal_getFanStatus(FanIndex[i]);
 
-    UT_LOG("Status of the fan is %d",status);
-    if(status == 0)
-    {
-        UT_LOG("Status of the fan is %d and it is disabled.", status);
-        UT_PASS("Get Fan Status Validation success");
-    }
-    else if(status == 1 )
-    {
-        UT_LOG("Status of the fan is %d and it is enabled", status);
-        UT_PASS("Get Fan Status Validation success");
-    }
-    else
-    {
-        UT_LOG("Status of the fan is %d", status);
-        UT_FAIL("Get Fan Status Validation Failed");
+        UT_LOG("Status of the fan is %d",status);
+        if(status == 0)
+        {
+            UT_LOG("Status of the fan is %d and it is disabled.", status);
+            UT_PASS("Get Fan Status Validation success");
+        }
+        else if(status == 1 )
+        {
+            UT_LOG("Status of the fan is %d and it is enabled", status);
+            UT_PASS("Get Fan Status Validation success");
+        }
+        else
+        {
+            UT_LOG("Status of the fan is %d", status);
+            UT_FAIL("Get Fan Status Validation Failed");
+        }
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanStatus...");
 }
 
 /**
-* @brief This test function is used to verify the functionality of the platform_hal_getFanStatus() API.
-*
-* The objective of this test is to check if the API returns the correct fan status when called with valid input.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 182 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
-*
-* **Test Procedure:** @n
-*
-* | Variation / Step | Description| Test Data| Expected Result| Notes|
-* | :----: | ---------| ----------|--------------| -----|
-* | 01| Invoking the API platform_hal_getFanStatus  with fanIndex as 1 | fanIndex = 1| Returns 0 or 1  | Should be successful |
-*/
-void test_l1_platform_hal_positive2_getFanStatus(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_getFanStatus...");
-    INT fanIndex = 1;
-
-    UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", fanIndex);
-    BOOLEAN status = platform_hal_getFanStatus(fanIndex);
-
-    UT_LOG("Status of the fan is %d",status);
-    if(status == 0)
-    {
-        UT_LOG("Status of the fan is %d and it is disabled.", status);
-        UT_PASS("Get Fan Status Validation success");
-    }
-    else if(status == 1 )
-    {
-        UT_LOG("Status of the fan is %d and it is enabled", status);
-        UT_PASS("Get Fan Status Validation success");
-    }
-    else
-    {
-        UT_LOG("Status of the fan is %d", status);
-        UT_FAIL("Get Fan Status Validation Failed");
-    }
-    UT_LOG("Exiting test_l1_platform_hal_positive2_getFanStatus...");
-}
-
-/**
 * @brief Test case to validate the platform_hal_getFanSpeed function for positive scenario using a specific fan index.
 *
-* This test case is used to validate the platform_hal_getFanSpeed function by invoking it with a specific fan index and checking the returned fan speed.
+* This test case is used to validate the platform_hal_getFanSpeed function by invoking it with fan index from config file and checking the returned fan speed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 183 @n
+* **Test Case ID:** 166 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7147,68 +6883,33 @@ void test_l1_platform_hal_positive2_getFanStatus(void)
 * **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
-* | 01 | Invoke platform_hal_getFanSpeed with fanIndex = 0 | fanIndex = 0 | fanSpeed >= 0 |  Should be successful|
+* | 01 | Invoke platform_hal_getFanSpeed with fanIndex from config file | fanIndex from config file | fanSpeed >= 0 |  Should be successful|
 */
 void test_l1_platform_hal_positive1_getFanSpeed(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanSpeed...");
-    INT fanIndex = 0;
+    UINT fanSpeed = 0;
+    int i = 0;
 
-    UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", fanIndex);
-    UINT fanSpeed = platform_hal_getFanSpeed(fanIndex);
+    for( i = 0;i < num_FanIndex; i++)
+    {
+        //FanIndex should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", FanIndex[i]);
+        fanSpeed = platform_hal_getFanSpeed(FanIndex[i]);
 
-    UT_LOG("Received fanSpeed = %d", fanSpeed);
-    if (fanSpeed >= 0)
-    {
-        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-        UT_PASS("Get Fan Speed validation success");
-    }
-    else
-    {
-        UT_LOG("Fan Speed is %d, which is an invalid value.", fanSpeed);
-        UT_FAIL("Get Fan Speed validation failed");
+        UT_LOG("Received fanSpeed = %d", fanSpeed);
+        if (fanSpeed >= 0)
+        {
+            UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
+            UT_PASS("Get Fan Speed validation success");
+        }
+        else
+        {
+            UT_LOG("Fan Speed is %d, which is an invalid value.", fanSpeed);
+            UT_FAIL("Get Fan Speed validation failed");
+        }
     }
     UT_LOG("Exiting test_l1_platform_hal_positive1_getFanSpeed...");
-}
-
-/**
-* @brief This test case is used to validate the functionality of the platform_hal_getFanSpeed() API.
-*
-* The purpose of this test is to verify that the API returns the correct fan speed for a given fan index.
-*
-* **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 184 @n
-* **Priority:** High @n@n
-*
-* **Pre-Conditions:** None @n
-* **Dependencies:** None @n
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
-*
-* **Test Procedure:** @n
-* | Variation / Step | Description | Test Data | Expected Result | Notes |
-* | :----: | ----------- | --------- | --------------- | ----- |
-* | 01| Invoke platform_hal_getFanSpeed with fanIndex = 1 | fanIndex = 1 | fanSpeed >= 0 | Should be successful |
-*/
-void test_l1_platform_hal_positive2_getFanSpeed(void)
-{
-    UT_LOG("Entering test_l1_platform_hal_positive2_getFanSpeed...");
-    INT fanIndex = 1;
-
-    UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", fanIndex);
-    UINT fanSpeed = platform_hal_getFanSpeed(fanIndex);
-
-    UT_LOG("Received fanSpeed = %d", fanSpeed);
-    if (fanSpeed >= 0)
-    {
-        UT_LOG("Fan Speed is %d, which is a valid value.", fanSpeed);
-        UT_PASS("Get Fan Speed validation success");
-    }
-    else
-    {
-        UT_LOG("Fan Speed is %d, which is an invalid value.", fanSpeed);
-        UT_FAIL("Get Fan Speed validation failed");
-    }
-    UT_LOG("Exiting test_l1_platform_hal_positive2_getFanSpeed...");
 }
 
 /**
@@ -7217,7 +6918,7 @@ void test_l1_platform_hal_positive2_getFanSpeed(void)
 * This test case validates the functionality of the platform_hal_GetSSHEnable function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 185 @n
+* **Test Case ID:** 167 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7261,7 +6962,7 @@ void test_l1_platform_hal_positive1_GetSSHEnable(void)
 * This test case is used to verify the behavior of the platform_hal_GetSSHEnable function with NULL input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 186 @n
+* **Test Case ID:** 168 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7293,7 +6994,7 @@ void test_l1_platform_hal_negative1_GetSSHEnable(void)
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to TRUE and return a success status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 187 @n
+* **Test Case ID:** 169 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7325,7 +7026,7 @@ void test_l1_platform_hal_positive1_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to FALSE and return a success status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 188 @n
+* **Test Case ID:** 170 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7357,7 +7058,7 @@ void test_l1_platform_hal_positive2_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to 2 and return a failure status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 189 @n
+* **Test Case ID:** 171 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7389,7 +7090,7 @@ void test_l1_platform_hal_negative1_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to 'a' and return a failure status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 190 @n
+* **Test Case ID:** 172 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7421,7 +7122,7 @@ void test_l1_platform_hal_negative2_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_resetDscpCounts function successfully resets the DSCP counts for the DOCSIS interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 191 @n
+* **Test Case ID:** 173 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7453,7 +7154,7 @@ void test_l1_platform_hal_positive1_resetDscpCounts(void)
 * This test case is used to verify the functionality of the platform_hal_resetDscpCounts function when the interface type is EWAN.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 192 @n
+* **Test Case ID:** 174 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7485,7 +7186,7 @@ void test_l1_platform_hal_positive2_resetDscpCounts(void)
 * This test case verifies the behavior of the platform_hal_resetDscpCounts function when an invalid interface type is provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 193 @n
+* **Test Case ID:** 175 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7517,7 +7218,7 @@ void test_l1_platform_hal_negative1_resetDscpCounts(void)
 * Calls the header function platform_hal_PandMDBInit() with no params
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 194 @n
+* **Test Case ID:** 176 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7549,7 +7250,7 @@ void test_l1_platform_hal_positive1_PandMDBInit( void )
 * This test case is used to verify the functionality and correctness of the platform_hal_GetTelnetEnable() function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 195 @n
+* **Test Case ID:** 177 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7592,7 +7293,7 @@ void test_l1_platform_hal_positive1_GetTelnetEnable(void)
 * This test case is used to verify the functionality and correctness of the platform_hal_GetTelnetEnable() function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 196 @n
+* **Test Case ID:** 178 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7625,7 +7326,7 @@ void test_l1_platform_hal_negative1_GetTelnetEnable(void)
 * Calls the header function platform_hal_DocsisParamsDBInit() with no params
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 197 @n
+* **Test Case ID:** 179 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7639,15 +7340,15 @@ void test_l1_platform_hal_negative1_GetTelnetEnable(void)
 */
 void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 {
-	UT_LOG("Entering test_l1_platform_hal_positive1_DocsisParamsDBInit...");
-	INT result = 0;
+    UT_LOG("Entering test_l1_platform_hal_positive1_DocsisParamsDBInit...");
+    INT result = 0;
 
-	UT_LOG("Invoking the API platform_hal_DocsisParamsDBInit");
-	result = platform_hal_DocsisParamsDBInit();
+    UT_LOG("Invoking the API platform_hal_DocsisParamsDBInit");
+    result = platform_hal_DocsisParamsDBInit();
 
-	UT_LOG("platform_hal_DocsisParamsDBInit API returns : %d", result);
-	UT_ASSERT_EQUAL( result, RETURN_OK );
-	UT_LOG("Exiting test_l1_platform_hal_positive1_DocsisParamsDBInit...");
+    UT_LOG("platform_hal_DocsisParamsDBInit API returns : %d", result);
+    UT_ASSERT_EQUAL( result, RETURN_OK );
+    UT_LOG("Exiting test_l1_platform_hal_positive1_DocsisParamsDBInit...");
 }
 
 /**
@@ -7656,7 +7357,7 @@ void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to TRUE. The objective is to ensure that the API sets the Telnet enable flag correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 198 @n
+* **Test Case ID:** 180 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7688,7 +7389,7 @@ void test_l1_platform_hal_positive1_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to FALSE. The objective is to ensure that the API sets the Telnet enable flag correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 199 @n
+* **Test Case ID:** 181 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7720,7 +7421,7 @@ void test_l1_platform_hal_positive2_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to 2.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 200 @n
+* **Test Case ID:** 182 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7752,7 +7453,7 @@ void test_l1_platform_hal_negative1_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to 'a'.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 201 @n
+* **Test Case ID:** 183 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7784,7 +7485,7 @@ void test_l1_platform_hal_negative2_SetTelnetEnable(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 202 @n
+* **Test Case ID:** 184 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7816,7 +7517,7 @@ void test_l1_platform_hal_positive1_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 203 @n
+* **Test Case ID:** 185 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7849,7 +7550,7 @@ void test_l1_platform_hal_positive2_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 204 @n
+* **Test Case ID:** 186 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7882,7 +7583,7 @@ void test_l1_platform_hal_positive3_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 205 @n
+* **Test Case ID:** 187 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7914,7 +7615,7 @@ void test_l1_platform_hal_negative1_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 206 @n
+* **Test Case ID:** 188 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7947,7 +7648,7 @@ void test_l1_platform_hal_negative2_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 207 @n
+* **Test Case ID:** 189 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7981,68 +7682,208 @@ static UT_test_suite_t * pSuite = NULL;
  *
  * @return int - 0 on success, otherwise failure
  */
-int register_hal_tests(void)
+int test_platform_hal_l1_register(void)
 {
     // Create the test suite
-    pSuite = UT_add_suite("[L1 platform_hal]", NULL, NULL);
+    pSuite = UT_add_suite("[L1 platform_hal]", init_platform_hal_init, NULL);
     if (pSuite == NULL)
     {
         return -1;
     }
     // List of test function names and strings
-
-#if defined(FEATURE_RDKB_THERMAL_MANAGER) && defined(FEATURE_RDKB_LED_MANAGER)
-   const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout","l1_platform_hal_positive4_SetWebUITimeout","l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_initThermal", "l1_platform_hal_negative1_initThermal", "l1_platform_hal_positive1_getFanTemperature", "l1_platform_hal_negative1_getFanTemperature", "l1_platform_hal_positive1_getRadioTemperature", "l1_platform_hal_negative1_getRadioTemperature", "l1_platform_hal_negative2_getRadioTemperature", "l1_platform_hal_positive2_getRadioTemperature", "l1_platform_hal_positive3_getRadioTemperature", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive3_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive1_getInputCurrent", "l1_platform_hal_negative1_getInputCurrent", "l1_platform_hal_positive1_LoadThermalConfig", "l1_platform_hal_negative1_LoadThermalConfig", "l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_setFanSpeed", "l1_platform_hal_positive2_setFanSpeed", "l1_platform_hal_positive3_setFanSpeed","l1_platform_hal_positive4_setFanSpeed", "l1_platform_hal_positive5_setFanSpeed", "l1_platform_hal_positive6_setFanSpeed", "l1_platform_hal_positive7_setFanSpeed", "l1_platform_hal_positive8_setFanSpeed", "l1_platform_hal_positive9_setFanSpeed", "l1_platform_hal_positive10_setFanSpeed",  "l1_platform_hal_negative1_setFanSpeed", "l1_platform_hal_negative2_setFanSpeed", "l1_platform_hal_negative3_setFanSpeed", "l1_platform_hal_positive1_getInputPower", "l1_platform_hal_negative1_getInputPower", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId","l1_platform_hal_positive1_initLed", "l1_platform_hal_negative1_initLed", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
-   void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_initThermal, test_l1_platform_hal_negative1_initThermal, test_l1_platform_hal_positive1_getFanTemperature, test_l1_platform_hal_negative1_getFanTemperature, test_l1_platform_hal_positive1_getRadioTemperature, test_l1_platform_hal_negative1_getRadioTemperature, test_l1_platform_hal_negative2_getRadioTemperature, test_l1_platform_hal_positive2_getRadioTemperature, test_l1_platform_hal_positive3_getRadioTemperature, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_getInputCurrent, test_l1_platform_hal_negative1_getInputCurrent, test_l1_platform_hal_positive1_LoadThermalConfig, test_l1_platform_hal_negative1_LoadThermalConfig, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_setFanSpeed, test_l1_platform_hal_positive2_setFanSpeed, test_l1_platform_hal_positive3_setFanSpeed, test_l1_platform_hal_positive4_setFanSpeed, test_l1_platform_hal_positive5_setFanSpeed, test_l1_platform_hal_positive6_setFanSpeed, test_l1_platform_hal_positive7_setFanSpeed, test_l1_platform_hal_positive8_setFanSpeed, test_l1_platform_hal_positive9_setFanSpeed, test_l1_platform_hal_positive10_setFanSpeed, test_l1_platform_hal_negative1_setFanSpeed, test_l1_platform_hal_negative2_setFanSpeed, test_l1_platform_hal_negative3_setFanSpeed,  test_l1_platform_hal_positive1_getInputPower, test_l1_platform_hal_negative1_getInputPower, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_initLed, test_l1_platform_hal_negative1_initLed, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
-
-#elif defined(FEATURE_RDKB_LED_MANAGER)
-    const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout","l1_platform_hal_positive4_SetWebUITimeout","l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive3_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable","l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId","l1_platform_hal_positive1_initLed", "l1_platform_hal_negative1_initLed", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
-    void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_initLed, test_l1_platform_hal_negative1_initLed, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
-
-#elif defined(FEATURE_RDKB_THERMAL_MANAGER)
-    const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout","l1_platform_hal_positive4_SetWebUITimeout","l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_initThermal", "l1_platform_hal_negative1_initThermal", "l1_platform_hal_positive1_getFanTemperature", "l1_platform_hal_negative1_getFanTemperature", "l1_platform_hal_positive1_getRadioTemperature", "l1_platform_hal_negative1_getRadioTemperature", "l1_platform_hal_negative2_getRadioTemperature", "l1_platform_hal_positive2_getRadioTemperature", "l1_platform_hal_positive3_getRadioTemperature", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive3_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive1_getInputCurrent", "l1_platform_hal_negative1_getInputCurrent", "l1_platform_hal_positive1_LoadThermalConfig", "l1_platform_hal_negative1_LoadThermalConfig", "l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_setFanSpeed", "l1_platform_hal_positive2_setFanSpeed", "l1_platform_hal_positive3_setFanSpeed","l1_platform_hal_positive4_setFanSpeed", "l1_platform_hal_positive5_setFanSpeed", "l1_platform_hal_positive6_setFanSpeed", "l1_platform_hal_positive7_setFanSpeed", "l1_platform_hal_positive8_setFanSpeed", "l1_platform_hal_positive9_setFanSpeed", "l1_platform_hal_positive10_setFanSpeed",  "l1_platform_hal_negative1_setFanSpeed", "l1_platform_hal_negative2_setFanSpeed", "l1_platform_hal_negative3_setFanSpeed", "l1_platform_hal_positive1_getInputPower", "l1_platform_hal_negative1_getInputPower", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
-    void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_initThermal, test_l1_platform_hal_negative1_initThermal, test_l1_platform_hal_positive1_getFanTemperature, test_l1_platform_hal_negative1_getFanTemperature, test_l1_platform_hal_positive1_getRadioTemperature, test_l1_platform_hal_negative1_getRadioTemperature, test_l1_platform_hal_negative2_getRadioTemperature, test_l1_platform_hal_positive2_getRadioTemperature, test_l1_platform_hal_positive3_getRadioTemperature, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_getInputCurrent, test_l1_platform_hal_negative1_getInputCurrent, test_l1_platform_hal_positive1_LoadThermalConfig, test_l1_platform_hal_negative1_LoadThermalConfig, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_setFanSpeed, test_l1_platform_hal_positive2_setFanSpeed, test_l1_platform_hal_positive3_setFanSpeed, test_l1_platform_hal_positive4_setFanSpeed, test_l1_platform_hal_positive5_setFanSpeed, test_l1_platform_hal_positive6_setFanSpeed, test_l1_platform_hal_positive7_setFanSpeed, test_l1_platform_hal_positive8_setFanSpeed, test_l1_platform_hal_positive9_setFanSpeed, test_l1_platform_hal_positive10_setFanSpeed, test_l1_platform_hal_negative1_setFanSpeed, test_l1_platform_hal_negative2_setFanSpeed, test_l1_platform_hal_negative3_setFanSpeed,  test_l1_platform_hal_positive1_getInputPower, test_l1_platform_hal_negative1_getInputPower, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
-
-#else
-    const char* list1[] = { "l1_platform_hal_positive1_GetFirmwareName", "l1_platform_hal_negative1_GetFirmwareName", "l1_platform_hal_positive1_GetSoftwareVersion", "l1_platform_hal_negative1_GetSoftwareVersion", "l1_platform_hal_positive1_GetSerialNumber", "l1_platform_hal_negative1_GetSerialNumber", "l1_platform_hal_positive1_GetSNMPEnable", "l1_platform_hal_negative1_GetSNMPEnable", "l1_platform_hal_positive1_GetHardware_MemUsed", "l1_platform_hal_negative1_GetHardware_MemUsed", "l1_platform_hal_positive1_GetHardwareVersion", "l1_platform_hal_negative1_GetHardwareVersion", "l1_platform_hal_positive1_GetModelName", "l1_platform_hal_negative1_GetModelName", "l1_platform_hal_positive1_GetRouterRegion", "l1_platform_hal_negative1_GetRouterRegion", "l1_platform_hal_positive1_GetBootloaderVersion", "l1_platform_hal_negative1_GetBootloaderVersion", "l1_platform_hal_positive1_GetHardware", "l1_platform_hal_negative1_GetHardware", "l1_platform_hal_positive1_SetSNMPEnable", "l1_platform_hal_positive2_SetSNMPEnable", "l1_platform_hal_positive3_SetSNMPEnable", "l1_platform_hal_negative1_SetSNMPEnable", "l1_platform_hal_negative2_SetSNMPEnable", "l1_platform_hal_positive1_SetWebUITimeout ", "l1_platform_hal_positive2_SetWebUITimeout ", "l1_platform_hal_positive3_SetWebUITimeout","l1_platform_hal_positive4_SetWebUITimeout","l1_platform_hal_negative1_SetWebUITimeout", "l1_platform_hal_negative2_SetWebUITimeout ", "l1_platform_hal_positive1_GetWebUITimeout", "l1_platform_hal_negative1_GetWebUITimeout", "l1_platform_hal_positive1_GetBaseMacAddress", "l1_platform_hal_negative1_GetBaseMacAddress", "l1_platform_hal_positive1_GetHardware_MemFree", "l1_platform_hal_negative1_GetHardware_MemFree", "l1_platform_hal_positive1_GetUsedMemorySize", "l1_platform_hal_negative1_GetUsedMemorySize", "l1_platform_hal_positive1_ClearResetCount", "l1_platform_hal_positive2_ClearResetCount", "l1_platform_hal_negative1_ClearResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageValid", "l1_platform_hal_positive2_SetDeviceCodeImageValid", "l1_platform_hal_negative1_SetDeviceCodeImageValid", "l1_platform_hal_positive1_setFactoryCmVariant", "l1_platform_hal_positive2_setFactoryCmVariant", "l1_platform_hal_positive3_setFactoryCmVariant", "l1_platform_hal_positive4_setFactoryCmVariant", "l1_platform_hal_positive5_setFactoryCmVariant", "l1_platform_hal_negative1_setFactoryCmVariant", "l1_platform_hal_negative2_setFactoryCmVariant", "l1_platform_hal_positive1_getLed", "l1_platform_hal_negative1_getLed", "l1_platform_hal_positive1_getRotorLock", "l1_platform_hal_positive2_getRotorLock","l1_platform_hal_negative1_getRotorLock", "l1_platform_hal_positive1_GetTotalMemorySize", "l1_platform_hal_negative1_GetTotalMemorySize", "l1_platform_hal_positive1_GetFactoryResetCount", "l1_platform_hal_negative1_GetFactoryResetCount", "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", "l1_platform_hal_positive1_getFactoryCmVariant", "l1_platform_hal_negative1_getFactoryCmVariant", "l1_platform_hal_positive1_setLed", "l1_platform_hal_negative1_setLed", "l1_platform_hal_negative2_setLed", "l1_platform_hal_negative3_setLed", "l1_platform_hal_negative4_setLed", "l1_platform_hal_positive1_getRPM", "l1_platform_hal_positive2_getRPM", "l1_platform_hal_positive1_SetMACsecEnable", "l1_platform_hal_positive2_SetMACsecEnable", "l1_platform_hal_negative1_SetMACsecEnable", "l1_platform_hal_positive3_SetMACsecEnable", "l1_platform_hal_negative2_SetMACsecEnable", "l1_platform_hal_positive1_GetMemoryPaths", "l1_platform_hal_positive2_GetMemoryPaths", "l1_platform_hal_negative1_GetMemoryPaths", "l1_platform_hal_negative2_GetMemoryPaths", "l1_platform_hal_negative3_GetMemoryPaths", "l1_platform_hal_positive1_GetMACsecEnable","l1_platform_hal_negative1_GetMACsecEnable", "l1_platform_hal_negative2_GetMACsecEnable", "l1_platform_hal_positive2_GetMACsecEnable","l1_platform_hal_positive3_GetMACsecEnable","l1_platform_hal_positive1_StartMACsec", "l1_platform_hal_negative1_StartMACsec", "l1_platform_hal_positive2_StartMACsec", "l1_platform_hal_positive3_StartMACsec", "l1_platform_hal_positive1_GetDhcpv6_Options", "l1_platform_hal_negative1_GetDhcpv6_Options", "l1_platform_hal_negative2_GetDhcpv6_Options", "l1_platform_hal_negative3_GetDhcpv6_Options", "l1_platform_hal_positive1_setDscp", "l1_platform_hal_positive2_setDscp", "l1_platform_hal_positive3_setDscp", "l1_platform_hal_positive4_setDscp", "l1_platform_hal_negative1_setDscp", "l1_platform_hal_negative2_setDscp", "l1_platform_hal_negative3_setDscp", "l1_platform_hal_positive1_SetLowPowerModeState", "l1_platform_hal_positive2_SetLowPowerModeState", "l1_platform_hal_positive3_SetLowPowerModeState", "l1_platform_hal_positive4_SetLowPowerModeState", "l1_platform_hal_negative1_SetLowPowerModeState", "l1_platform_hal_negative2_SetLowPowerModeState", "l1_platform_hal_positive1_GetFirmwareBankInfo", "l1_platform_hal_positive2_GetFirmwareBankInfo", "l1_platform_hal_negative1_GetFirmwareBankInfo", "l1_platform_hal_negative2_GetFirmwareBankInfo", "l1_platform_hal_negative3_GetFirmwareBankInfo", "l1_platform_hal_positive1_getCMTSMac", "l1_platform_hal_negative1_getCMTSMac", "l1_platform_hal_positive1_GetDhcpv4_Options", "l1_platform_hal_negative1_GetDhcpv4_Options", "l1_platform_hal_negative2_GetDhcpv4_Options", "l1_platform_hal_negative3_GetDhcpv4_Options", "l1_platform_hal_positive1_getDscpClientList", "l1_platform_hal_positive2_getDscpClientList", "l1_platform_hal_negative1_getDscpClientList", "l1_platform_hal_negative2_getDscpClientList", "l1_platform_hal_negative3_getDscpClientList", "l1_platform_hal_positive1_GetDeviceConfigStatus", "l1_platform_hal_negative1_GetDeviceConfigStatus", "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable","l1_platform_hal_positive1_GetMACsecOperationalStatus", "l1_platform_hal_negative1_GetMACsecOperationalStatus", "l1_platform_hal_positive1_setFanMaxOverride", "l1_platform_hal_positive2_setFanMaxOverride", "l1_platform_hal_positive3_setFanMaxOverride", "l1_platform_hal_positive4_setFanMaxOverride", "l1_platform_hal_negative1_setFanMaxOverride", "l1_platform_hal_negative2_setFanMaxOverride", "l1_platform_hal_negative3_setFanMaxOverride", "l1_platform_hal_positive1_GetCPUSpeed", "l1_platform_hal_negative1_GetCPUSpeed", "l1_platform_hal_positive1_GetFreeMemorySize", "l1_platform_hal_negative1_GetFreeMemorySize", "l1_platform_hal_positive1_getTimeOffSet", "l1_platform_hal_negative1_getTimeOffSet", "l1_platform_hal_positive1_getFactoryPartnerId", "l1_platform_hal_negative1_getFactoryPartnerId", "l1_platform_hal_positive1_getFanStatus", "l1_platform_hal_positive2_getFanStatus", "l1_platform_hal_positive1_getFanSpeed", "l1_platform_hal_positive2_getFanSpeed", "l1_platform_hal_positive_1_GetSSHEnable", "l1_platform_hal_negative1_GetSSHEnable", "l1_platform_hal_positive1_SetSSHEnable", "l1_platform_hal_positive2_SetSSHEnable", "l1_platform_hal_negative1_SetSSHEnable", "l1_platform_hal_negative2_SetSSHEnable", "l1_platform_hal_positive1_resetDscpCounts", "l1_platform_hal_positive2_resetDscpCounts", "l1_platform_hal_negative1_resetDscpCounts","l1_platform_hal_positive1_PandMDBInit","l1_platform_hal_positive1_GetTelnetEnable","l1_platform_hal_negative1_GetTelnetEnable","l1_platform_hal_positive1_DocsisParamsDBInit", "l1_platform_hal_positive1_SetTelnetEnable","l1_platform_hal_positive2_SetTelnetEnable", "l1_platform_hal_negative1_SetTelnetEnable", "l1_platform_hal_negative2_SetTelnetEnable","l1_platform_hal_positive1_StopMACsec", "l1_platform_hal_positive2_StopMACsec", "l1_platform_hal_positive3_StopMACsec","l1_platform_hal_negative1_StopMACsec", "l1_platform_hal_negative2_StopMACsec", "l1_platform_hal_negative3_StopMACsec"};
-    void (*list2[])() = {test_l1_platform_hal_positive1_GetFirmwareName, test_l1_platform_hal_negative1_GetFirmwareName, test_l1_platform_hal_positive1_GetSoftwareVersion, test_l1_platform_hal_negative1_GetSoftwareVersion, test_l1_platform_hal_positive1_GetSerialNumber, test_l1_platform_hal_negative1_GetSerialNumber, test_l1_platform_hal_positive1_GetSNMPEnable, test_l1_platform_hal_negative1_GetSNMPEnable, test_l1_platform_hal_positive1_GetHardware_MemUsed, test_l1_platform_hal_negative1_GetHardware_MemUsed, test_l1_platform_hal_positive1_GetHardwareVersion, test_l1_platform_hal_negative1_GetHardwareVersion, test_l1_platform_hal_positive1_GetModelName, test_l1_platform_hal_negative1_GetModelName, test_l1_platform_hal_positive1_GetRouterRegion, test_l1_platform_hal_negative1_GetRouterRegion, test_l1_platform_hal_positive1_GetBootloaderVersion, test_l1_platform_hal_negative1_GetBootloaderVersion, test_l1_platform_hal_positive1_GetHardware, test_l1_platform_hal_negative1_GetHardware, test_l1_platform_hal_positive1_SetSNMPEnable, test_l1_platform_hal_positive2_SetSNMPEnable, test_l1_platform_hal_positive3_SetSNMPEnable, test_l1_platform_hal_negative1_SetSNMPEnable, test_l1_platform_hal_negative2_SetSNMPEnable, test_l1_platform_hal_positive1_SetWebUITimeout, test_l1_platform_hal_positive2_SetWebUITimeout, test_l1_platform_hal_positive3_SetWebUITimeout,test_l1_platform_hal_positive4_SetWebUITimeout, test_l1_platform_hal_negative1_SetWebUITimeout, test_l1_platform_hal_negative2_SetWebUITimeout, test_l1_platform_hal_positive1_GetWebUITimeout, test_l1_platform_hal_negative1_GetWebUITimeout, test_l1_platform_hal_positive1_GetBaseMacAddress, test_l1_platform_hal_negative1_GetBaseMacAddress, test_l1_platform_hal_positive1_GetHardware_MemFree, test_l1_platform_hal_negative1_GetHardware_MemFree, test_l1_platform_hal_positive1_GetUsedMemorySize, test_l1_platform_hal_negative1_GetUsedMemorySize, test_l1_platform_hal_positive1_ClearResetCount, test_l1_platform_hal_positive2_ClearResetCount, test_l1_platform_hal_negative1_ClearResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageValid, test_l1_platform_hal_positive2_SetDeviceCodeImageValid, test_l1_platform_hal_negative1_SetDeviceCodeImageValid, test_l1_platform_hal_positive1_setFactoryCmVariant, test_l1_platform_hal_positive2_setFactoryCmVariant, test_l1_platform_hal_positive3_setFactoryCmVariant, test_l1_platform_hal_positive4_setFactoryCmVariant, test_l1_platform_hal_positive5_setFactoryCmVariant, test_l1_platform_hal_negative1_setFactoryCmVariant, test_l1_platform_hal_negative2_setFactoryCmVariant, test_l1_platform_hal_positive1_getLed, test_l1_platform_hal_negative1_getLed, test_l1_platform_hal_positive1_getRotorLock, test_l1_platform_hal_positive2_getRotorLock, test_l1_platform_hal_negative1_getRotorLock, test_l1_platform_hal_positive1_GetTotalMemorySize, test_l1_platform_hal_negative1_GetTotalMemorySize, test_l1_platform_hal_positive1_GetFactoryResetCount, test_l1_platform_hal_negative1_GetFactoryResetCount, test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout, test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout, test_l1_platform_hal_positive1_getFactoryCmVariant, test_l1_platform_hal_negative1_getFactoryCmVariant, test_l1_platform_hal_positive1_setLed, test_l1_platform_hal_negative1_setLed, test_l1_platform_hal_negative2_setLed, test_l1_platform_hal_negative3_setLed, test_l1_platform_hal_negative4_setLed, test_l1_platform_hal_positive1_getRPM, test_l1_platform_hal_positive2_getRPM, test_l1_platform_hal_positive1_SetMACsecEnable, test_l1_platform_hal_positive2_SetMACsecEnable, test_l1_platform_hal_negative1_SetMACsecEnable, test_l1_platform_hal_positive3_SetMACsecEnable, test_l1_platform_hal_negative2_SetMACsecEnable, test_l1_platform_hal_positive1_GetMemoryPaths, test_l1_platform_hal_positive2_GetMemoryPaths, test_l1_platform_hal_negative1_GetMemoryPaths, test_l1_platform_hal_negative2_GetMemoryPaths, test_l1_platform_hal_negative3_GetMemoryPaths, test_l1_platform_hal_positive1_GetMACsecEnable, test_l1_platform_hal_negative1_GetMACsecEnable, test_l1_platform_hal_negative2_GetMACsecEnable, test_l1_platform_hal_positive2_GetMACsecEnable,test_l1_platform_hal_positive3_GetMACsecEnable, test_l1_platform_hal_positive1_StartMACsec, test_l1_platform_hal_negative1_StartMACsec, test_l1_platform_hal_positive2_StartMACsec, test_l1_platform_hal_positive3_StartMACsec, test_l1_platform_hal_positive1_GetDhcpv6_Options, test_l1_platform_hal_negative1_GetDhcpv6_Options, test_l1_platform_hal_negative2_GetDhcpv6_Options, test_l1_platform_hal_negative3_GetDhcpv6_Options, test_l1_platform_hal_positive1_setDscp, test_l1_platform_hal_positive2_setDscp, test_l1_platform_hal_positive3_setDscp, test_l1_platform_hal_positive4_setDscp, test_l1_platform_hal_negative1_setDscp, test_l1_platform_hal_negative2_setDscp, test_l1_platform_hal_negative3_setDscp, test_l1_platform_hal_positive1_SetLowPowerModeState, test_l1_platform_hal_positive2_SetLowPowerModeState, test_l1_platform_hal_positive3_SetLowPowerModeState, test_l1_platform_hal_positive4_SetLowPowerModeState, test_l1_platform_hal_negative1_SetLowPowerModeState, test_l1_platform_hal_negative2_SetLowPowerModeState, test_l1_platform_hal_positive1_GetFirmwareBankInfo, test_l1_platform_hal_positive2_GetFirmwareBankInfo, test_l1_platform_hal_negative1_GetFirmwareBankInfo, test_l1_platform_hal_negative2_GetFirmwareBankInfo, test_l1_platform_hal_negative3_GetFirmwareBankInfo, test_l1_platform_hal_positive1_getCMTSMac, test_l1_platform_hal_negative1_getCMTSMac, test_l1_platform_hal_positive1_GetDhcpv4_Options, test_l1_platform_hal_negative1_GetDhcpv4_Options, test_l1_platform_hal_negative2_GetDhcpv4_Options, test_l1_platform_hal_negative3_GetDhcpv4_Options, test_l1_platform_hal_positive1_getDscpClientList, test_l1_platform_hal_positive2_getDscpClientList, test_l1_platform_hal_negative1_getDscpClientList, test_l1_platform_hal_negative2_getDscpClientList, test_l1_platform_hal_negative3_getDscpClientList, test_l1_platform_hal_positive1_GetDeviceConfigStatus, test_l1_platform_hal_negative1_GetDeviceConfigStatus,  test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable, test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable, test_l1_platform_hal_positive1_GetMACsecOperationalStatus, test_l1_platform_hal_negative1_GetMACsecOperationalStatus, test_l1_platform_hal_positive1_setFanMaxOverride, test_l1_platform_hal_positive2_setFanMaxOverride, test_l1_platform_hal_positive3_setFanMaxOverride, test_l1_platform_hal_positive4_setFanMaxOverride, test_l1_platform_hal_negative1_setFanMaxOverride, test_l1_platform_hal_negative2_setFanMaxOverride, test_l1_platform_hal_negative3_setFanMaxOverride, test_l1_platform_hal_positive1_GetCPUSpeed, test_l1_platform_hal_negative1_GetCPUSpeed, test_l1_platform_hal_positive1_GetFreeMemorySize, test_l1_platform_hal_negative1_GetFreeMemorySize, test_l1_platform_hal_positive1_getTimeOffSet, test_l1_platform_hal_negative1_getTimeOffSet, test_l1_platform_hal_positive1_getFactoryPartnerId, test_l1_platform_hal_negative1_getFactoryPartnerId, test_l1_platform_hal_positive1_getFanStatus, test_l1_platform_hal_positive2_getFanStatus, test_l1_platform_hal_positive1_getFanSpeed, test_l1_platform_hal_positive2_getFanSpeed, test_l1_platform_hal_positive1_GetSSHEnable,test_l1_platform_hal_negative1_GetSSHEnable, test_l1_platform_hal_positive1_SetSSHEnable, test_l1_platform_hal_positive2_SetSSHEnable, test_l1_platform_hal_negative1_SetSSHEnable, test_l1_platform_hal_negative2_SetSSHEnable, test_l1_platform_hal_positive1_resetDscpCounts, test_l1_platform_hal_positive2_resetDscpCounts, test_l1_platform_hal_negative1_resetDscpCounts, test_l1_platform_hal_positive1_PandMDBInit, test_l1_platform_hal_positive1_GetTelnetEnable,test_l1_platform_hal_negative1_GetTelnetEnable,test_l1_platform_hal_positive1_DocsisParamsDBInit, test_l1_platform_hal_positive1_SetTelnetEnable, test_l1_platform_hal_positive2_SetTelnetEnable, test_l1_platform_hal_negative1_SetTelnetEnable, test_l1_platform_hal_negative2_SetTelnetEnable, test_l1_platform_hal_positive1_StopMACsec, test_l1_platform_hal_positive2_StopMACsec, test_l1_platform_hal_positive3_StopMACsec, test_l1_platform_hal_negative1_StopMACsec, test_l1_platform_hal_negative2_StopMACsec, test_l1_platform_hal_negative3_StopMACsec};
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetFirmwareName", test_l1_platform_hal_positive1_GetFirmwareName);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetFirmwareName", test_l1_platform_hal_negative1_GetFirmwareName);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetSoftwareVersion", test_l1_platform_hal_positive1_GetSoftwareVersion);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetSoftwareVersion", test_l1_platform_hal_negative1_GetSoftwareVersion);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetSerialNumber", test_l1_platform_hal_positive1_GetSerialNumber);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetSerialNumber", test_l1_platform_hal_negative1_GetSerialNumber);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetSNMPEnable", test_l1_platform_hal_positive1_GetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetSNMPEnable", test_l1_platform_hal_negative1_GetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetHardware_MemUsed", test_l1_platform_hal_positive1_GetHardware_MemUsed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetHardware_MemUsed", test_l1_platform_hal_negative1_GetHardware_MemUsed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetHardwareVersion", test_l1_platform_hal_positive1_GetHardwareVersion);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetHardwareVersion", test_l1_platform_hal_negative1_GetHardwareVersion);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetModelName", test_l1_platform_hal_positive1_GetModelName);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetModelName", test_l1_platform_hal_negative1_GetModelName);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetRouterRegion", test_l1_platform_hal_positive1_GetRouterRegion);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetRouterRegion", test_l1_platform_hal_negative1_GetRouterRegion);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetBootloaderVersion", test_l1_platform_hal_positive1_GetBootloaderVersion);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetBootloaderVersion", test_l1_platform_hal_negative1_GetBootloaderVersion);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetHardware", test_l1_platform_hal_positive1_GetHardware);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetHardware", test_l1_platform_hal_negative1_GetHardware);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetSNMPEnable", test_l1_platform_hal_positive1_SetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetSNMPEnable", test_l1_platform_hal_positive2_SetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_SetSNMPEnable", test_l1_platform_hal_positive3_SetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetSNMPEnable", test_l1_platform_hal_negative1_SetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetSNMPEnable", test_l1_platform_hal_negative2_SetSNMPEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetWebUITimeout", test_l1_platform_hal_positive1_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetWebUITimeout", test_l1_platform_hal_positive2_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_SetWebUITimeout", test_l1_platform_hal_positive3_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive4_SetWebUITimeout", test_l1_platform_hal_positive4_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetWebUITimeout", test_l1_platform_hal_negative1_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetWebUITimeout", test_l1_platform_hal_negative2_SetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetWebUITimeout", test_l1_platform_hal_positive1_GetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetWebUITimeout", test_l1_platform_hal_negative1_GetWebUITimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetBaseMacAddress", test_l1_platform_hal_positive1_GetBaseMacAddress);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetBaseMacAddress", test_l1_platform_hal_negative1_GetBaseMacAddress);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetHardware_MemFree", test_l1_platform_hal_positive1_GetHardware_MemFree);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetHardware_MemFree", test_l1_platform_hal_negative1_GetHardware_MemFree);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetUsedMemorySize", test_l1_platform_hal_positive1_GetUsedMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetUsedMemorySize", test_l1_platform_hal_negative1_GetUsedMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_ClearResetCount", test_l1_platform_hal_positive1_ClearResetCount);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_ClearResetCount", test_l1_platform_hal_positive2_ClearResetCount);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_ClearResetCount", test_l1_platform_hal_negative1_ClearResetCount);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetDeviceCodeImageValid", test_l1_platform_hal_positive1_SetDeviceCodeImageValid);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetDeviceCodeImageValid", test_l1_platform_hal_positive2_SetDeviceCodeImageValid);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetDeviceCodeImageValid", test_l1_platform_hal_negative1_SetDeviceCodeImageValid);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_setFactoryCmVariant", test_l1_platform_hal_positive1_setFactoryCmVariant);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_setFactoryCmVariant", test_l1_platform_hal_negative1_setFactoryCmVariant);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_setFactoryCmVariant", test_l1_platform_hal_negative2_setFactoryCmVariant);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getLed", test_l1_platform_hal_positive1_getLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getLed", test_l1_platform_hal_negative1_getLed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getRotorLock", test_l1_platform_hal_positive1_getRotorLock);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getRotorLock", test_l1_platform_hal_negative1_getRotorLock);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetTotalMemorySize", test_l1_platform_hal_positive1_GetTotalMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetTotalMemorySize", test_l1_platform_hal_negative1_GetTotalMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetFactoryResetCount", test_l1_platform_hal_positive1_GetFactoryResetCount);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetFactoryResetCount", test_l1_platform_hal_negative1_GetFactoryResetCount);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetDeviceCodeImageTimeout", test_l1_platform_hal_positive1_SetDeviceCodeImageTimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetDeviceCodeImageTimeout", test_l1_platform_hal_positive2_SetDeviceCodeImageTimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_SetDeviceCodeImageTimeout", test_l1_platform_hal_positive3_SetDeviceCodeImageTimeout);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetDeviceCodeImageTimeout", test_l1_platform_hal_negative1_SetDeviceCodeImageTimeout);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetDeviceCodeImageTimeout", test_l1_platform_hal_negative2_SetDeviceCodeImageTimeout);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getFactoryCmVariant", test_l1_platform_hal_positive1_getFactoryCmVariant);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getFactoryCmVariant", test_l1_platform_hal_negative1_getFactoryCmVariant);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_setLed", test_l1_platform_hal_positive1_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_setLed", test_l1_platform_hal_negative1_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_setLed", test_l1_platform_hal_negative2_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_setLed", test_l1_platform_hal_negative3_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_setLed", test_l1_platform_hal_negative4_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative5_setLed", test_l1_platform_hal_negative5_setLed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getRPM", test_l1_platform_hal_positive1_getRPM);
+#ifdef FEATURE_RDKB_THERMAL_MANAGER
+    UT_add_test( pSuite, "l1_platform_hal_positive1_initThermal", test_l1_platform_hal_positive1_initThermal);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_initThermal", test_l1_platform_hal_negative1_initThermal);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_LoadThermalConfig", test_l1_platform_hal_positive1_LoadThermalConfig);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_LoadThermalConfig", test_l1_platform_hal_negative1_LoadThermalConfig);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_setFanSpeed", test_l1_platform_hal_positive1_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_setFanSpeed", test_l1_platform_hal_positive2_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_setFanSpeed", test_l1_platform_hal_positive3_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive4_setFanSpeed", test_l1_platform_hal_positive4_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive5_setFanSpeed", test_l1_platform_hal_positive5_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_setFanSpeed", test_l1_platform_hal_negative1_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_setFanSpeed", test_l1_platform_hal_negative2_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_setFanSpeed", test_l1_platform_hal_negative3_setFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getFanTemperature", test_l1_platform_hal_positive1_getFanTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getFanTemperature", test_l1_platform_hal_negative1_getFanTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getInputCurrent", test_l1_platform_hal_positive1_getInputCurrent);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getInputCurrent", test_l1_platform_hal_negative1_getInputCurrent);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getInputPower", test_l1_platform_hal_positive1_getInputPower);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getInputPower", test_l1_platform_hal_negative1_getInputPower);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getRadioTemperature", test_l1_platform_hal_positive1_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getRadioTemperature", test_l1_platform_hal_negative1_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_getRadioTemperature", test_l1_platform_hal_negative2_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_getRadioTemperature", test_l1_platform_hal_positive2_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_getRadioTemperature", test_l1_platform_hal_positive3_getRadioTemperature);
 #endif
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetMACsecEnable", test_l1_platform_hal_positive1_SetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetMACsecEnable", test_l1_platform_hal_positive2_SetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetMACsecEnable", test_l1_platform_hal_negative1_SetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_SetMACsecEnable", test_l1_platform_hal_positive3_SetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetMACsecEnable", test_l1_platform_hal_negative2_SetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetMemoryPaths", test_l1_platform_hal_positive1_GetMemoryPaths);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetMemoryPaths", test_l1_platform_hal_negative1_GetMemoryPaths);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetMemoryPaths", test_l1_platform_hal_negative2_GetMemoryPaths);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_GetMemoryPaths", test_l1_platform_hal_negative3_GetMemoryPaths);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetMACsecEnable", test_l1_platform_hal_positive1_GetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetMACsecEnable", test_l1_platform_hal_negative1_GetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetMACsecEnable", test_l1_platform_hal_negative2_GetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_GetMACsecEnable", test_l1_platform_hal_positive2_GetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_GetMACsecEnable", test_l1_platform_hal_positive3_GetMACsecEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_StartMACsec", test_l1_platform_hal_positive1_StartMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_StartMACsec", test_l1_platform_hal_negative1_StartMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_StartMACsec", test_l1_platform_hal_positive2_StartMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_StartMACsec", test_l1_platform_hal_positive3_StartMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetDhcpv6_Options", test_l1_platform_hal_positive1_GetDhcpv6_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetDhcpv6_Options", test_l1_platform_hal_negative1_GetDhcpv6_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetDhcpv6_Options", test_l1_platform_hal_negative2_GetDhcpv6_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_GetDhcpv6_Options", test_l1_platform_hal_negative3_GetDhcpv6_Options);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_setDscp", test_l1_platform_hal_positive1_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_setDscp", test_l1_platform_hal_positive2_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_setDscp", test_l1_platform_hal_positive3_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_positive4_setDscp", test_l1_platform_hal_positive4_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_setDscp", test_l1_platform_hal_negative1_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_setDscp", test_l1_platform_hal_negative2_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_setDscp", test_l1_platform_hal_negative3_setDscp);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetLowPowerModeState", test_l1_platform_hal_positive1_SetLowPowerModeState);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetLowPowerModeState", test_l1_platform_hal_negative1_SetLowPowerModeState);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetLowPowerModeState", test_l1_platform_hal_negative2_SetLowPowerModeState);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetFirmwareBankInfo", test_l1_platform_hal_positive1_GetFirmwareBankInfo);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_GetFirmwareBankInfo", test_l1_platform_hal_positive2_GetFirmwareBankInfo);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetFirmwareBankInfo", test_l1_platform_hal_negative1_GetFirmwareBankInfo);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetFirmwareBankInfo", test_l1_platform_hal_negative2_GetFirmwareBankInfo);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_GetFirmwareBankInfo", test_l1_platform_hal_negative3_GetFirmwareBankInfo);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getCMTSMac", test_l1_platform_hal_positive1_getCMTSMac);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getCMTSMac", test_l1_platform_hal_negative1_getCMTSMac);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetDhcpv4_Options", test_l1_platform_hal_positive1_GetDhcpv4_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetDhcpv4_Options", test_l1_platform_hal_negative1_GetDhcpv4_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetDhcpv4_Options", test_l1_platform_hal_negative2_GetDhcpv4_Options);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_GetDhcpv4_Options", test_l1_platform_hal_negative3_GetDhcpv4_Options);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getDscpClientList", test_l1_platform_hal_positive1_getDscpClientList);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_getDscpClientList", test_l1_platform_hal_positive2_getDscpClientList);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getDscpClientList", test_l1_platform_hal_negative1_getDscpClientList);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_getDscpClientList", test_l1_platform_hal_negative2_getDscpClientList);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_getDscpClientList", test_l1_platform_hal_negative3_getDscpClientList);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetDeviceConfigStatus", test_l1_platform_hal_positive1_GetDeviceConfigStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetDeviceConfigStatus", test_l1_platform_hal_negative1_GetDeviceConfigStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetSNMPOnboardRebootEnable", test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetSNMPOnboardRebootEnable", test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetSNMPOnboardRebootEnable", test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetSNMPOnboardRebootEnable", test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetMACsecOperationalStatus", test_l1_platform_hal_positive1_GetMACsecOperationalStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetMACsecOperationalStatus", test_l1_platform_hal_negative1_GetMACsecOperationalStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_setFanMaxOverride", test_l1_platform_hal_positive1_setFanMaxOverride);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_setFanMaxOverride", test_l1_platform_hal_positive2_setFanMaxOverride);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_setFanMaxOverride", test_l1_platform_hal_negative1_setFanMaxOverride);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_setFanMaxOverride", test_l1_platform_hal_negative2_setFanMaxOverride);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_setFanMaxOverride", test_l1_platform_hal_negative3_setFanMaxOverride);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetCPUSpeed", test_l1_platform_hal_positive1_GetCPUSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetCPUSpeed", test_l1_platform_hal_negative1_GetCPUSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetFreeMemorySize", test_l1_platform_hal_positive1_GetFreeMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetFreeMemorySize", test_l1_platform_hal_negative1_GetFreeMemorySize);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getTimeOffSet", test_l1_platform_hal_positive1_getTimeOffSet);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getTimeOffSet", test_l1_platform_hal_negative1_getTimeOffSet);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getFactoryPartnerId", test_l1_platform_hal_positive1_getFactoryPartnerId);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_getFactoryPartnerId", test_l1_platform_hal_negative1_getFactoryPartnerId);
+#ifdef FEATURE_RDKB_LED_MANAGER
+    UT_add_test( pSuite, "l1_platform_hal_positive1_initLed", test_l1_platform_hal_positive1_initLed);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_initLed", test_l1_platform_hal_negative1_initLed);
+#endif
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getFanStatus", test_l1_platform_hal_positive1_getFanStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_getFanSpeed", test_l1_platform_hal_positive1_getFanSpeed);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetSSHEnable", test_l1_platform_hal_positive1_GetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetSSHEnable", test_l1_platform_hal_negative1_GetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetSSHEnable", test_l1_platform_hal_positive1_SetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetSSHEnable", test_l1_platform_hal_positive2_SetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetSSHEnable", test_l1_platform_hal_negative1_SetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetSSHEnable", test_l1_platform_hal_negative2_SetSSHEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_resetDscpCounts", test_l1_platform_hal_positive1_resetDscpCounts);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_resetDscpCounts", test_l1_platform_hal_positive2_resetDscpCounts);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_resetDscpCounts", test_l1_platform_hal_negative1_resetDscpCounts);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_PandMDBInit", test_l1_platform_hal_positive1_PandMDBInit);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetTelnetEnable", test_l1_platform_hal_positive1_GetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetTelnetEnable", test_l1_platform_hal_negative1_GetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_DocsisParamsDBInit", test_l1_platform_hal_positive1_DocsisParamsDBInit);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_SetTelnetEnable", test_l1_platform_hal_positive1_SetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_SetTelnetEnable", test_l1_platform_hal_positive2_SetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_SetTelnetEnable", test_l1_platform_hal_negative1_SetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_SetTelnetEnable", test_l1_platform_hal_negative2_SetTelnetEnable);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_StopMACsec", test_l1_platform_hal_positive1_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_StopMACsec", test_l1_platform_hal_positive2_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_StopMACsec", test_l1_platform_hal_positive3_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_StopMACsec", test_l1_platform_hal_negative1_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_StopMACsec", test_l1_platform_hal_negative2_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_StopMACsec", test_l1_platform_hal_negative3_StopMACsec);
 
-    // Add tests to the suite
-    for (int i = 0; i < sizeof(list1) / sizeof(list1[0]); i++)
-    {
-        UT_add_test(pSuite, list1[i], list2[i]);
-    }
-    return 0;
-}
-int main(int argc, char** argv)
-{
-    int registerReturn = 0;
-
-    /* get MaxEthPort value */
-    if (get_MaxEthPort() == 0)
-    {
-        UT_LOG("Got the MaxEthPort value");
-    }
-    else
-    {
-        printf("Failed to get MaxEthport value\n");
-    }
-
-    /* Register tests as required, then call the UT-main to support switches and triggering */
-    UT_init( argc, argv );
-    /* Check if tests are registered successfully */
-    registerReturn = register_hal_tests();
-    if (registerReturn == 0)
-    {
-        UT_LOG("register_hal_tests() returned success");
-    }
-    else
-    {
-        printf("register_hal_tests() returned failure");
-        return 1;
-    }
-    /* Begin test executions */
-    UT_run_tests();
     return 0;
 }
