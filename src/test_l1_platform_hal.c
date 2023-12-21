@@ -7777,6 +7777,7 @@ void test_l1_platform_hal_positive1_GetInterfaceStats(void)
         for (i = 0; i < num_InterfaceNames; i++ )
         {
             //InterfaceNames should be configured in platform_config file
+            UT_LOG("Invoking platform_hal_GetInterfaceStats with valid interface = %s", InterfaceNames[i]);
             retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
             UT_LOG("platform_hal_GetInterfaceStats returns: %d", retStatus);
             UT_ASSERT_EQUAL(retStatus, RETURN_OK);
@@ -7860,6 +7861,7 @@ void test_l1_platform_hal_negative1_GetInterfaceStats(void)
     PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
     if(pIntfStats != NULL)
     {
+        UT_LOG("Invoking platform_hal_GetInterfaceStats with ifname as NULL ");
         retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
@@ -7903,6 +7905,7 @@ void test_l1_platform_hal_negative2_GetInterfaceStats(void)
     PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
     if(pIntfStats != NULL)
     {
+        UT_LOG("Invoking platform_hal_GetInterfaceStats with ifname as an empty string ");
         retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
@@ -7946,6 +7949,7 @@ void test_l1_platform_hal_negative3_GetInterfaceStats(void)
     PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
     if(pIntfStats != NULL)
     {
+        UT_LOG("Invoking platform_hal_GetInterfaceStats with ifname 'eth99' as non-existing or invalid interface name ");
         retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
@@ -7991,6 +7995,7 @@ void test_l1_platform_hal_negative4_GetInterfaceStats(void)
     for (i = 0; i < num_InterfaceNames; i++ )
     {
         //InterfaceNames should be configured in platform_config file
+        UT_LOG("Invoking platform_hal_GetInterfaceStats with pIntfStats as NULL and valid interface = %s",InterfaceNames[i]);
         retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
@@ -8025,6 +8030,7 @@ void test_l1_platform_hal_negative5_GetInterfaceStats(void)
     PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
     if(pIntfStats != NULL)
     {
+        UT_LOG(" Invoking platform_hal_GetInterfaceStats with an interface name 'eth0$' that contains special character");
         retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
