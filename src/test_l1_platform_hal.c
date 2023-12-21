@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "cJSON.h"
 #include "platform_hal.h"
 
@@ -48,6 +49,8 @@ PSM_STATE *Supported_PSM_STATE = NULL;
 int num_Supported_PSM_STATE = 0;
 int *FanIndex = NULL;
 int num_FanIndex = 0;
+char** InterfaceNames = NULL;
+int num_InterfaceNames = 0;
 
 extern int init_platform_hal_init(void);
 
@@ -376,6 +379,75 @@ int get_FanIndex(void)
                 return 0;
             }
             FanIndex[i] = (int)cJSON_GetNumberValue(FanItem);
+        }
+    }
+    // Free cJSON object as it is no longer needed
+    cJSON_Delete(json);
+    return 0;
+}
+
+/* Free memory allocated for InterfaceNames */
+void freeInterfaceNames(void)
+{
+    int i = 0;
+    if (InterfaceNames != NULL)
+    {
+        for (i = 0; i < num_InterfaceNames; i++)
+        {
+            free(InterfaceNames[i]);
+        }
+        free(InterfaceNames);
+    }
+}
+
+/* get the InterfaceNames from configuration file */
+int get_InterfaceNames(void)
+{
+    char configFile[] = "./platform_config";
+    cJSON* value = NULL;
+    cJSON* json = NULL;
+    cJSON* item = NULL;
+    int i = 0;
+
+    UT_LOG("Checking InterfaceNames");
+    json = parse_file(configFile);
+    if (json == NULL)
+    {
+        printf("Failed to parse config\n");
+        return -1;
+    }
+    value = cJSON_GetObjectItem(json, "InterfaceNames");
+    // null check and object is Array, value->valuestring
+    if ((value != NULL) && (cJSON_IsArray(value)))
+    {
+        num_InterfaceNames = cJSON_GetArraySize(value);
+        printf("Number of InterfaceNames : %d \n", num_InterfaceNames);
+
+        // Allocate memory for InterfaceNames
+        InterfaceNames = (char**)malloc(num_InterfaceNames * sizeof(char*));
+        if (InterfaceNames == NULL)
+	{
+            printf("Memory allocation failed\n");
+            cJSON_Delete(json);
+            return -1;
+        }
+        cJSON_ArrayForEach(item, value)
+        {
+            if (i < num_InterfaceNames && cJSON_IsString(item))
+            {
+                // Allocate memory for each string and copy the content
+                InterfaceNames[i] = (char*)malloc((strlen(item->valuestring) + 1) * sizeof(char));
+                if (InterfaceNames[i] == NULL)
+                {
+                    printf("Memory allocation failed\n");
+                    freeInterfaceNames();
+                    cJSON_Delete(json);
+                    return -1;
+                }
+
+                strcpy(InterfaceNames[i], item->valuestring);
+                i++;
+            }
         }
     }
     // Free cJSON object as it is no longer needed
@@ -7675,13 +7747,307 @@ void test_l1_platform_hal_negative3_StopMACsec(void)
     UT_LOG("Exiting test_l1_platform_hal_negative3_StopMACsec...");
 }
 
+/**
+* @brief Test case to check the functionality of the function GetInterfaceStats when passed valid interface names.
+*
+* This test case checks if the function GetInterfaceStats properly retrieves the interface statistics when passed valid interface names from config file.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 190
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with valid interface names from config file | ifname from config file | RETURN_OK | Should be successful |
+*/
+void test_l1_platform_hal_positive1_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_GetInterfaceStats...");
+    int i = 0;
+    INT retStatus = 0;
+    PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    UT_LOG("Number of InterfaceNames values : %d ", num_InterfaceNames);
+    if(pIntfStats != NULL)
+    {
+        for (i = 0; i < num_InterfaceNames; i++ )
+        {
+            //InterfaceNames should be configured in platform_config file
+            retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
+            UT_LOG("platform_hal_GetInterfaceStats returns: %d", retStatus);
+            UT_ASSERT_EQUAL(retStatus, RETURN_OK);
+
+            if ((pIntfStats->rx_packet >= 0) && (pIntfStats->rx_packet <= (pow(2,64) - 1)))
+            {
+                UT_LOG("Packets received  is: %lu which is an valid value",pIntfStats->rx_packet);
+                UT_PASS("Get Interface Stats validation success");
+            }
+            else
+            {
+                UT_LOG("Packets received  is: %lu which is an invalid value",pIntfStats->rx_packet);
+                UT_FAIL("Get Interface Stats validation failed");
+            }
+            if ((pIntfStats->tx_packet >= 0) && (pIntfStats->tx_packet <= (pow(2,64) - 1)))
+            {
+                UT_LOG("Packets sent  is: %lu which is an valid value",pIntfStats->tx_packet);
+                UT_PASS("Get Interface Stats validation success");
+            }
+            else
+            {
+                UT_LOG("Packets sent  is: %lu which is an invalid value",pIntfStats->tx_packet);
+                UT_FAIL("Get Interface Stats validation failed");
+            }
+            if ((pIntfStats->rx_bytes >= 0) && (pIntfStats->rx_bytes <= (pow(2,64) - 1)))
+            {
+                UT_LOG("Bytes received  is: %lu which is an valid value",pIntfStats->rx_bytes);
+                UT_PASS("Get Interface Stats validation success");
+            }
+            else
+            {
+                UT_LOG("Bytes received  is: %lu which is an invalid value",pIntfStats->rx_bytes);
+                UT_FAIL("Get Interface Stats validation failed");
+            }
+            if ((pIntfStats->tx_bytes >= 0) && (pIntfStats->tx_bytes <= (pow(2,64) - 1)))
+            {
+                UT_LOG("Bytes sent  is: %lu which is an valid value",pIntfStats->tx_bytes);
+                UT_PASS("Get Interface Stats validation success");
+            }
+            else
+            {
+                UT_LOG("Bytes sent  is: %lu which is an invalid value",pIntfStats->tx_bytes);
+                UT_FAIL("Get Interface Stats validation failed");
+            }
+        }
+        free(pIntfStats);
+        pIntfStats = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+    UT_LOG("Exiting test_l1_platform_hal_positive1_GetInterfaceStats...");
+}
+
+/**
+* @brief Test case to verify the behavior when the interface name is NULL.
+*
+* This test case verifies the behavior of the GetInterfaceStats function when the interface name is NULL. The objective of this test is to ensure that the function handles the NULL interface name parameter correctly.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 191
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | ----------- | --------- | --------------- | ----- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with ifname as NULL | ifname = NULL | RETURN_ERR | Should fail |
+*/
+void test_l1_platform_hal_negative1_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_GetInterfaceStats...");
+    char* ifname = NULL;
+    INT retStatus = 0;
+
+    PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    if(pIntfStats != NULL)
+    {
+        retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
+        UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
+        UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
+
+        free(pIntfStats);
+        pIntfStats = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_GetInterfaceStats...");
+}
+
+/**
+* @brief Test case to verify the behavior of the GetInterfaceStats function when the interface name is empty.
+*
+* This test case is intended to verify the behavior of the GetInterfaceStats function when the interface name is an empty string.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 192
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- |-------------- | ----- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with ifname as an empty string | ifname = "" | RETURN_ERR | Should fail |
+*/
+void test_l1_platform_hal_negative2_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_GetInterfaceStats...");
+    char* ifname = "";
+    INT retStatus = 0;
+
+    PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    if(pIntfStats != NULL)
+    {
+        retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
+        UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
+        UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
+
+        free(pIntfStats);
+        pIntfStats = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_GetInterfaceStats...");
+}
+
+/**
+* @brief This test case verifies the behavior of the *GetInterfaceStats* function when provided with an invalid interface name.
+*
+* The objective of this test is to ensure that the function returns the correct error status when an invalid interface name is passed as an argument.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 193
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console.
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with ifname as non-existing or invalid interface name | ifname = "eth99" | RETURN_ERR | Should fail |
+*/
+void test_l1_platform_hal_negative3_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_GetInterfaceStats...");
+    char* ifname = "eth99";
+    INT retStatus = 0;
+
+    PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    if(pIntfStats != NULL)
+    {
+        retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
+        UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
+        UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
+
+        free(pIntfStats);
+        pIntfStats = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_GetInterfaceStats...");
+}
+
+/**
+* @brief This test case checks the behavior of the GetInterfaceStats function when pIntfStats pointer is NULL.
+*
+* This test is to verify that the GetInterfaceStats function returns RETURN_ERR when the pIntfStats pointer is NULL.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 194
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with pIntfStats as NULL  and valid interface from config file| pIntfStats = NULL, valid ifname from config file | RETURN_ERR | Should fail |
+*/
+void test_l1_platform_hal_negative4_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative4_GetInterfaceStats...");
+    PINTF_STATS pIntfStats = NULL;
+    INT retStatus = 0;
+    int i = 0;
+
+    UT_LOG("Number of InterfaceNames values : %d ", num_InterfaceNames);
+    for (i = 0; i < num_InterfaceNames; i++ )
+    {
+        //InterfaceNames should be configured in platform_config file
+        retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
+        UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
+        UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_GetInterfaceStats...");
+}
+
+/**
+* @brief This test case checks the behavior of the GetInterfaceStats function when provided with an interface name that contains special characters or spaces.
+*
+* The objective of this test is to verify that the function handles interface names with special characters correctly and returns the expected error code.
+*
+* **Test Group ID:** Basic: 01
+* **Test Case ID:** 195
+* **Priority:** High
+*
+* **Pre-Conditions:** None
+* **Dependencies:** None
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console
+*
+* **Test Procedure:**
+* | Variation / Step | Description | Test Data | Expected Result | Notes  |
+* | :---------: | --------- | ----------- | --------- | ------- |
+* | 01 | Invoking platform_hal_GetInterfaceStats with an interface name that contains special character | ifname = "eth0$" | RETURN_ERR | Should fail |
+*/
+void test_l1_platform_hal_negative5_GetInterfaceStats(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative5_GetInterfaceStats...");
+    char* ifname = "eth0$";
+    INT retStatus = 0;
+    PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    if(pIntfStats != NULL)
+    {
+        retStatus = platform_hal_GetInterfaceStats(ifname, pIntfStats);
+        UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
+        UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
+
+        free(pIntfStats);
+        pIntfStats = NULL;
+    }
+    else
+    {
+        UT_LOG("Malloc operation failed");
+        UT_FAIL("Memory allocation with malloc failed");
+    }
+
+    UT_LOG("Exiting test_l1_platform_hal_negative5_GetInterfaceStats...");
+}
+
 static UT_test_suite_t * pSuite = NULL;
 
 /**
- * @brief Register the main tests for this module
- *
- * @return int - 0 on success, otherwise failure
- */
+* @brief Register the main tests for this module
+*
+* @return int - 0 on success, otherwise failure
+*/
 int test_platform_hal_l1_register(void)
 {
     // Create the test suite
@@ -7884,6 +8250,12 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative1_StopMACsec", test_l1_platform_hal_negative1_StopMACsec);
     UT_add_test( pSuite, "l1_platform_hal_negative2_StopMACsec", test_l1_platform_hal_negative2_StopMACsec);
     UT_add_test( pSuite, "l1_platform_hal_negative3_StopMACsec", test_l1_platform_hal_negative3_StopMACsec);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_GetInterfaceStats", test_l1_platform_hal_positive1_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_GetInterfaceStats", test_l1_platform_hal_negative1_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_GetInterfaceStats", test_l1_platform_hal_negative2_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_GetInterfaceStats", test_l1_platform_hal_negative3_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_GetInterfaceStats", test_l1_platform_hal_negative4_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_negative5_GetInterfaceStats", test_l1_platform_hal_negative5_GetInterfaceStats);
 
     return 0;
 }

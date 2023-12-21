@@ -4,5 +4,6 @@
   "FactoryCmVariant": ["", "", "", ""],
   "Supported_CPUS": [ , ],
   "Supported_PSM_STATE":[ , ],
-  "FanIndex":[ , ]
+  "FanIndex":[ , ],
+  "InterfaceNames": ["", "", "", ""]
 }

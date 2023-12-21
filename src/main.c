@@ -31,6 +31,8 @@ extern PSM_STATE *Supported_PSM_STATE;
 extern int num_Supported_PSM_STATE;
 extern int *FanIndex;
 extern int num_FanIndex;
+extern char** InterfaceNames;
+extern int num_InterfaceNames;
 
 extern int register_hal_l1_tests( void );
 extern int get_MaxEthPort(void);
@@ -40,6 +42,8 @@ extern int get_SupportedCPUs(void);
 extern int get_LowPowerModeStates(void);
 extern int get_FanIndex(void);
 extern void freeFactoryCmVariant(void);
+extern void freeInterfaceNames(void);
+extern int get_InterfaceNames(void);
 
 int init_platform_hal_init(void)
 {
@@ -159,6 +163,18 @@ int main(int argc, char** argv)
     {
         printf("Failed to get FanIndex value\n");
     }
+    if (get_InterfaceNames() == 0)
+    {
+        UT_LOG("Got the InterfaceNames values :\n");
+        for (i = 0;i < num_InterfaceNames; i++)
+        {
+            UT_LOG("%s \n", InterfaceNames[i]);
+        }
+    }
+    else
+    {
+        printf("Failed to get InterfaceNames value\n");
+    }
 
     /* Register tests as required, then call the UT-main to support switches and triggering */
     UT_init( argc, argv );
@@ -166,7 +182,7 @@ int main(int argc, char** argv)
     registerReturn = register_hal_l1_tests();
     if (registerReturn == 0)
     {
-        printf("register_hal_l1_tests() returned success");
+        printf("register_hal_l1_tests() returned success \n");
     }
     else
     {
@@ -179,7 +195,7 @@ int main(int argc, char** argv)
     free(supportedCpus);
     free(Supported_PSM_STATE);
     free(FanIndex);
+    freeInterfaceNames();
 
     return 0;
 }
-

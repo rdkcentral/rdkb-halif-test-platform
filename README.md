@@ -49,3 +49,7 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
         b. If platform supports 2 fans , fill this param with "FanIndex" : [0,1]
 
     *  The range of FanIndex is from 0 to 1.
+
+7. For InterfaceNames, fill with supported interfaces on each platform as a list of available network interfaces. Refer the example given below :
+
+    "InterfaceNames": ["br106", "eth0", "erouter0", "eth3", "gretap0"]
