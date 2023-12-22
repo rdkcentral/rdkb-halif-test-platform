@@ -3010,7 +3010,7 @@ void test_l1_platform_hal_negative5_setLed(void)
         UT_LOG("Malloc operation failed");
         UT_FAIL("Memory allocation with malloc failed");
     }
-    UT_LOG("Exiting test_l1_platform_hal_positive1_setLed...");
+    UT_LOG("Exiting test_l1_platform_hal_negative5_setLed...");
 }
 
 /**
@@ -7750,17 +7750,17 @@ void test_l1_platform_hal_negative3_StopMACsec(void)
 /**
 * @brief Test case to check the functionality of the function GetInterfaceStats when passed valid interface names.
 *
-* This test case checks if the function GetInterfaceStats properly retrieves the interface statistics when passed valid interface names from config file.
+* This test case checks if the function GetInterfaceStats properly retrieves the interface statistics when passed valid interface names from config file. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 190
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 190 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with valid interface names from config file | ifname from config file | RETURN_OK | Should be successful |
@@ -7837,17 +7837,17 @@ void test_l1_platform_hal_positive1_GetInterfaceStats(void)
 /**
 * @brief Test case to verify the behavior when the interface name is NULL.
 *
-* This test case verifies the behavior of the GetInterfaceStats function when the interface name is NULL. The objective of this test is to ensure that the function handles the NULL interface name parameter correctly.
+* This test case verifies the behavior of the GetInterfaceStats function when the interface name is NULL. The objective of this test is to ensure that the function handles the NULL interface name parameter correctly. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 191
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 191 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | ----------- | --------- | --------------- | ----- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with ifname as NULL | ifname = NULL | RETURN_ERR | Should fail |
@@ -7881,17 +7881,17 @@ void test_l1_platform_hal_negative1_GetInterfaceStats(void)
 /**
 * @brief Test case to verify the behavior of the GetInterfaceStats function when the interface name is empty.
 *
-* This test case is intended to verify the behavior of the GetInterfaceStats function when the interface name is an empty string.
+* This test case is intended to verify the behavior of the GetInterfaceStats function when the interface name is an empty string. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 192
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 192 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- |-------------- | ----- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with ifname as an empty string | ifname = "" | RETURN_ERR | Should fail |
@@ -7925,17 +7925,17 @@ void test_l1_platform_hal_negative2_GetInterfaceStats(void)
 /**
 * @brief This test case verifies the behavior of the *GetInterfaceStats* function when provided with an invalid interface name.
 *
-* The objective of this test is to ensure that the function returns the correct error status when an invalid interface name is passed as an argument.
+* The objective of this test is to ensure that the function returns the correct error status when an invalid interface name is passed as an argument. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 193
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 193 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console.
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If the user chooses to run the test in interactive mode, then the test case has to be selected via the console. @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with ifname as non-existing or invalid interface name | ifname = "eth99" | RETURN_ERR | Should fail |
@@ -7969,17 +7969,17 @@ void test_l1_platform_hal_negative3_GetInterfaceStats(void)
 /**
 * @brief This test case checks the behavior of the GetInterfaceStats function when pIntfStats pointer is NULL.
 *
-* This test is to verify that the GetInterfaceStats function returns RETURN_ERR when the pIntfStats pointer is NULL.
+* This test is to verify that the GetInterfaceStats function returns RETURN_ERR when the pIntfStats pointer is NULL. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 194
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 194 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console.
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes |
 * | :----: | --------- | ---------- | -------------- | ----- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with pIntfStats as NULL  and valid interface from config file| pIntfStats = NULL, valid ifname from config file | RETURN_ERR | Should fail |
@@ -8007,17 +8007,17 @@ void test_l1_platform_hal_negative4_GetInterfaceStats(void)
 /**
 * @brief This test case checks the behavior of the GetInterfaceStats function when provided with an interface name that contains special characters or spaces.
 *
-* The objective of this test is to verify that the function handles interface names with special characters correctly and returns the expected error code.
+* The objective of this test is to verify that the function handles interface names with special characters correctly and returns the expected error code. @n
 *
-* **Test Group ID:** Basic: 01
-* **Test Case ID:** 195
-* **Priority:** High
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 195 @n
+* **Priority:** High @n@n
 *
-* **Pre-Conditions:** None
-* **Dependencies:** None
-* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
 *
-* **Test Procedure:**
+* **Test Procedure:** @n
 * | Variation / Step | Description | Test Data | Expected Result | Notes  |
 * | :---------: | --------- | ----------- | --------- | ------- |
 * | 01 | Invoking platform_hal_GetInterfaceStats with an interface name that contains special character | ifname = "eth0$" | RETURN_ERR | Should fail |
