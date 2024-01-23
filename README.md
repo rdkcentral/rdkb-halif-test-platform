@@ -35,18 +35,17 @@ This repository contains the Unit Test Suites (L1) for Platform `HAL`.
 |1|`HAL` Specification Document|This document provides specific information on the APIs for which tests are written in this module|[PlatformhalSpec.md](https://github.com/rdkcentral/rdkb-halif-platform/blob/main/docs/pages/PlatformhalSpec.md "PlatformhalSpec.md")|
 |2|`L1` Tests |`L1` Test Case File for this module |[test_l1_platform_hal.c](https://github.com/rdkcentral/rdkb-halif-test-platform/blob/feature/TDK-7036/src/test_l1_platform_hal.c "test_l1_platform_hal.c")|
 
-## Makefile configurations
+## Enable RDKB Features
 
-Enable or disable the below flags in Makefile based on the platform capability :
-1. FEATURE_RDKB_LED_MANAGER
-2. FEATURE_RDKB_THERMAL_MANAGER
+FEATURE_RDKB_LED_MANAGER and FEATURE_RDKB_THERMAL_MANAGER features are disabled by default in platform hal test suite.
 
-- To enable thermal manager and led manager apis and its test, add below code snippet in Makefile :
+If the platform supports these features, enable thermal manager and led manager apis and its tests, using below CFLAGS in rdkb-halif-test-platform/Makefile :
+
 ```
-CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
+CFLAGS += -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
 ```
 
-## Populate Configurations
+## Populate Configuration File
 
 The users of platform hal 3PE test suite can populate appropriate platform specific values for the below parameters in the configuration file "platform_config" before executing the test binary.
 
