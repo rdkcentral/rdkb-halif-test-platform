@@ -24,15 +24,13 @@ TOP_DIR := $(ROOT_DIR)
 SRC_DIRS = $(ROOT_DIR)/src
 INC_DIRS := $(ROOT_DIR)/../include
 
-# To enable thermal manager and led manager apis and its test
-CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
 TARGET_EXEC := platform_hal_test
 
 ifeq ($(TARGET),)
 $(info TARGET NOT SET )
 $(info TARGET FORCED TO Linux)
 TARGET=linux
-CFLAGS += -DBUILD_LINUX
+CFLAGS = -DBUILD_LINUX
 SRC_DIRS += $(ROOT_DIR)/skeletons/src
 endif
 

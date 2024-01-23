@@ -1,10 +1,52 @@
-# Unit Testing Suite
+# Unit Testing Suite for platform HAL
 
 The following documents should be referenced to provide specific information on the tests required for this module.
 
 [Documentation can be found under "docs/pages" in this repository](docs/pages)
 
-### Populate Configurations
+## Table of Contents
+
+- [Version History](#version-history)
+- [Acronyms, Terms and Abbreviations](#acronyms-terms-and-abbreviations)
+- [Description](#description)
+- [Reference Documents](#reference-documents)
+- [Makefile configurations](#makefile-configurations)
+- [Populate Configurations](#populate-configurations)
+
+## Version History
+
+| Date | Comment | Version |
+| --- | --- | --- |
+| 01/23/24 | Initial Release | 1.0.0 |
+
+## Acronyms, Terms and Abbreviations
+
+- `L1` - Unit Tests
+- `HAL`- Hardware Abstraction Layer
+
+## Description
+
+This repository contains the Unit Test Suites (L1) for Platform `HAL`.
+
+## Reference Documents
+
+|SNo|Document Name|Document Description|Document Link|
+|---|-------------|--------------------|-------------|
+|1|`HAL` Specification Document|This document provides specific information on the APIs for which tests are written in this module|[PlatformhalSpec.md](https://github.com/rdkcentral/rdkb-halif-platform/blob/main/docs/pages/PlatformhalSpec.md "PlatformhalSpec.md")|
+|2|`L1` Tests |`L1` Test Case File for this module |[test_l1_platform_hal.c](https://github.com/rdkcentral/rdkb-halif-test-platform/blob/feature/TDK-7036/src/test_l1_platform_hal.c "test_l1_platform_hal.c")|
+
+## Makefile configurations
+
+Enable or disable the below flags in Makefile based on the platform capability :
+1. FEATURE_RDKB_LED_MANAGER
+2. FEATURE_RDKB_THERMAL_MANAGER
+
+- To enable thermal manager and led manager apis and its test, add below code snippet in Makefile :
+```
+CFLAGS = -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
+```
+
+## Populate Configurations
 
 The users of platform hal 3PE test suite can populate appropriate platform specific values for the below parameters in the configuration file "platform_config" before executing the test binary.
 
