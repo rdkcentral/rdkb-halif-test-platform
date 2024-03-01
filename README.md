@@ -33,7 +33,7 @@ This repository contains the Unit Test Suites (L1) for Platform `HAL`.
 |SNo|Document Name|Document Description|Document Link|
 |---|-------------|--------------------|-------------|
 |1|`HAL` Specification Document|This document provides specific information on the APIs for which tests are written in this module|[PlatformhalSpec.md](https://github.com/rdkcentral/rdkb-halif-platform/blob/main/docs/pages/PlatformhalSpec.md "PlatformhalSpec.md")|
-|2|`L1` Tests |`L1` Test Case File for this module |[test_l1_platform_hal.c](https://github.com/rdkcentral/rdkb-halif-test-platform/blob/feature/TDK-7036/src/test_l1_platform_hal.c "test_l1_platform_hal.c")|
+|2|`L1` Tests |`L1` Test Case File for this module |[test_l1_platform_hal.c](https://github.com/rdkcentral/rdkb-halif-test-platform/blob/main/src/test_l1_platform_hal.c "test_l1_platform_hal.c")|
 
 ## Enable RDKB Features
 
