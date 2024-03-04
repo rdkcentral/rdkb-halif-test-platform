@@ -70,7 +70,7 @@ flowchart TD
     B -->|Failure| X[Test Case Fail<br>platform_hal_GetHardware Failed]
     B -->|Success| C[Invoke platform_hal_GetHardware_MemUsed]
     C -->|Failure| Y[Test Case Fail<br>platform_hal_GetHardware_MemUsed Failed]
-    C -->|Success| D{"Verify <br>Used Memory <br> <= <br> Total Flash <br> Size"}
+    C -->|Success| D{"Verify <br>Used Memory <br> &lt;= <br> Total Flash <br> Size"}
     D -->|No| F[Test Case Fail<br>Used Memory Exceeds Total Flash Size]
     D -->|Yes| E[End Test Case<br>Success]
 ```
