@@ -70,7 +70,7 @@ flowchart TD
     B -->|Failure| X[Test Case Fail<br>platform_hal_GetHardware Failed]
     B -->|Success| C[Invoke platform_hal_GetHardware_MemUsed]
     C -->|Failure| Y[Test Case Fail<br>platform_hal_GetHardware_MemUsed Failed]
-    C -->|Success| D{Verify <br>Used Memory <br> <= <br> Total Flash <br> Size}
+    C -->|Success| D{"Verify <br>Used Memory <br> <= <br> Total Flash <br> Size"}
     D -->|No| F[Test Case Fail<br>Used Memory Exceeds Total Flash Size]
     D -->|Yes| E[End Test Case<br>Success]
 ```
@@ -83,7 +83,7 @@ flowchart TD
     B -->|Failure| X[Test Case Fail<br>platform_hal_GetHardware Failed]
     B -->|Success| C[Invoke platform_hal_GetHardware_MemFree]
     C -->|Failure| Y[Test Case Fail<br>platform_hal_GetHardware_MemFree Failed]
-    C -->|Success| D{Verify <br> Free Memory <br> <= <br>Total Flash <br> Memory}
+    C -->|Success| D{"Verify <br> Free Memory <br> <= <br>Total Flash <br> Memory"}
     D -->|No| F[Test Case Fail<br>Free Memory Exceeds Total Flash Memory]
     D -->|Yes| E[End Test Case<br>Success]
 ```
@@ -111,7 +111,7 @@ flowchart TD
     B -->|Failure| X[Test Case Fail<br>platform_hal_GetTotalMemorySize Failed]
     B -->|Success| C[Invoke platform_hal_GetUsedMemorySize]
     C -->|Failure| Y[Test Case Fail<br>platform_hal_GetUsedMemorySize Failed]
-    C -->|Success| D{Verify <br> Used Memory <br> <= <br> Total DRAM}
+    C -->|Success| D{"Verify <br> Used Memory <br> <= <br> Total DRAM"}
     D -->|No| F[Test Case Fail<br>Used Memory Exceeds Total DRAM]
     D -->|Yes| E[End Test Case<br>Success]
 ```
@@ -124,7 +124,7 @@ flowchart TD
     B -->|Failure| X[Test Case Fail<br>platform_hal_GetTotalMemorySize Failed]
     B -->|Success| C[Invoke platform_hal_GetFreeMemorySize]
     C -->|Failure| Y[Test Case Fail<br>platform_hal_GetFreeMemorySize Failed]
-    C -->|Success| D{Verify <br> Free Memory <br> <= <br> Total DRAM}
+    C -->|Success| D{"Verify <br> Free Memory <br> <= <br> Total DRAM"}
     D -->|No| F[Test Case Fail<br>Free Memory Exceeds Total DRAM]
     D -->|Yes| E[End Test Case<br>Success]
 ```
