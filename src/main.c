@@ -35,6 +35,7 @@ extern char** InterfaceNames;
 extern int num_InterfaceNames;
 
 extern int register_hal_l1_tests( void );
+extern int register_hal_l2_tests( void );
 extern int get_MaxEthPort(void);
 extern int get_PartnerID(void);
 extern int get_FactoryCmVariant(void);
@@ -187,6 +188,16 @@ int main(int argc, char** argv)
     else
     {
         printf("register_hal_l1_tests() returned failure");
+        return 1;
+    }
+    registerReturn = register_hal_l2_tests();
+    if (registerReturn == 0)
+    {
+        printf("register_hal_l2_tests() returned success \n");
+    }
+    else
+    {
+        printf("register_hal_l2_tests() returned failure");
         return 1;
     }
     UT_run_tests();
