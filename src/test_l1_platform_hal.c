@@ -4130,8 +4130,8 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void)
 
         UT_LOG("platform_hal_GetDhcpv6_Options API returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        UT_ASSERT_PTR_NOT_NULL(req_opt_list);
-        UT_ASSERT_PTR_NOT_NULL(send_opt_list);
+        UT_ASSERT_PTR_NOT_NULL_FATAL(req_opt_list);
+        UT_ASSERT_PTR_NOT_NULL_FATAL(send_opt_list);
 
         UT_LOG("DHCPv6 Options values for req is %d and for send is %d",req_opt_list->dhcp_opt,send_opt_list->dhcp_opt);
 
@@ -4970,8 +4970,8 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
 
         UT_LOG("platform_hal_GetDhcpv4_Options returns : %d", result);
         UT_ASSERT_EQUAL(result, RETURN_OK);
-        UT_ASSERT_PTR_NOT_NULL(req_opt_list);
-        UT_ASSERT_PTR_NOT_NULL(send_opt_list);
+        UT_ASSERT_PTR_NOT_NULL_FATAL(req_opt_list);
+        UT_ASSERT_PTR_NOT_NULL_FATAL(send_opt_list);
         UT_LOG("DHCPv4 Options values for req is %d and for send is %d",req_opt_list->dhcp_opt,send_opt_list->dhcp_opt);
 
         if(req_opt_list->dhcp_opt == 42 || req_opt_list->dhcp_opt == 43 ||  req_opt_list->dhcp_opt == 58 ||  req_opt_list->dhcp_opt == 59 ||  req_opt_list->dhcp_opt == 60 ||  req_opt_list->dhcp_opt == 61 ||  req_opt_list->dhcp_opt == 100 ||  req_opt_list->dhcp_opt == 122 ||  req_opt_list->dhcp_opt == 125 ||  req_opt_list->dhcp_opt == 242 ||  req_opt_list->dhcp_opt == 243 ||  req_opt_list->dhcp_opt == 255)
