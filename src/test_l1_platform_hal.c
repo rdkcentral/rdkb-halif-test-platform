@@ -8047,6 +8047,298 @@ void test_l1_platform_hal_negative5_GetInterfaceStats(void)
     UT_LOG("Exiting test_l1_platform_hal_negative5_GetInterfaceStats...");
 }
 
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with valid IPv4 parameters.
+*
+* This test is to verify that the platform_hal_qos_apply function returns 0 for valid IPv4 input parameters. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 196 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with valid IPv4 parameters | Valid IPv4 addresses, ports, and DSCP value | 0 | Should pass |
+*/
+void test_l1_platform_hal_positive1_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = IP_VERSION_IPV4;
+    params.src_ip.ipv4 = 0x0A000001; // 10.0.0.1
+    params.dest_ip.ipv4 = 0xC0A80001; // 192.168.0.1
+    params.src_port = 1234;
+    params.dest_port = 80;
+    params.protocol = PROTOCOL_TCP;
+    params.dscp_value = 10;
+
+    UT_LOG("Invoking platform_hal_qos_apply with valid IPv4 parameters.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_EQUAL(retStatus, 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function when the hal_network_params_t pointer is NULL.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when the hal_network_params_t pointer is NULL. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 197 @n
+* **Priority:** High @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with NULL parameters | hal_network_params_t = NULL | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative1_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_qos_apply...");
+    INT retStatus = 0;
+
+    UT_LOG("Invoking platform_hal_qos_apply with NULL parameters.");
+    retStatus = platform_hal_qos_apply(NULL);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with invalid DSCP values.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when DSCP value is outside the valid range. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 198 @n
+* **Priority:** Medium @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with invalid DSCP value | DSCP = 64 (out of range) | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative2_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.dscp_value = 64; // Invalid DSCP value (valid range: 0-63)
+    UT_LOG("Invoking platform_hal_qos_apply with DSCP value: %d", params.dscp_value);
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with mismatched IP version.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when the IP version and IP address do not match. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 199 @n
+* **Priority:** Medium @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with mismatched IP version and address | IPv4 version with IPv6 address | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative3_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = IP_VERSION_IPV4;
+    memcpy(params.src_ip.ipv6, (UINT8_t[]){0x20, 0x01, 0x0D, 0xB8, 0x85, 0xA3, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x2E, 0x03, 0x70, 0x73, 0x34}, 16);
+
+    UT_LOG("Invoking platform_hal_qos_apply with mismatched IP version.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with invalid IP version.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when an invalid IP version is provided. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 200 @n
+* **Priority:** Medium @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with an invalid IP version | IP version = 3 (invalid) | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative4_platform_hal_qos_apply(void)
+{
+    UT_LOG("test_l1_platform_hal_negative4_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = 3; // Invalid IP version
+    UT_LOG("Invoking platform_hal_qos_apply with invalid IP version.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with missing source port.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when the source port is not set. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 201 @n
+* **Priority:** Medium @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply without a source port | src_port = 0 | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative5_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative5_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = IP_VERSION_IPV4;
+    params.src_ip.ipv4 = 0xC0A80001; // 192.168.0.1
+    params.dest_ip.ipv4 = 0xC0A80002; // 192.168.0.2
+    params.src_port = 0; // Missing source port
+    params.dest_port = 8080;
+    params.protocol = PROTOCOL_TCP;
+    params.dscp_value = 20;
+
+    UT_LOG("Invoking platform_hal_qos_apply without source port.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative5_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function with unsupported protocol.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when an unsupported protocol is provided. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 202 @n
+* **Priority:** Medium @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with unsupported protocol | protocol = 999 (invalid) | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative6_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative6_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = IP_VERSION_IPV4;
+    params.src_ip.ipv4 = 0xC0A80001; // 192.168.0.1
+    params.dest_ip.ipv4 = 0xC0A80002; // 192.168.0.2
+    params.src_port = 1234;
+    params.dest_port = 80;
+    params.protocol = 999; // Unsupported protocol
+    params.dscp_value = 30;
+
+    UT_LOG("Invoking platform_hal_qos_apply with unsupported protocol.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative6_platform_hal_qos_apply...");
+}
+
+/**
+* @brief This test case checks the behavior of the platform_hal_qos_apply function when source and destination IPs are the same.
+*
+* This test is to verify that the platform_hal_qos_apply function returns a negative value when the source and destination IPs are the same. @n
+*
+* **Test Group ID:** Basic: 01 @n
+* **Test Case ID:** 203 @n
+* **Priority:** Low @n@n
+*
+* **Pre-Conditions:** None @n
+* **Dependencies:** None @n
+* **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+*
+* **Test Procedure:** @n
+* | Variation / Step | Description | Test Data | Expected Result | Notes |
+* | :----: | --------- | ---------- | -------------- | ----- |
+* | 01 | Invoking platform_hal_qos_apply with identical source and destination IPs | src_ip = dest_ip | Negative value | Should fail |
+*/
+void test_l1_platform_hal_negative7_platform_hal_qos_apply(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative7_platform_hal_qos_apply...");
+    hal_network_params_t params = {0};
+    INT retStatus = 0;
+
+    params.ip_version = IP_VERSION_IPV4;
+    params.src_ip.ipv4 = 0xC0A80001; // 192.168.0.1
+    params.dest_ip.ipv4 = 0xC0A80001; // Same as source IP
+    params.src_port = 1234;
+    params.dest_port = 80;
+    params.protocol = PROTOCOL_UDP;
+    params.dscp_value = 15;
+
+    UT_LOG("Invoking platform_hal_qos_apply with identical source and destination IPs.");
+    retStatus = platform_hal_qos_apply(&params);
+    UT_LOG("platform_hal_qos_apply returns: %d", retStatus);
+    UT_ASSERT_TRUE(retStatus < 0);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative7_platform_hal_qos_apply...");
+}
+
 static UT_test_suite_t * pSuite = NULL;
 
 /**
@@ -8262,6 +8554,14 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative3_GetInterfaceStats", test_l1_platform_hal_negative3_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative4_GetInterfaceStats", test_l1_platform_hal_negative4_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative5_GetInterfaceStats", test_l1_platform_hal_negative5_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_qos_apply", test_l1_platform_hal_positive1_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_qos_apply", test_l1_platform_hal_negative1_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_qos_apply", test_l1_platform_hal_negative2_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_qos_apply", test_l1_platform_hal_negative3_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_platform_hal_qos_apply", test_l1_platform_hal_negative4_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative5_platform_hal_qos_apply", test_l1_platform_hal_negative5_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative6_platform_hal_qos_apply", test_l1_platform_hal_negative6_platform_hal_qos_apply);
+    UT_add_test( pSuite, "l1_platform_hal_negative7_platform_hal_qos_apply", test_l1_platform_hal_negative7_platform_hal_qos_apply);
 
     return 0;
 }
