@@ -512,3 +512,9 @@ INT platform_hal_GetInterfaceStats(const char* ifname, PINTF_STATS pIntfStats)
   return (INT)0;
 }
 
+INT platform_hal_qos_apply(const hal_network_params_t *params)
+{
+  /*TODO: Implement Me!*/
+  (void)params;
+  return (INT)0;
+}
