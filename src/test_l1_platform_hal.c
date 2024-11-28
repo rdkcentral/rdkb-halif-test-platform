@@ -36,6 +36,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <limits.h>
 #include "cJSON.h"
 #include "platform_hal.h"
 
@@ -3425,6 +3426,246 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
     }
     UT_LOG("Exiting test_l1_platform_hal_positive3_getRadioTemperature...");
 }
+
+/**
+ * @brief Test case to verify the platform_hal_getEcoModeStatus() function
+ * for radioIndex 0 (2.4GHz WiFi) with ECO mode disabled.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 080 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 0 | radioIndex = 0 | RETURN_OK, pValue = 0 | ECO mode should be disabled for 2.4GHz WiFi |
+ */
+void test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 0;
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_ASSERT_EQUAL(pValue, 0);  // ECO mode should be disabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_getEcoModeStatus() function
+ * for radioIndex 1 (5GHz WiFi) with ECO mode enabled.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 081 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 1 | radioIndex = 1 | RETURN_OK, pValue = 1 | ECO mode should be enabled for 5GHz WiFi |
+ */
+void test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 1;
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_ASSERT_EQUAL(pValue, 1);  // ECO mode should be enabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a valid radio index is passed with a large pointer value for pValue.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 082 @n
+ * **Priority:** Low @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 0 and large pointer value | radioIndex = 0 | RETURN_OK, pValue = 0 | ECO mode should be disabled for 2.4GHz WiFi |
+ */
+void test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 0;  // Valid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);  // Expected to return OK
+    UT_ASSERT_EQUAL(pValue, 0);  // ECO mode should be disabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when an invalid radioIndex (2) is provided.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 083 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with an invalid radioIndex | radioIndex = 2 | RETURN_ERR | Error should be returned due to invalid index |
+ */
+void test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 2;  // Invalid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned for invalid index
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a NULL pointer is passed for pValue.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 084 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with NULL pointer for pValue | pValue = NULL | RETURN_ERR | Error should be returned due to NULL pointer |
+ */
+void test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus...");
+
+    INT radioIndex = 0;  // Valid radio index
+    INT* pValue = NULL;  // NULL pointer for pValue
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned due to NULL pointer
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when pValue is set to zero.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 085 @n
+ * **Priority:** Medium @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with pValue = 0 | pValue = 0 | RETURN_OK | ECO mode should be enabled for 5GHz WiFi |
+ */
+void test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 1;  // Valid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);  // Expected to return OK
+    UT_ASSERT_EQUAL(pValue, 1);  // ECO mode should be enabled
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a negative radioIndex is passed.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 086 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with a negative radioIndex | radioIndex = -1 | RETURN_ERR | Error should be returned for invalid negative index |
+ */
+void test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = -1;  // Invalid negative radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned due to invalid index
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus...");
+}
+
 #endif
 
 /**
@@ -8048,6 +8289,376 @@ void test_l1_platform_hal_negative5_GetInterfaceStats(void)
 }
 
 /**
+ * @brief This test case verifies the functionality of the platform_hal_GetPppUserName API
+ * with valid input parameters.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 001 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 128 | pUserName = valid buffer, maxSize = 128 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive1_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("PPP Username: %s", pUserName);
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with a minimum buffer size that can store the username.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 002 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 6 | pUserName = valid buffer, maxSize = 6 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive2_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[6] = {"\0"};  // Assuming username length is 5 + null terminator
+    ULONG maxSize = sizeof(pUserName);
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("PPP Username: %s", pUserName);
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with insufficient buffer size.
+ *
+ * **Test Group ID:** Basic: 02 @n
+ * **Test Case ID:** 003 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 4 | pUserName = valid buffer, maxSize = 4 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative1_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[4] = {"\0"};  // Assuming username length > 4
+    ULONG maxSize = sizeof(pUserName);
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * when the buffer pointer is NULL.
+ *
+ * **Test Group ID:** Basic: 02 @n
+ * **Test Case ID:** 004 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = NULL | pUserName = NULL, maxSize = 128 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative2_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_GetPppUserName...");
+
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = NULL, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(NULL, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * when maxSize is zero.
+ *
+ * **Test Group ID:** Basic: 02 @n
+ * **Test Case ID:** 005 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with maxSize = 0 | pUserName = valid buffer, maxSize = 0 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative3_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = 0;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with maxSize set to an edge value (ULONG_MAX).
+ *
+ * **Test Group ID:** Basic: 02 @n
+ * **Test Case ID:** 006 @n
+ * **Priority:** Low @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with maxSize = ULONG_MAX | pUserName = valid buffer, maxSize = ULONG_MAX | RETURN_OK or RETURN_ERR | Should Handle Edge Case |
+ */
+void test_l1_platform_hal_negative4_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative4_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = ULONG_MAX;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT((status == RETURN_OK) || (status == RETURN_ERR));
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function in L1 platform HAL.
+ *
+ * This test case is used to verify the functionality of the platform_hal_GetPppPassword() function in L1 platform HAL. The objective is to ensure that the function returns RETURN_OK when valid inputs are provided.
+ *
+ * **Test Group ID:** Basic: 03 @n
+ * **Test Case ID:** 001 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with pPassword = valid buffer, maxSize = 128 | pPassword = valid buffer, maxSize = 128 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive1_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[128] = {"\0"};
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("PPP Password: %s", pPassword);
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function for minimum buffer size.
+ *
+ * This test case is used to verify the functionality of the platform_hal_GetPppPassword() function with the smallest possible valid buffer size that can store the password.
+ *
+ * **Test Group ID:** Basic: 03 @n
+ * **Test Case ID:** 002 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with minimum valid buffer size | pPassword = valid buffer, maxSize = 6 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive2_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[6] = {"\0"};  // Assuming password length is 5 + null terminator
+    ULONG maxSize = sizeof(pPassword);
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("PPP Password: %s", pPassword);
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function for insufficient buffer size.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when the buffer size is insufficient to store the password.
+ *
+ * **Test Group ID:** Basic: 03 @n
+ * **Test Case ID:** 003 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with insufficient buffer size | pPassword = valid buffer, maxSize = 4 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative1_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[4] = {"\0"};  // Assuming password length > 4
+    ULONG maxSize = sizeof(pPassword);
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function when a null pointer is passed.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when the buffer pointer is NULL.
+ *
+ * **Test Group ID:** Basic: 03 @n
+ * **Test Case ID:** 004 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with pPassword = NULL | pPassword = NULL, maxSize = 128 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative2_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_GetPppPassword...");
+
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = NULL, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(NULL, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function with maxSize set to zero.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when maxSize is zero.
+ *
+ * **Test Group ID:** Basic: 03 @n
+ * **Test Case ID:** 005 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with maxSize = 0 | pPassword = valid buffer, maxSize = 0 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative3_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[128] = {"\0"};
+    ULONG maxSize = 0;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_GetPppPassword...");
+}
+
+/**
 * @brief This test case checks the behavior of the platform_hal_qos_apply function with valid IPv4 parameters.
 *
 * This test is to verify that the platform_hal_qos_apply function returns 0 for valid IPv4 input parameters. @n
@@ -8449,6 +9060,13 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative2_getRadioTemperature", test_l1_platform_hal_negative2_getRadioTemperature);
     UT_add_test( pSuite, "l1_platform_hal_positive2_getRadioTemperature", test_l1_platform_hal_positive2_getRadioTemperature);
     UT_add_test( pSuite, "l1_platform_hal_positive3_getRadioTemperature", test_l1_platform_hal_positive3_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus);
 #endif
     UT_add_test( pSuite, "l1_platform_hal_positive1_SetMACsecEnable", test_l1_platform_hal_positive1_SetMACsecEnable);
     UT_add_test( pSuite, "l1_platform_hal_positive2_SetMACsecEnable", test_l1_platform_hal_positive2_SetMACsecEnable);
@@ -8554,6 +9172,17 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative3_GetInterfaceStats", test_l1_platform_hal_negative3_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative4_GetInterfaceStats", test_l1_platform_hal_negative4_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative5_GetInterfaceStats", test_l1_platform_hal_negative5_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_GetPppUserName", test_l1_platform_hal_positive1_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_GetPppUserName", test_l1_platform_hal_positive2_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_GetPppUserName", test_l1_platform_hal_negative1_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_GetPppUserName", test_l1_platform_hal_negative2_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_GetPppUserName", test_l1_platform_hal_negative3_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_platform_hal_GetPppUserName", test_l1_platform_hal_negative4_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_GetPppPassword", test_l1_platform_hal_positive1_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_GetPppPassword", test_l1_platform_hal_positive2_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_GetPppPassword", test_l1_platform_hal_negative1_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_GetPppPassword", test_l1_platform_hal_negative2_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_GetPppPassword", test_l1_platform_hal_negative3_platform_hal_GetPppPassword);
     UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_qos_apply", test_l1_platform_hal_positive1_platform_hal_qos_apply);
     UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_qos_apply", test_l1_platform_hal_negative1_platform_hal_qos_apply);
     UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_qos_apply", test_l1_platform_hal_negative2_platform_hal_qos_apply);
