@@ -36,6 +36,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <limits.h>
 #include "cJSON.h"
 #include "platform_hal.h"
 
@@ -3425,6 +3426,246 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
     }
     UT_LOG("Exiting test_l1_platform_hal_positive3_getRadioTemperature...");
 }
+
+/**
+ * @brief Test case to verify the platform_hal_getEcoModeStatus() function
+ * for radioIndex 0 (2.4GHz WiFi) with ECO mode disabled.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 080 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 0 | radioIndex = 0 | RETURN_OK, pValue = 0 | ECO mode should be disabled for 2.4GHz WiFi |
+ */
+void test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 0;
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_ASSERT_EQUAL(pValue, 0);  // ECO mode should be disabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_getEcoModeStatus() function
+ * for radioIndex 1 (5GHz WiFi) with ECO mode enabled.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 081 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 1 | radioIndex = 1 | RETURN_OK, pValue = 1 | ECO mode should be enabled for 5GHz WiFi |
+ */
+void test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 1;
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+    UT_ASSERT_EQUAL(pValue, 1);  // ECO mode should be enabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a valid radio index is passed with a large pointer value for pValue.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 082 @n
+ * **Priority:** Low @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with radioIndex = 0 and large pointer value | radioIndex = 0 | RETURN_OK, pValue = 0 | ECO mode should be disabled for 2.4GHz WiFi |
+ */
+void test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 0;  // Valid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);  // Expected to return OK
+    UT_ASSERT_EQUAL(pValue, 0);  // ECO mode should be disabled
+
+    UT_LOG("Exiting test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when an invalid radioIndex (2) is provided.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 083 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with an invalid radioIndex | radioIndex = 2 | RETURN_ERR | Error should be returned due to invalid index |
+ */
+void test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 2;  // Invalid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned for invalid index
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a NULL pointer is passed for pValue.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 084 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with NULL pointer for pValue | pValue = NULL | RETURN_ERR | Error should be returned due to NULL pointer |
+ */
+void test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus...");
+
+    INT radioIndex = 0;  // Valid radio index
+    INT* pValue = NULL;  // NULL pointer for pValue
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned due to NULL pointer
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when pValue is set to zero.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 085 @n
+ * **Priority:** Medium @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with pValue = 0 | pValue = 0 | RETURN_OK | ECO mode should be enabled for 5GHz WiFi |
+ */
+void test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = 1;  // Valid radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("ECO Mode Status: %d", pValue);
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);  // Expected to return OK
+    UT_ASSERT_EQUAL(pValue, 1);  // ECO mode should be enabled
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus...");
+}
+
+/**
+ * @brief Test case to verify the behavior of platform_hal_getEcoModeStatus() 
+ * when a negative radioIndex is passed.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 086 @n
+ * **Priority:** High @n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_getEcoModeStatus() with a negative radioIndex | radioIndex = -1 | RETURN_ERR | Error should be returned for invalid negative index |
+ */
+void test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus...");
+
+    INT pValue = 0;
+    INT radioIndex = -1;  // Invalid negative radio index
+
+    UT_LOG("Invoking platform_hal_getEcoModeStatus() with radioIndex = %d", radioIndex);
+    INT status = platform_hal_getEcoModeStatus(radioIndex, &pValue);
+
+    UT_LOG("platform_hal_getEcoModeStatus API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);  // Error should be returned due to invalid index
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus...");
+}
+
 #endif
 
 /**
@@ -3433,7 +3674,7 @@ void test_l1_platform_hal_positive3_getRadioTemperature(void)
 * The objective of this test is to verify the functionality of the platform_hal_SetMACsecEnable function in setting the MACsec enable flag for a given Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 080 @n
+* **Test Case ID:** 087 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None  @n
@@ -3466,7 +3707,7 @@ void test_l1_platform_hal_positive1_SetMACsecEnable(void)
 * The test case verifies that the platform_hal_SetMACsecEnable function sets the MACsec enable flag correctly for the specified ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 081 @n
+* **Test Case ID:** 088 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3499,7 +3740,7 @@ void test_l1_platform_hal_positive2_SetMACsecEnable(void)
 * This test case is used to validate the behavior of the platform_hal_SetMACsecEnable API when called with invalid ethPort value and Flag value as 1.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 082 @n
+* **Test Case ID:** 089 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3532,7 +3773,7 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void)
 * This test case validates the ability of the API to set the MACsec enable flag for a given Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 083 @n
+* **Test Case ID:** 090 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3566,7 +3807,7 @@ void test_l1_platform_hal_positive3_SetMACsecEnable(void)
 * This test case is to verify the behavior of platform_hal_SetMACsecEnable API when it is provided with invalid input values.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 084 @n
+* **Test Case ID:** 091 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3599,7 +3840,7 @@ void test_l1_platform_hal_negative2_SetMACsecEnable(void)
 * The objective of this test is to ensure that the API returns the expected results and does not encounter any errors.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 085 @n
+* **Test Case ID:** 092 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3653,7 +3894,7 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void)
 * This test case verifies that the platform_hal_GetMemoryPaths function returns an error when called with an invalid CPU index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 086 @n
+* **Test Case ID:** 093 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3696,7 +3937,7 @@ void test_l1_platform_hal_negative1_GetMemoryPaths(void)
 * This test case checks whether the platform_hal_GetMemoryPaths function handles the case when a null pointer is passed as the ppinfo argument. The objective of this test is to ensure that the function returns RETURN_ERR when a null pointer is provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 087 @n
+* **Test Case ID:** 094 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3730,7 +3971,7 @@ void test_l1_platform_hal_negative2_GetMemoryPaths(void)
 * This test case is used to verify the behavior of the platform_hal_GetMemoryPaths function when it is given an out of bounds CPU index. The out of bounds CPU index is defined as a value greater than the total number of available CPUs.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 088 @n
+* **Test Case ID:** 095 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3772,7 +4013,7 @@ void test_l1_platform_hal_negative3_GetMemoryPaths(void)
 * This test checks whether the platform_hal_GetMACsecEnable function is able to successfully retrieve the MACsec enable status for a given ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 089 @n
+* **Test Case ID:** 096 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3817,7 +4058,7 @@ void test_l1_platform_hal_positive1_GetMACsecEnable(void)
 * The objective of this test is to ensure that the function returns an error code when a NULL pointer is passed as the pFlag argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 090 @n
+* **Test Case ID:** 097 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3850,7 +4091,7 @@ void test_l1_platform_hal_negative1_GetMACsecEnable(void)
 * This test case checks the functionality of platform_hal_GetMACsecEnable() function when an invalid Ethernet port is provided as input. This test is important to ensure that the function handles invalid input correctly and returns the expected error status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 091 @n
+* **Test Case ID:** 098 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3883,7 +4124,7 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 092 @n
+* **Test Case ID:** 099 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3927,7 +4168,7 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 * This test verifies whether the 'platform_hal_GetMACsecEnable' function returns the expected status when invoked with the highest Ethernet port.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 093 @n
+* **Test Case ID:** 100 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -3972,7 +4213,7 @@ void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 * This test verifies that the platform_hal_StartMACsec API can start MACsec on the specified Ethernet port with the given timeout value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 94 @n
+* **Test Case ID:** 101 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4005,7 +4246,7 @@ void test_l1_platform_hal_positive1_StartMACsec(void)
 * This test case verifies the behavior of the platform_hal_StartMACsec API in a negative scenario. It checks if the API handles the case when the ethPort is set to -1 and the timeoutSec is set to 0.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 95 @n
+* **Test Case ID:** 102 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4038,7 +4279,7 @@ void test_l1_platform_hal_negative1_StartMACsec(void)
 * This test case checks the functionality and correctness of the StartMACsec API in the L1 platform HAL. The API is responsible for starting MACsec on a given Ethernet port with a specified timeout.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 96 @n
+* **Test Case ID:** 103 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4071,7 +4312,7 @@ void test_l1_platform_hal_positive2_StartMACsec(void)
 * This test is used to verify the functionality of the platform_hal_StartMACsec function. The function is invoked with valid input values for ethPort and timeoutSec parameters to validate if it returns the expected status code (RETURN_OK).
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 97 @n
+* **Test Case ID:** 104 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4105,7 +4346,7 @@ void test_l1_platform_hal_positive3_StartMACsec(void)
 * This test verifies the functionality of platform_hal_GetDhcpv6_Options function by checking the return value and output parameters when the function is invoked in normal conditions.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 98 @n
+* **Test Case ID:** 105 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4174,7 +4415,7 @@ void test_l1_platform_hal_positive1_GetDhcpv6_Options(void)
 * In this test case, the objective is to verify that if the request option list is NULL, the API returns RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 99 @n
+* **Test Case ID:** 106 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4217,7 +4458,7 @@ void test_l1_platform_hal_negative1_GetDhcpv6_Options(void)
 * This test verifies the behavior of the platform_hal_GetDhcpv6_Options function when a NULL send option list is passed as an argument. The test aims to check if the function returns RETURN_ERR as expected.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 100 @n
+* **Test Case ID:** 107 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4260,7 +4501,7 @@ void test_l1_platform_hal_negative2_GetDhcpv6_Options(void)
 * This test is intended to check if the platform_hal_GetDhcpv6_Options function returns RETURN_ERR when both the req_opt_list and send_opt_list are NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 101 @n
+* **Test Case ID:** 108 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4293,7 +4534,7 @@ void test_l1_platform_hal_negative3_GetDhcpv6_Options(void)
 * This test case verifies the functionality of the setDscp function when invoked with valid inputs in positive conditions.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 102 @n
+* **Test Case ID:** 109 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4327,7 +4568,7 @@ void test_l1_platform_hal_positive1_setDscp(void)
 * This test function is used to validate the platform_hal_setDscp API functionality.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 103 @n
+* **Test Case ID:** 110 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4361,7 +4602,7 @@ void test_l1_platform_hal_positive2_setDscp(void)
 * This test function is used to validate the platform_hal_setDscp API functionality.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 104 @n
+* **Test Case ID:** 111 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4395,7 +4636,7 @@ void test_l1_platform_hal_positive3_setDscp(void)
 * This test case checks whether the platform_hal_setDscp API sets the Differentiated Services Code Point (DSCP) values correctly for the given interfaceType and cmd.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 105 @n
+* **Test Case ID:** 112 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4429,7 +4670,7 @@ void test_l1_platform_hal_positive4_setDscp(void)
 * The objective of this test is to verify the behavior of the platform_hal_setDscp API when an invalid interface type is passed as an argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 106 @n
+* **Test Case ID:** 113 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4463,7 +4704,7 @@ void test_l1_platform_hal_negative1_setDscp(void)
 * This test case verifies the behavior of the platform_hal_setDscp function when an invalid command is provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 107 @n
+* **Test Case ID:** 114 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4497,7 +4738,7 @@ void test_l1_platform_hal_negative2_setDscp(void)
 * This test case focuses on testing the platform_hal_setDscp() function by passing invalid DSCP values (e.g., "100000,200000") for a particular interface type and traffic count command.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 108 @n
+* **Test Case ID:** 115 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4531,7 +4772,7 @@ void test_l1_platform_hal_negative3_setDscp(void)
 * The objective of this test is to ensure that the platform_hal_SetLowPowerModeState API correctly sets the low power mode state value from config file and returns the expected status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 109 @n
+* **Test Case ID:** 116 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4568,7 +4809,7 @@ void test_l1_platform_hal_positive1_SetLowPowerModeState(void)
 * The objective of this test is to ensure that the platform_hal_SetLowPowerModeState function handles unknown PPSM_STATE values correctly and returns the expected status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 110 @n
+* **Test Case ID:** 117 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4600,7 +4841,7 @@ void test_l1_platform_hal_negative1_SetLowPowerModeState(void)
 * This test is used to verify the behavior of platform_hal_SetLowPowerModeState function when the low power mode state is not supported by the platform. The function should return an error status code in this scenario.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 111 @n
+* **Test Case ID:** 118 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4632,7 +4873,7 @@ void test_l1_platform_hal_negative2_SetLowPowerModeState(void)
 * This test verifies if the function platform_hal_GetFirmwareBankInfo() correctly retrieves firmware bank information.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 112 @n
+* **Test Case ID:** 119 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4685,7 +4926,7 @@ void test_l1_platform_hal_positive1_GetFirmwareBankInfo(void)
 * This test case verifies the functionality of the platform_hal_GetFirmwareBankInfo function, which is responsible for retrieving the firmware bank information based on the provided bank index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 113 @n
+* **Test Case ID:** 120 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4738,7 +4979,7 @@ void test_l1_platform_hal_positive2_GetFirmwareBankInfo(void)
 * The objective of this test is to ensure that the platform_hal_GetFirmwareBankInfo() function returns the expected error code when invoked with an invalid bank index.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 114 @n
+* **Test Case ID:** 121 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4780,7 +5021,7 @@ void test_l1_platform_hal_negative1_GetFirmwareBankInfo(void)
 * This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 115 @n
+* **Test Case ID:** 122 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4813,7 +5054,7 @@ void test_l1_platform_hal_negative2_GetFirmwareBankInfo(void)
 *  This test case aims to verify the behavior of the platform_hal_GetFirmwareBankInfo function when invalid arguments are provided.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 116 @n
+* **Test Case ID:** 123 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4846,7 +5087,7 @@ void test_l1_platform_hal_negative3_GetFirmwareBankInfo(void)
 * The purpose of this test is to check if the platform_hal_getCMTSMac function returns the expected status and output value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 117 @n
+* **Test Case ID:** 124 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4913,7 +5154,7 @@ void test_l1_platform_hal_positive1_getCMTSMac(void)
 * @brief This test case verifies the behavior of platform_hal_getCMTSMac() function when passed a null pointer as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 118 @n
+* **Test Case ID:** 125 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -4945,7 +5186,7 @@ void test_l1_platform_hal_negative1_getCMTSMac(void)
 * This test is used to verify the functionality of the platform_hal_GetDhcpv4_Options API, which is responsible for retrieving DHCPv4 options.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 119 @n
+* **Test Case ID:** 126 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5013,7 +5254,7 @@ void test_l1_platform_hal_positive1_GetDhcpv4_Options(void)
 * This test case verifies the behavior of the platform_hal_GetDhcpv4_Options function when the req_opt_list argument is NULL. The function should return an error code and also the send_opt_list should be set to NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 120 @n
+* **Test Case ID:** 127 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5056,7 +5297,7 @@ void test_l1_platform_hal_negative1_GetDhcpv4_Options(void)
 * This test case checks the behavior of the platform_hal_GetDhcpv4_Options function when NULL is passed as the send_opt_list argument. The function is expected to return an error (RETURN_ERR) and set the req_opt_list and send_opt_list pointers to NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 121 @n
+* **Test Case ID:** 128 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5099,7 +5340,7 @@ void test_l1_platform_hal_negative2_GetDhcpv4_Options(void)
 * The purpose of this test is to verify the behavior of the platform_hal_GetDhcpv4_Options function when NULL pointers are passed as input arguments. It is important to ensure that the function properly handles these invalid inputs.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 122 @n
+* **Test Case ID:** 129 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5132,7 +5373,7 @@ void test_l1_platform_hal_negative3_GetDhcpv4_Options(void)
 * This test case is used to verify the functionality of the platform_hal_getDscpClientList API. It checks whether the API returns the correct DSCP client list for a given interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 123 @n
+* **Test Case ID:** 130 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5263,7 +5504,7 @@ void test_l1_platform_hal_positive1_getDscpClientList(void)
 * This test case verifies that the platform_hal_getDscpClientList function returns the correct list of DSCP clients for the given WAN interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 124 @n
+* **Test Case ID:** 131 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5395,7 +5636,7 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
 * This test case verifies the behavior of the platform_hal_getDscpClientList function when called with an invalid interfaceType and a valid pDSCP_List. The expected result is that the function should return RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 125 @n
+* **Test Case ID:** 132 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5436,7 +5677,7 @@ void test_l1_platform_hal_negative1_getDscpClientList(void)
 * This test case is used to verify the behavior of the platform_hal_getDscpClientList function when pDSCP_List is NULL. The objective of this test is to check if the function returns RETURN_ERR when pDSCP_List is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 126 @n
+* **Test Case ID:** 133 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5469,7 +5710,7 @@ void test_l1_platform_hal_negative2_getDscpClientList(void)
 * The objective of this test is to ensure that the function returns an appropriate error code when passed a NULL pDSCP_List.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 127 @n
+* **Test Case ID:** 134 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5502,7 +5743,7 @@ void test_l1_platform_hal_negative3_getDscpClientList(void)
 * This test case checks if the platform_hal_GetDeviceConfigStatus API returns the correct device configuration status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 128 @n
+* **Test Case ID:** 135 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5545,7 +5786,7 @@ void test_l1_platform_hal_positive1_GetDeviceConfigStatus(void)
 * This test case is designed to verify the return status of platform_hal_GetDeviceConfigStatus() API when it is invoked with invalid input parameters. The return status should be RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 129 @n
+* **Test Case ID:** 136 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5576,7 +5817,7 @@ void test_l1_platform_hal_negative1_GetDeviceConfigStatus(void)
 * This test case verifies if the platform_hal_SetSNMPOnboardRebootEnable function can successfully enable SNMP onboard reboot.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 130 @n
+* **Test Case ID:** 137 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5608,7 +5849,7 @@ void test_l1_platform_hal_positive1_SetSNMPOnboardRebootEnable(void)
 * This test checks the functionality of the platform_hal_SetSNMPOnboardRebootEnable() function. The test verifies whether the function returns a successful result when the input parameter is "disable".
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 131 @n
+* **Test Case ID:** 138 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5640,7 +5881,7 @@ void test_l1_platform_hal_positive2_SetSNMPOnboardRebootEnable(void)
 * The objective of this test is to verify the behavior of the platform_hal_SetSNMPOnboardRebootEnable API when it is given a NULL input parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 132 @n
+* **Test Case ID:** 139 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5672,7 +5913,7 @@ void test_l1_platform_hal_negative1_SetSNMPOnboardRebootEnable(void)
 * The purpose of this test case is to confirm that the platform_hal_SetSNMPOnboardRebootEnable function returns an error when an invalid parameter is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 133 @n
+* **Test Case ID:** 140 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5705,7 +5946,7 @@ void test_l1_platform_hal_negative2_SetSNMPOnboardRebootEnable(void)
 * This test case is used to verify the functionality of the platform_hal_getInputCurrent function. The objective of this test is to check if the function returns the correct input current value.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 134 @n
+* **Test Case ID:** 141 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5738,7 +5979,7 @@ void test_l1_platform_hal_positive1_getInputCurrent(void)
 * This test case checks if the platform_hal_getInputCurrent function returns the expected error status when called with a NULL input pointer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 135 @n
+* **Test Case ID:** 142 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5770,7 +6011,7 @@ void test_l1_platform_hal_negative1_getInputCurrent(void)
 * This test case checks the functionality of the platform_hal_LoadThermalConfig function by providing a valid uninitialized THERMAL_PLATFORM_CONFIG struct as input. The test case verifies the return value of the function and the filled values in the struct.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 136 @n
+* **Test Case ID:** 143 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5830,7 +6071,7 @@ void test_l1_platform_hal_positive1_LoadThermalConfig(void)
 * This test case is designed to validate the behavior of the platform_hal_LoadThermalConfig function when called with a null pointer as the argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 137 @n
+* **Test Case ID:** 144 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5863,7 +6104,7 @@ void test_l1_platform_hal_negative1_LoadThermalConfig(void)
 * This test case checks the correctness of the platform_hal_GetMACsecOperationalStatus API by verifying the return value and output flag parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 138 @n
+* **Test Case ID:** 145 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5906,7 +6147,7 @@ void test_l1_platform_hal_positive1_GetMACsecOperationalStatus(void)
 * The objective of this test is to check the behavior of the platform_hal_GetMACsecOperationalStatus API when the ethPort is 0 and pFlag is NULL.
 *
 * **Test Group ID**: Basic: 01 @n
-* **Test Case ID**: 139 @n
+* **Test Case ID**: 146 @n
 * **Priority**: High @n@n
 *
 * **Pre-Conditions**: None @n
@@ -5939,7 +6180,7 @@ void test_l1_platform_hal_negative1_GetMACsecOperationalStatus(void)
 * The objective of this test is to ensure that the platform_hal_setFanMaxOverride function sets the maximum fan override flag and fan index  from config file correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 140 @n
+* **Test Case ID:** 147 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -5976,7 +6217,7 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void)
 * This test case validates the platform_hal_setFanMaxOverride function by testing its behavior when the override flag is FALSE and fan index from config file. It checks if the function returns RETURN_OK indicating the successful execution of the API.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 141 @n
+* **Test Case ID:** 148 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6014,7 +6255,7 @@ void test_l1_platform_hal_positive2_setFanMaxOverride(void)
 * This test case verifies if the platform_hal_setFanMaxOverride API returns the expected status when the provided arguments are invalid.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 142 @n
+* **Test Case ID:** 149 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6047,7 +6288,7 @@ void test_l1_platform_hal_negative1_setFanMaxOverride(void)
 * This test case verifies the behavior of platform_hal_setFanMaxOverride function when bOverrideFlag is set to FALSE and fanIndex is 2.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 143 @n
+* **Test Case ID:** 150 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6080,7 +6321,7 @@ void test_l1_platform_hal_negative2_setFanMaxOverride(void)
 * This test case checks the behavior of the platform_hal_setFanMaxOverride function when an invalid value is passed as the bOverrideFlag argument.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 144 @n
+* **Test Case ID:** 151 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6118,7 +6359,7 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
 * This test case checks the functionality of the platform_hal_setFanSpeed() API by invoking with fan index value from config file,fan speed value as FAN_SPEED_OFF, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 145 @n
+* **Test Case ID:** 152 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6158,7 +6399,7 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
 * This test is performed to verify the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, fan speed as FAN_SPEED_SLOW, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 146 @n
+* **Test Case ID:** 153 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6197,7 +6438,7 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
 * This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, fan speed as FAN_SPEED_MEDIUM, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 147 @n
+* **Test Case ID:** 154 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6237,7 +6478,7 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
 * This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, the fan speed as FAN_SPEED_FAST, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 148 @n
+* **Test Case ID:** 155 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6277,7 +6518,7 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
 * This test case verifies the functionality of the platform_hal_setFanSpeed API by invoking with fan index from config file, the fan speed as FAN_SPEED_MAX, and a valid buffer for error reason.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 149 @n
+* **Test Case ID:** 156 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6317,7 +6558,7 @@ void test_l1_platform_hal_positive5_setFanSpeed(void)
 * The objective of this test is to check the behavior of the platform_hal_setFanSpeed API when invalid fan speed is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 150 @n
+* **Test Case ID:** 157 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6372,7 +6613,7 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
 * This test checks the behavior of the platform_hal_setFanSpeed API when the fanIndex from config file, fanSpeed is FAN_SPEED_OFF, and the error reason is NULL.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 151 @n
+* **Test Case ID:** 158 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6411,7 +6652,7 @@ void test_l1_platform_hal_negative2_setFanSpeed(void)
 * The objective of this test is to check the behavior of the platform_hal_setFanSpeed API when invalid fan speed is passed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 152 @n
+* **Test Case ID:** 159 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6460,7 +6701,7 @@ void test_l1_platform_hal_negative3_setFanSpeed(void)
 * This test case tests the normal operation of the platform_hal_getInputPower function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 153 @n
+* **Test Case ID:** 160 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6504,7 +6745,7 @@ void test_l1_platform_hal_positive1_getInputPower(void)
 * This test is for the platform_hal_getInputPower function when passed a NULL pointer as the input parameter. The objective of this test is to verify that the function correctly handles the NULL pointer and returns the appropriate error status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 154 @n
+* **Test Case ID:** 161 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6536,7 +6777,7 @@ void test_l1_platform_hal_negative1_getInputPower(void)
 * This test verifies the functionality of the platform_hal_GetCPUSpeed() function by checking if it returns the expected CPU speed value and if the return value is equal to RETURN_OK.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 155 @n
+* **Test Case ID:** 162 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6569,7 +6810,7 @@ void test_l1_platform_hal_positive1_GetCPUSpeed(void)
 * This test case checks if platform_hal_GetCPUSpeed returns RETURN_ERR when NULL buffer is passed as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 156 @n
+* **Test Case ID:** 163 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6601,7 +6842,7 @@ void test_l1_platform_hal_negative1_GetCPUSpeed(void)
 * This test case verifies that the GetFreeMemorySize API is able to successfully operate and return a total available memory size in the valid range [1, n].
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 157 @n
+* **Test Case ID:** 164 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6642,7 +6883,7 @@ void test_l1_platform_hal_positive1_GetFreeMemorySize(void)
 * This test case checks if the platform_hal_GetFreeMemorySize function returns the expected result when called with a NULL pointer as the input parameter.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 158 @n
+* **Test Case ID:** 165 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6674,7 +6915,7 @@ void test_l1_platform_hal_negative1_GetFreeMemorySize(void)
 * This test function verifies the behavior of the platform_hal_getTimeOffSet API by checking the return value and expected values of the timeOffSet buffer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 159 @n
+* **Test Case ID:** 166 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6716,7 +6957,7 @@ void test_l1_platform_hal_positive1_getTimeOffSet(void)
 * This test case verifies whether platform_hal_getTimeOffSet API returns RETURN_ERR when invoked with a null pointer.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 160 @n
+* **Test Case ID:** 167 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6748,7 +6989,7 @@ void test_l1_platform_hal_negative1_getTimeOffSet(void)
 * This test is used to verify the functionality of the platform_hal_getFactoryPartnerId API. The purpose of this test is to check if the API returns the expected status and valid value from config file.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 161 @n
+* **Test Case ID:** 168 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6794,7 +7035,7 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
 * The objective of this test is to check the return status of the platform_hal_getFactoryPartnerId function when a null pointer is passed as the parameter. The expected result is RETURN_ERR.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 162 @n
+* **Test Case ID:** 169 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6827,7 +7068,7 @@ void test_l1_platform_hal_negative1_getFactoryPartnerId(void)
 * Calls the header function platfom_hal_initLed() with valid parameters
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 163 @n
+* **Test Case ID:** 170 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6862,7 +7103,7 @@ void test_l1_platform_hal_positive1_initLed( void )
 * Calls the header function platfom_hal_initLed() with NULL pointer
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 164 @n
+* **Test Case ID:** 171 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6895,7 +7136,7 @@ void test_l1_platform_hal_negative1_initLed( void )
 * The objective of this test is to check if the API returns the correct fan status when called with valid famIndex from config file.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 165 @n
+* **Test Case ID:** 172 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6945,7 +7186,7 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
 * This test case is used to validate the platform_hal_getFanSpeed function by invoking it with fan index from config file and checking the returned fan speed.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 166 @n
+* **Test Case ID:** 173 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -6990,7 +7231,7 @@ void test_l1_platform_hal_positive1_getFanSpeed(void)
 * This test case validates the functionality of the platform_hal_GetSSHEnable function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 167 @n
+* **Test Case ID:** 174 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7034,7 +7275,7 @@ void test_l1_platform_hal_positive1_GetSSHEnable(void)
 * This test case is used to verify the behavior of the platform_hal_GetSSHEnable function with NULL input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 168 @n
+* **Test Case ID:** 175 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7066,7 +7307,7 @@ void test_l1_platform_hal_negative1_GetSSHEnable(void)
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to TRUE and return a success status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 169 @n
+* **Test Case ID:** 176 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7098,7 +7339,7 @@ void test_l1_platform_hal_positive1_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to FALSE and return a success status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 170 @n
+* **Test Case ID:** 177 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7130,7 +7371,7 @@ void test_l1_platform_hal_positive2_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to 2 and return a failure status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 171 @n
+* **Test Case ID:** 178 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7162,7 +7403,7 @@ void test_l1_platform_hal_negative1_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_SetSSHEnable() API is able to set the SSH enable flag to 'a' and return a failure status.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 172 @n
+* **Test Case ID:** 179 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7194,7 +7435,7 @@ void test_l1_platform_hal_negative2_SetSSHEnable( void )
 * The objective of this test is to ensure that the platform_hal_resetDscpCounts function successfully resets the DSCP counts for the DOCSIS interface type.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 173 @n
+* **Test Case ID:** 180 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7226,7 +7467,7 @@ void test_l1_platform_hal_positive1_resetDscpCounts(void)
 * This test case is used to verify the functionality of the platform_hal_resetDscpCounts function when the interface type is EWAN.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 174 @n
+* **Test Case ID:** 181 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7258,7 +7499,7 @@ void test_l1_platform_hal_positive2_resetDscpCounts(void)
 * This test case verifies the behavior of the platform_hal_resetDscpCounts function when an invalid interface type is provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 175 @n
+* **Test Case ID:** 182 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7290,7 +7531,7 @@ void test_l1_platform_hal_negative1_resetDscpCounts(void)
 * Calls the header function platform_hal_PandMDBInit() with no params
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 176 @n
+* **Test Case ID:** 183 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7322,7 +7563,7 @@ void test_l1_platform_hal_positive1_PandMDBInit( void )
 * This test case is used to verify the functionality and correctness of the platform_hal_GetTelnetEnable() function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 177 @n
+* **Test Case ID:** 184 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7365,7 +7606,7 @@ void test_l1_platform_hal_positive1_GetTelnetEnable(void)
 * This test case is used to verify the functionality and correctness of the platform_hal_GetTelnetEnable() function.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 178 @n
+* **Test Case ID:** 185 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7398,7 +7639,7 @@ void test_l1_platform_hal_negative1_GetTelnetEnable(void)
 * Calls the header function platform_hal_DocsisParamsDBInit() with no params
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 179 @n
+* **Test Case ID:** 186 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7429,7 +7670,7 @@ void test_l1_platform_hal_positive1_DocsisParamsDBInit( void )
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to TRUE. The objective is to ensure that the API sets the Telnet enable flag correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 180 @n
+* **Test Case ID:** 187 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7461,7 +7702,7 @@ void test_l1_platform_hal_positive1_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to FALSE. The objective is to ensure that the API sets the Telnet enable flag correctly.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 181 @n
+* **Test Case ID:** 188 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7493,7 +7734,7 @@ void test_l1_platform_hal_positive2_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to 2.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 182 @n
+* **Test Case ID:** 189 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7525,7 +7766,7 @@ void test_l1_platform_hal_negative1_SetTelnetEnable(void)
 * This test case checks the behavior of the platform_hal_SetTelnetEnable API when the flag is set to 'a'.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 183 @n
+* **Test Case ID:** 190 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7557,7 +7798,7 @@ void test_l1_platform_hal_negative2_SetTelnetEnable(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 184 @n
+* **Test Case ID:** 191 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7589,7 +7830,7 @@ void test_l1_platform_hal_positive1_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 185 @n
+* **Test Case ID:** 192 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7622,7 +7863,7 @@ void test_l1_platform_hal_positive2_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a valid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 186 @n
+* **Test Case ID:** 193 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7655,7 +7896,7 @@ void test_l1_platform_hal_positive3_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 187 @n
+* **Test Case ID:** 194 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7687,7 +7928,7 @@ void test_l1_platform_hal_negative1_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 188 @n
+* **Test Case ID:** 195 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7720,7 +7961,7 @@ void test_l1_platform_hal_negative2_StopMACsec(void)
 * This test case is used to verify the functionality of the platform_hal_StopMACsec function when a invalid Ethernet Port provided as input.
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 189 @n
+* **Test Case ID:** 196 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7753,7 +7994,7 @@ void test_l1_platform_hal_negative3_StopMACsec(void)
 * This test case checks if the function GetInterfaceStats properly retrieves the interface statistics when passed valid interface names from config file. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 190 @n
+* **Test Case ID:** 197 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7840,7 +8081,7 @@ void test_l1_platform_hal_positive1_GetInterfaceStats(void)
 * This test case verifies the behavior of the GetInterfaceStats function when the interface name is NULL. The objective of this test is to ensure that the function handles the NULL interface name parameter correctly. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 191 @n
+* **Test Case ID:** 198 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7884,7 +8125,7 @@ void test_l1_platform_hal_negative1_GetInterfaceStats(void)
 * This test case is intended to verify the behavior of the GetInterfaceStats function when the interface name is an empty string. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 192 @n
+* **Test Case ID:** 199 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7928,7 +8169,7 @@ void test_l1_platform_hal_negative2_GetInterfaceStats(void)
 * The objective of this test is to ensure that the function returns the correct error status when an invalid interface name is passed as an argument. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 193 @n
+* **Test Case ID:** 200 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -7972,7 +8213,7 @@ void test_l1_platform_hal_negative3_GetInterfaceStats(void)
 * This test is to verify that the GetInterfaceStats function returns RETURN_ERR when the pIntfStats pointer is NULL. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 194 @n
+* **Test Case ID:** 201 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8010,7 +8251,7 @@ void test_l1_platform_hal_negative4_GetInterfaceStats(void)
 * The objective of this test is to verify that the function handles interface names with special characters correctly and returns the expected error code. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 195 @n
+* **Test Case ID:** 202 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8048,12 +8289,382 @@ void test_l1_platform_hal_negative5_GetInterfaceStats(void)
 }
 
 /**
+ * @brief This test case verifies the functionality of the platform_hal_GetPppUserName API
+ * with valid input parameters.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 203 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 128 | pUserName = valid buffer, maxSize = 128 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive1_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("PPP Username: %s", pUserName);
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with a minimum buffer size that can store the username.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 204 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 6 | pUserName = valid buffer, maxSize = 6 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive2_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[6] = {"\0"};  // Assuming username length is 5 + null terminator
+    ULONG maxSize = sizeof(pUserName);
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("PPP Username: %s", pUserName);
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with insufficient buffer size.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 205 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = valid buffer, maxSize = 4 | pUserName = valid buffer, maxSize = 4 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative1_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[4] = {"\0"};  // Assuming username length > 4
+    ULONG maxSize = sizeof(pUserName);
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * when the buffer pointer is NULL.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 206 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with pUserName = NULL | pUserName = NULL, maxSize = 128 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative2_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_GetPppUserName...");
+
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = NULL, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(NULL, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * when maxSize is zero.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 207 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with maxSize = 0 | pUserName = valid buffer, maxSize = 0 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative3_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = 0;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief This test case verifies the behavior of platform_hal_GetPppUserName API
+ * with maxSize set to an edge value (ULONG_MAX).
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 208 @n
+ * **Priority:** Low @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console. @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppUserName with maxSize = ULONG_MAX | pUserName = valid buffer, maxSize = ULONG_MAX | RETURN_OK or RETURN_ERR | Should Handle Edge Case |
+ */
+void test_l1_platform_hal_negative4_platform_hal_GetPppUserName(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative4_platform_hal_GetPppUserName...");
+
+    CHAR pUserName[128] = {"\0"};
+    ULONG maxSize = ULONG_MAX;
+
+    UT_LOG("Invoking platform_hal_GetPppUserName() with pUserName = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppUserName(pUserName, maxSize);
+
+    UT_LOG("platform_hal_GetPppUserName API returns: %d", status);
+    UT_ASSERT((status == RETURN_OK) || (status == RETURN_ERR));
+
+    UT_LOG("Exiting test_l1_platform_hal_negative4_platform_hal_GetPppUserName...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function in L1 platform HAL.
+ *
+ * This test case is used to verify the functionality of the platform_hal_GetPppPassword() function in L1 platform HAL. The objective is to ensure that the function returns RETURN_OK when valid inputs are provided.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 209 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with pPassword = valid buffer, maxSize = 128 | pPassword = valid buffer, maxSize = 128 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive1_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive1_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[128] = {"\0"};
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("PPP Password: %s", pPassword);
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive1_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function for minimum buffer size.
+ *
+ * This test case is used to verify the functionality of the platform_hal_GetPppPassword() function with the smallest possible valid buffer size that can store the password.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 210 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with minimum valid buffer size | pPassword = valid buffer, maxSize = 6 | RETURN_OK | Should Pass |
+ */
+void test_l1_platform_hal_positive2_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_positive2_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[6] = {"\0"};  // Assuming password length is 5 + null terminator
+    ULONG maxSize = sizeof(pPassword);
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("PPP Password: %s", pPassword);
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_OK);
+
+    UT_LOG("Exiting test_l1_platform_hal_positive2_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function for insufficient buffer size.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when the buffer size is insufficient to store the password.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 211 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with insufficient buffer size | pPassword = valid buffer, maxSize = 4 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative1_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative1_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[4] = {"\0"};  // Assuming password length > 4
+    ULONG maxSize = sizeof(pPassword);
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative1_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function when a null pointer is passed.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when the buffer pointer is NULL.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 212 @n
+ * **Priority:** High @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with pPassword = NULL | pPassword = NULL, maxSize = 128 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative2_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative2_platform_hal_GetPppPassword...");
+
+    ULONG maxSize = 128;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = NULL, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(NULL, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative2_platform_hal_GetPppPassword...");
+}
+
+/**
+ * @brief Test case to verify the platform_hal_GetPppPassword() function with maxSize set to zero.
+ *
+ * This test case is used to verify the behavior of the platform_hal_GetPppPassword() function when maxSize is zero.
+ *
+ * **Test Group ID:** Basic: 01 @n
+ * **Test Case ID:** 213 @n
+ * **Priority:** Medium @n@n
+ *
+ * **Pre-Conditions:** None @n
+ * **Dependencies:** None @n
+ * **User Interaction:** If user chose to run the test in interactive mode, then the test case has to be selected via console @n
+ *
+ * **Test Procedure:** @n
+ * | Variation / Step | Description | Test Data | Expected Result | Notes |
+ * | :----: | --------- | ---------- | --------------- | ----- |
+ * | 01 | Invoking platform_hal_GetPppPassword with maxSize = 0 | pPassword = valid buffer, maxSize = 0 | RETURN_ERR | Should Fail |
+ */
+void test_l1_platform_hal_negative3_platform_hal_GetPppPassword(void)
+{
+    UT_LOG("Entering test_l1_platform_hal_negative3_platform_hal_GetPppPassword...");
+
+    CHAR pPassword[128] = {"\0"};
+    ULONG maxSize = 0;
+
+    UT_LOG("Invoking platform_hal_GetPppPassword() with pPassword = valid buffer, maxSize = %lu.", maxSize);
+    INT status = platform_hal_GetPppPassword(pPassword, maxSize);
+
+    UT_LOG("platform_hal_GetPppPassword API returns: %d", status);
+    UT_ASSERT_EQUAL(status, RETURN_ERR);
+
+    UT_LOG("Exiting test_l1_platform_hal_negative3_platform_hal_GetPppPassword...");
+}
+
+/**
 * @brief This test case checks the behavior of the platform_hal_qos_apply function with valid IPv4 parameters.
 *
 * This test is to verify that the platform_hal_qos_apply function returns 0 for valid IPv4 input parameters. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 196 @n
+* **Test Case ID:** 214 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8093,7 +8704,7 @@ void test_l1_platform_hal_positive1_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when the hal_network_params_t pointer is NULL. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 197 @n
+* **Test Case ID:** 215 @n
 * **Priority:** High @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8124,7 +8735,7 @@ void test_l1_platform_hal_negative1_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when DSCP value is outside the valid range. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 198 @n
+* **Test Case ID:** 216 @n
 * **Priority:** Medium @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8157,7 +8768,7 @@ void test_l1_platform_hal_negative2_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when the IP version and IP address do not match. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 199 @n
+* **Test Case ID:** 217 @n
 * **Priority:** Medium @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8192,7 +8803,7 @@ void test_l1_platform_hal_negative3_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when an invalid IP version is provided. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 200 @n
+* **Test Case ID:** 218 @n
 * **Priority:** Medium @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8225,7 +8836,7 @@ void test_l1_platform_hal_negative4_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when the source port is not set. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 201 @n
+* **Test Case ID:** 219 @n
 * **Priority:** Medium @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8265,7 +8876,7 @@ void test_l1_platform_hal_negative5_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when an unsupported protocol is provided. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 202 @n
+* **Test Case ID:** 220 @n
 * **Priority:** Medium @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8305,7 +8916,7 @@ void test_l1_platform_hal_negative6_platform_hal_qos_apply(void)
 * This test is to verify that the platform_hal_qos_apply function returns a negative value when the source and destination IPs are the same. @n
 *
 * **Test Group ID:** Basic: 01 @n
-* **Test Case ID:** 203 @n
+* **Test Case ID:** 221 @n
 * **Priority:** Low @n@n
 *
 * **Pre-Conditions:** None @n
@@ -8449,6 +9060,13 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative2_getRadioTemperature", test_l1_platform_hal_negative2_getRadioTemperature);
     UT_add_test( pSuite, "l1_platform_hal_positive2_getRadioTemperature", test_l1_platform_hal_positive2_getRadioTemperature);
     UT_add_test( pSuite, "l1_platform_hal_positive3_getRadioTemperature", test_l1_platform_hal_positive3_getRadioTemperature);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive1_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive2_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_positive3_platform_hal_getEcoModeStatus", test_l1_platform_hal_positive3_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative1_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative2_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative3_platform_hal_getEcoModeStatus);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_platform_hal_getEcoModeStatus", test_l1_platform_hal_negative4_platform_hal_getEcoModeStatus);
 #endif
     UT_add_test( pSuite, "l1_platform_hal_positive1_SetMACsecEnable", test_l1_platform_hal_positive1_SetMACsecEnable);
     UT_add_test( pSuite, "l1_platform_hal_positive2_SetMACsecEnable", test_l1_platform_hal_positive2_SetMACsecEnable);
@@ -8554,6 +9172,17 @@ int test_platform_hal_l1_register(void)
     UT_add_test( pSuite, "l1_platform_hal_negative3_GetInterfaceStats", test_l1_platform_hal_negative3_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative4_GetInterfaceStats", test_l1_platform_hal_negative4_GetInterfaceStats);
     UT_add_test( pSuite, "l1_platform_hal_negative5_GetInterfaceStats", test_l1_platform_hal_negative5_GetInterfaceStats);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_GetPppUserName", test_l1_platform_hal_positive1_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_GetPppUserName", test_l1_platform_hal_positive2_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_GetPppUserName", test_l1_platform_hal_negative1_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_GetPppUserName", test_l1_platform_hal_negative2_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_GetPppUserName", test_l1_platform_hal_negative3_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_negative4_platform_hal_GetPppUserName", test_l1_platform_hal_negative4_platform_hal_GetPppUserName);
+    UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_GetPppPassword", test_l1_platform_hal_positive1_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_positive2_platform_hal_GetPppPassword", test_l1_platform_hal_positive2_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_GetPppPassword", test_l1_platform_hal_negative1_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_GetPppPassword", test_l1_platform_hal_negative2_platform_hal_GetPppPassword);
+    UT_add_test( pSuite, "l1_platform_hal_negative3_platform_hal_GetPppPassword", test_l1_platform_hal_negative3_platform_hal_GetPppPassword);
     UT_add_test( pSuite, "l1_platform_hal_positive1_platform_hal_qos_apply", test_l1_platform_hal_positive1_platform_hal_qos_apply);
     UT_add_test( pSuite, "l1_platform_hal_negative1_platform_hal_qos_apply", test_l1_platform_hal_negative1_platform_hal_qos_apply);
     UT_add_test( pSuite, "l1_platform_hal_negative2_platform_hal_qos_apply", test_l1_platform_hal_negative2_platform_hal_qos_apply);
