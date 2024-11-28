@@ -380,6 +380,14 @@ INT platform_hal_getRadioTemperature(INT radioIndex, INT* pValue)
   (void)pValue;
   return (INT)0;
 }
+
+INT platform_hal_getEcoModeStatus(INT radioIndex, INT *pValue)
+{
+   /*TODO: Implement Me!*/
+  (void)radioIndex;
+  (void)pValue;
+  return (INT)0;
+}
 #endif
 INT platform_hal_SetSNMPOnboardRebootEnable(CHAR* pValue)
 {
@@ -509,6 +517,29 @@ INT platform_hal_GetInterfaceStats(const char* ifname, PINTF_STATS pIntfStats)
   /*TODO: Implement Me!*/
   (void)ifname;
   (void)pIntfStats;
+  return (INT)0;
+}
+
+INT platform_hal_GetPppUserName(CHAR* pUserName, ULONG maxSize)
+{
+   /*TODO: Implement Me!*/
+  (void)pUserName;
+  (void)maxSize;
+  return (INT)0;
+}
+
+INT platform_hal_GetPppPassword(CHAR* pPassword, ULONG maxSize)
+{
+   /*TODO: Implement Me!*/
+  (void)pPassword;
+  (void)maxSize;
+  return (INT)0;
+}
+
+INT platform_hal_qos_apply(const hal_network_params_t *params)
+{
+  /*TODO: Implement Me!*/
+  (void)params;
   return (INT)0;
 }
 
