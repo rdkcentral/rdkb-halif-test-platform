@@ -37,424 +37,12 @@
 #include <ctype.h>
 #include <math.h>
 #include <limits.h>
-#include "cJSON.h"
+#include <ut_kvp_profile.h>
 #include "platform_hal.h"
 
-int MaxEthPort = 0;
-char PartnerID[512] = { '\0' };
-char** factoryCmVariant = NULL;
-int num_FactoryCmVariant = 0;
-RDK_CPUS *supportedCpus = NULL;
-int num_SupportedCPUs = 0;
-PSM_STATE *Supported_PSM_STATE = NULL;
-int num_Supported_PSM_STATE = 0;
-int *FanIndex = NULL;
-int num_FanIndex = 0;
-char** InterfaceNames = NULL;
-int num_InterfaceNames = 0;
+#define MAX_CONFIG_SIZE 256
 
 extern int init_platform_hal_init(void);
-
-/**function to read the json config file and return its content as a string
-*IN : json file name
-*OUT : content of json file as string
-**/
-static char* read_file(const char *filename)
-{
-    FILE *file = NULL;
-    long length = 0;
-    char *content = NULL;
-    size_t read_chars = 0;
-
-    /* open in read mode */
-    file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        printf("Please place platform_config file ,where your binary is placed\n");
-        exit(1);
-    }
-    else
-    {
-        /* get the length */
-        if (fseek(file, 0, SEEK_END) == 0)
-        {
-            length = ftell(file);
-            if (length > 0)
-            {
-                if (fseek(file, 0, SEEK_SET) == 0)
-                {
-                    /* allocate content buffer */
-                    content = (char*)malloc((size_t)length + sizeof(""));
-                    if (content != NULL)
-                    {
-                        /* read the file into memory */
-                        read_chars = fread(content, sizeof(char), (size_t)length, file);
-                        if ((long)read_chars != length)
-                        {
-                            free(content);
-                            content = NULL;
-                        }
-                        else
-                            content[read_chars] = '\0';
-                    }
-                }
-            }
-            else
-            {
-                printf("platform_config file is empty. please add configuration\n");
-                exit(1);
-            }
-        }
-        fclose(file);
-    }
-    return content;
-}
-
-/**function to read the json config file and return its content as a json object
-*IN : json file name
-*OUT : content of json file as a json object
-**/
-static cJSON *parse_file(const char *filename)
-{
-    cJSON *parsed = NULL;
-    char *content = read_file(filename);
-    parsed = cJSON_Parse(content);
-
-    if(content != NULL)
-    {
-        free(content);
-    }
-
-    return parsed;
-}
-
-/* get the MaxEthPort from configuration file */
-int get_MaxEthPort(void)
-{
-    char configFile[] =  "./platform_config";
-    cJSON *value = NULL;
-    cJSON *json = NULL;
-    UT_LOG("Checking MaxEthPort");
-    json = parse_file(configFile);
-    if(json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "MaxEthPort");
-    // null check and object is number, value->valueint
-    if((value != NULL) && (cJSON_IsNumber(value)))
-    {
-        MaxEthPort = value->valueint;
-    }
-    UT_LOG("MaxEthPort from config file is : %d",MaxEthPort);
-    return 0;
-}
-
-/* get the PartnerID from configuration file */
-int get_PartnerID(void)
-{
-    char configFile[] =  "./platform_config";
-    cJSON *value = NULL;
-    cJSON *json = NULL;
-    UT_LOG("Checking PartnerID");
-    json = parse_file(configFile);
-    if(json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "PartnerID");
-    // null check and object is string, value->valuestring
-    if((value != NULL) && (cJSON_IsString(value)))
-    {
-       strcpy(PartnerID, value->valuestring);
-    }
-    UT_LOG("PartnerID from config file is : %s",PartnerID);
-    return 0;
-}
-
-/* Free memory allocated for factoryCmVariant */
-void freeFactoryCmVariant(void)
-{
-    int i = 0;
-    if (factoryCmVariant != NULL)
-    {
-        for (i = 0; i < num_FactoryCmVariant; i++)
-        {
-            free(factoryCmVariant[i]);
-        }
-        free(factoryCmVariant);
-    }
-}
-
-/* get the FactoryCmVariant from configuration file */
-int get_FactoryCmVariant(void)
-{
-    char configFile[] = "./platform_config";
-    cJSON* value = NULL;
-    cJSON* json = NULL;
-    cJSON* item = NULL;
-    int i = 0;
-
-    UT_LOG("Checking FactoryCmVariant");
-    json = parse_file(configFile);
-    if (json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "FactoryCmVariant");
-    // null check and object is Array, value->valuestring
-    if ((value != NULL) && (cJSON_IsArray(value)))
-    {
-        num_FactoryCmVariant = cJSON_GetArraySize(value);
-        printf("Number of FactoryCmVariant : %d \n", num_FactoryCmVariant);
-
-        // Allocate memory for factoryCmVariant
-        factoryCmVariant = (char**)malloc(num_FactoryCmVariant * sizeof(char*));
-        if (factoryCmVariant == NULL)
-	{
-            printf("Memory allocation failed\n");
-            cJSON_Delete(json);
-            return -1;
-        }
-        cJSON_ArrayForEach(item, value)
-        {
-            if (i < num_FactoryCmVariant && cJSON_IsString(item))
-            {
-                // Allocate memory for each string and copy the content
-                factoryCmVariant[i] = (char*)malloc((strlen(item->valuestring) + 1) * sizeof(char));
-                if (factoryCmVariant[i] == NULL)
-                {
-                    printf("Memory allocation failed\n");
-                    freeFactoryCmVariant();
-                    cJSON_Delete(json);
-                    return -1;
-                }
-
-                strcpy(factoryCmVariant[i], item->valuestring);
-                i++;
-            }
-        }
-    }
-    // Free cJSON object as it is no longer needed
-    cJSON_Delete(json);
-    return 0;
-}
-
-/* get the Supported CPUs from configuration file */
-int get_SupportedCPUs(void)
-{
-    char configFile[] = "./platform_config";
-    cJSON* value = NULL;
-    cJSON* json = NULL;
-    int i = 0;
-    UT_LOG("Checking SupportedCPUs");
-    json = parse_file(configFile);
-    if (json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "Supported_CPUS");
-
-    // Null check and object is an array
-    if ((value != NULL) && (cJSON_IsArray(value)))
-    {
-        num_SupportedCPUs = cJSON_GetArraySize(value);
-        printf("Number of SupportedCPUs : %d\n", num_SupportedCPUs);
-        // Allocate memory for SupportedCPUs
-        supportedCpus = (RDK_CPUS*)malloc(num_SupportedCPUs * sizeof(RDK_CPUS));
-        if (!*supportedCpus)
-        {
-            printf("Memory allocation failed\n");
-            cJSON_Delete(json);
-            return -1;
-        }
-
-        for (i = 0; i < num_SupportedCPUs; i++)
-        {
-            cJSON *cpuItem = cJSON_GetArrayItem(value, i);
-            if (!cJSON_IsNumber(cpuItem))
-            {
-                printf("Invalid CPU type in Supported_CPUS array\n"); // Invalid CPU type
-                free(supportedCpus);
-                cJSON_Delete(json);
-                return 0;
-            }
-            supportedCpus[i] = (RDK_CPUS)cJSON_GetNumberValue(cpuItem);
-        }
-    }
-    // Free cJSON object as it is no longer needed
-    cJSON_Delete(json);
-    return 0;
-}
-
-/* get the LowPowerModeStates from configuration file */
-int get_LowPowerModeStates(void)
-{
-    char configFile[] = "./platform_config";
-    cJSON* value = NULL;
-    cJSON* json = NULL;
-    int i = 0;
-    UT_LOG("Checking LowPowerModeStates");
-    json = parse_file(configFile);
-    if (json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "Supported_PSM_STATE");
-
-    // Null check and object is an array
-    if ((value != NULL) && (cJSON_IsArray(value)))
-    {
-        num_Supported_PSM_STATE = cJSON_GetArraySize(value);
-        printf("Number of Supported_PSM_STATE : %d\n", num_Supported_PSM_STATE);
-
-        // Allocate memory for SupportedCPUs
-        Supported_PSM_STATE = (PSM_STATE*)malloc(num_Supported_PSM_STATE * sizeof(PSM_STATE));
-        if (!*Supported_PSM_STATE)
-        {
-            printf("Memory allocation failed\n");
-            cJSON_Delete(json);
-            return -1;
-        }
-        for (i = 0; i < num_Supported_PSM_STATE; i++)
-        {
-            cJSON *PSMItem = cJSON_GetArrayItem(value, i);
-            if (!cJSON_IsNumber(PSMItem))
-            {
-                printf("Invalid PSM state in Supported_PSM_STATE array\n"); // Invalid PSM state
-                free(Supported_PSM_STATE);
-                cJSON_Delete(json);
-                return 0;
-            }
-            Supported_PSM_STATE[i] = (PSM_STATE)cJSON_GetNumberValue(PSMItem);
-        }
-    }
-    // Free cJSON object as it is no longer needed
-    cJSON_Delete(json);
-    return 0;
-}
-
-/* get the FanIndex from configuration file */
-int get_FanIndex(void)
-{
-    char configFile[] = "./platform_config";
-    cJSON* value = NULL;
-    cJSON* json = NULL;
-    int i = 0;
-    UT_LOG("Checking FanIndex");
-    json = parse_file(configFile);
-    if (json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "FanIndex");
-
-    // Null check and object is an array
-    if ((value != NULL) && (cJSON_IsArray(value)))
-    {
-        num_FanIndex = cJSON_GetArraySize(value);
-        printf("Number of FanIndex : %d\n", num_FanIndex);
-
-        // Allocate memory for FanIndex
-        FanIndex = (int*)malloc(num_FanIndex * sizeof(int));
-        if (!*FanIndex)
-        {
-            printf("Memory allocation failed\n");
-            cJSON_Delete(json);
-            return -1;
-        }
-        for (i = 0; i < num_FanIndex; i++)
-        {
-            cJSON *FanItem = cJSON_GetArrayItem(value, i);
-            if (!cJSON_IsNumber(FanItem))
-            {
-                printf("Invalid FanIndex in array\n"); // Invalid FanIndex
-                free(FanIndex);
-                cJSON_Delete(json);
-                return 0;
-            }
-            FanIndex[i] = (int)cJSON_GetNumberValue(FanItem);
-        }
-    }
-    // Free cJSON object as it is no longer needed
-    cJSON_Delete(json);
-    return 0;
-}
-
-/* Free memory allocated for InterfaceNames */
-void freeInterfaceNames(void)
-{
-    int i = 0;
-    if (InterfaceNames != NULL)
-    {
-        for (i = 0; i < num_InterfaceNames; i++)
-        {
-            free(InterfaceNames[i]);
-        }
-        free(InterfaceNames);
-    }
-}
-
-/* get the InterfaceNames from configuration file */
-int get_InterfaceNames(void)
-{
-    char configFile[] = "./platform_config";
-    cJSON* value = NULL;
-    cJSON* json = NULL;
-    cJSON* item = NULL;
-    int i = 0;
-
-    UT_LOG("Checking InterfaceNames");
-    json = parse_file(configFile);
-    if (json == NULL)
-    {
-        printf("Failed to parse config\n");
-        return -1;
-    }
-    value = cJSON_GetObjectItem(json, "InterfaceNames");
-    // null check and object is Array, value->valuestring
-    if ((value != NULL) && (cJSON_IsArray(value)))
-    {
-        num_InterfaceNames = cJSON_GetArraySize(value);
-        printf("Number of InterfaceNames : %d \n", num_InterfaceNames);
-
-        // Allocate memory for InterfaceNames
-        InterfaceNames = (char**)malloc(num_InterfaceNames * sizeof(char*));
-        if (InterfaceNames == NULL)
-	{
-            printf("Memory allocation failed\n");
-            cJSON_Delete(json);
-            return -1;
-        }
-        cJSON_ArrayForEach(item, value)
-        {
-            if (i < num_InterfaceNames && cJSON_IsString(item))
-            {
-                // Allocate memory for each string and copy the content
-                InterfaceNames[i] = (char*)malloc((strlen(item->valuestring) + 1) * sizeof(char));
-                if (InterfaceNames[i] == NULL)
-                {
-                    printf("Memory allocation failed\n");
-                    freeInterfaceNames();
-                    cJSON_Delete(json);
-                    return -1;
-                }
-
-                strcpy(InterfaceNames[i], item->valuestring);
-                i++;
-            }
-        }
-    }
-    // Free cJSON object as it is no longer needed
-    cJSON_Delete(json);
-    return 0;
-}
 
 /**
 * @brief This test case is used to verify the functionality of the get firmware name API.
@@ -2063,14 +1651,23 @@ void test_l1_platform_hal_positive1_setFactoryCmVariant(void)
     INT status = 0;
     CHAR pValue[512] = {'\0'};
     int i = 0;
+    /* FactoryCmVariant values are configured in platform_profile.yaml under platform/FactoryCmVariant */
+    int num_FactoryCmVariant = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FactoryCmVariant");
+    if (num_FactoryCmVariant == 0)
+    {
+        UT_LOG("No FactoryCmVariant entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
+
     UT_LOG("Number of FactoryCmVariant values : %d ", num_FactoryCmVariant);
 
     for (i = 0; i < num_FactoryCmVariant; i++ )
     {
         status = 0;
         memset(pValue, 0, sizeof(pValue));
-        //FactoryCmVariant should be configured in platform_config file
-        strcpy(pValue, factoryCmVariant[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FactoryCmVariant/%d", i);
+        UT_KVP_PROFILE_GET_STRING(key, pValue);
         UT_LOG("Invoking platform_hal_setFactoryCmVariant with pValue = %s.",pValue);
         status = platform_hal_setFactoryCmVariant(pValue);
 
@@ -2172,14 +1769,14 @@ void test_l1_platform_hal_positive1_getLed(void)
         memset(params, 0, sizeof(LEDMGMT_PARAMS));
         UT_LOG("Invoking platform_hal_getLed with params = valid structure");
         INT result = platform_hal_getLed(params);
+        UT_LOG("platform_hal_getLed API returns:%d", result);
+        UT_ASSERT_EQUAL(result, RETURN_OK);
         if(result == RETURN_OK)
         {
-            UT_LOG("platform_hal_getLed API returns:%d", result);
             UT_LOG("LED colour:%d",params->LedColor);
             UT_LOG("State:%d",params->State);
             UT_LOG("Interval:%d",params->Interval);
 
-            UT_ASSERT_EQUAL(result, RETURN_OK);
             if((params->LedColor >= 0) && (params->LedColor <= 6))
             {
                 UT_LOG("Led Color is %d which is a valid value", params->LedColor);
@@ -2210,10 +1807,6 @@ void test_l1_platform_hal_positive1_getLed(void)
                 UT_LOG("Interval is  %d which is an invalid value", params->Interval);
                 UT_FAIL("Interval validation failed");
             }
-        }
-	else
-        {
-            UT_LOG("platform_hal_getLed API returns:%d", result);
         }
     }
     else
@@ -2279,12 +1872,21 @@ void test_l1_platform_hal_positive1_getRotorLock(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getRotorLock...");
     int i = 0;
     INT status = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = %d",FanIndex[i]);
-        status = platform_hal_getRotorLock(FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_getRotorLock with fanIndex = %d", fanIdx);
+        status = platform_hal_getRotorLock(fanIdx);
 
         UT_LOG("platform_hal_getRotorLock returns : %d", status);
         if(status == 1)
@@ -3037,12 +2639,21 @@ void test_l1_platform_hal_positive1_getRPM(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getRPM...");
     int i = 0;
     UINT fanRPM = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", FanIndex[i]);
-        fanRPM = platform_hal_getRPM(FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_getRPM with fanIndex = %d", fanIdx);
+        fanRPM = platform_hal_getRPM(fanIdx);
 
         UT_LOG("FanRPM = %d", fanRPM);
         if(fanRPM >= 0)
@@ -3788,7 +3399,8 @@ void test_l1_platform_hal_negative1_SetMACsecEnable(void)
 void test_l1_platform_hal_positive3_SetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_SetMACsecEnable...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort-1;
     BOOLEAN Flag = 1;
 
@@ -3858,14 +3470,24 @@ void test_l1_platform_hal_positive1_GetMemoryPaths(void)
     PPLAT_PROC_MEM_INFO ppinfo = (PPLAT_PROC_MEM_INFO)malloc(sizeof(PLAT_PROC_MEM_INFO));
     INT result = 0;
     int i = 0;
+    /* Supported_CPUS values are configured in platform_profile.yaml under platform/Supported_CPUS */
+    int num_SupportedCPUs = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/Supported_CPUS");
+    if (num_SupportedCPUs == 0)
+    {
+        UT_LOG("No Supported_CPUS entries found in platform_profile.yaml - skipping test");
+        free(ppinfo);
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
     if (ppinfo != NULL)
     {
         memset(ppinfo, 0, sizeof(PLAT_PROC_MEM_INFO));
         for(i=0;i<num_SupportedCPUs; i++)
         {
-            //Supported_CPUS should be configured in platform_config file
-            UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer",supportedCpus[i]);
-            result = platform_hal_GetMemoryPaths(supportedCpus[i], &ppinfo);
+            snprintf(key, MAX_CONFIG_SIZE, "platform/Supported_CPUS/%d", i);
+            RDK_CPUS cpuIdx = (RDK_CPUS)UT_KVP_PROFILE_GET_UINT32(key);
+            UT_LOG("Invoking platform_hal_GetMemoryPaths with index = %d, ppinfo = valid pointer", cpuIdx);
+            result = platform_hal_GetMemoryPaths(cpuIdx, &ppinfo);
 
             UT_LOG("platform_hal_GetMemoryPaths returns : %d", result);
             UT_ASSERT_EQUAL(result, RETURN_OK);
@@ -4139,7 +3761,8 @@ void test_l1_platform_hal_negative2_GetMACsecEnable(void)
 void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_GetMACsecEnable...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort-1;
     BOOLEAN flag = FALSE;
 
@@ -4183,7 +3806,8 @@ void test_l1_platform_hal_positive2_GetMACsecEnable(void)
 void test_l1_platform_hal_positive3_GetMACsecEnable(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_GetMACsecEnable...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     int ethPort = rand() % (MaxEthPort-1);
     BOOLEAN flag = FALSE;
 
@@ -4327,7 +3951,8 @@ void test_l1_platform_hal_positive2_StartMACsec(void)
 void test_l1_platform_hal_positive3_StartMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_StartMACsec...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort - 1;
     INT timeoutSec = 0;
 
@@ -4789,12 +4414,21 @@ void test_l1_platform_hal_positive1_SetLowPowerModeState(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_SetLowPowerModeState...");
     INT status = 0;
     int i = 0;
+    /* Supported_PSM_STATE values are configured in platform_profile.yaml under platform/Supported_PSM_STATE */
+    int num_Supported_PSM_STATE = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/Supported_PSM_STATE");
+    if (num_Supported_PSM_STATE == 0)
+    {
+        UT_LOG("No Supported_PSM_STATE entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for(i = 0;i < num_Supported_PSM_STATE; i++)
     {
-        //Supported_PSM_STATE should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", Supported_PSM_STATE[i]);
-        status = platform_hal_SetLowPowerModeState(&Supported_PSM_STATE[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/Supported_PSM_STATE/%d", i);
+        PSM_STATE psmState = (PSM_STATE)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_SetLowPowerModeState with pState = %d.", psmState);
+        status = platform_hal_SetLowPowerModeState(&psmState);
 
         UT_LOG("platform_hal_SetLowPowerModeState returns : %d", status);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -5617,9 +5251,9 @@ void test_l1_platform_hal_positive2_getDscpClientList(void)
                     }
                 }
             }
+            free(pDSCP_List);
+            pDSCP_List = NULL;
         }
-        free(pDSCP_List);
-        pDSCP_List = NULL;
     }
     else
     {
@@ -6198,12 +5832,21 @@ void test_l1_platform_hal_positive1_setFanMaxOverride(void)
     BOOLEAN bOverrideFlag = TRUE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
-        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIdx);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIdx);
 
         UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6235,12 +5878,21 @@ void test_l1_platform_hal_positive2_setFanMaxOverride(void)
     BOOLEAN bOverrideFlag = FALSE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, FanIndex[i]);
-        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with bOverrideFlag = %d, fanIndex = %d", bOverrideFlag, fanIdx);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIdx);
 
         UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6339,12 +5991,21 @@ void test_l1_platform_hal_negative3_setFanMaxOverride(void)
     BOOLEAN bOverrideFlag = 2;
     int i = 0;
     INT status = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanMaxOverride with invalid bOverrideFlag = %d, valid fanIndex = %d", bOverrideFlag, FanIndex[i]);
-        status = platform_hal_setFanMaxOverride(bOverrideFlag, FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanMaxOverride with invalid bOverrideFlag = %d, valid fanIndex = %d", bOverrideFlag, fanIdx);
+        status = platform_hal_setFanMaxOverride(bOverrideFlag, fanIdx);
 
         UT_LOG("platform_hal_setFanMaxOverride returns: %d", status);
         UT_ASSERT_EQUAL(status, RETURN_ERR);
@@ -6378,12 +6039,21 @@ void test_l1_platform_hal_positive1_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     int i = 0;
     INT status = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d,pErrReason = valid buffer.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d,pErrReason = valid buffer.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6418,12 +6088,21 @@ void test_l1_platform_hal_positive2_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     int i = 0;
     INT status = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6457,12 +6136,21 @@ void test_l1_platform_hal_positive3_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6497,12 +6185,21 @@ void test_l1_platform_hal_positive4_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6537,12 +6234,21 @@ void test_l1_platform_hal_positive5_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with fanIndex = %d, fanSpeed = %d, pErrReason = valid buffer.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d, error reason: %d", status, pErrReason);
         UT_ASSERT_EQUAL(status, RETURN_OK);
@@ -6577,12 +6283,21 @@ void test_l1_platform_hal_negative1_setFanSpeed(void)
     FAN_ERR pErrReason = FAN_ERR_NONE;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d, invalid fanSpeed = %d, pErrReason = valid buffer.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, &pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d, invalid fanSpeed = %d, pErrReason = valid buffer.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, &pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
         UT_LOG("pErrReason : %d", pErrReason);
@@ -6632,12 +6347,21 @@ void test_l1_platform_hal_negative2_setFanSpeed(void)
     FAN_ERR *pErrReason = NULL;
     INT status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", FanIndex[i], fanSpeed);
-        status = platform_hal_setFanSpeed(FanIndex[i], fanSpeed, pErrReason);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_setFanSpeed with valid fanIndex = %d and fanSpeed = %d , pErrReason = NULL.", fanIdx, fanSpeed);
+        status = platform_hal_setFanSpeed(fanIdx, fanSpeed, pErrReason);
 
         UT_LOG("platform_hal_setFanSpeed API returns : %d", status);
         UT_ASSERT_EQUAL(status, RETURN_ERR);
@@ -7013,8 +6737,8 @@ void test_l1_platform_hal_positive1_getFactoryPartnerId(void)
     UT_LOG("platform_hal_getFactoryPartnerId returns : %d and Factory Partner Id is : %s", status, pValue);
     UT_ASSERT_EQUAL(status, RETURN_OK);
 
-    //PartnerID should be configured in platform_config file
-    strcpy(partnerID, PartnerID);
+    /* PartnerID is configured in platform_profile.yaml under platform/PartnerID */
+    UT_KVP_PROFILE_GET_STRING("platform/PartnerID", partnerID);
 
     if (!strcmp(pValue,partnerID))
     {
@@ -7153,12 +6877,21 @@ void test_l1_platform_hal_positive1_getFanStatus(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanStatus...");
     BOOLEAN status = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", FanIndex[i]);
-        status = platform_hal_getFanStatus(FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking the API platform_hal_getFanStatus  with fanIndex = %d.", fanIdx);
+        status = platform_hal_getFanStatus(fanIdx);
 
         UT_LOG("Status of the fan is %d",status);
         if(status == 0)
@@ -7203,12 +6936,21 @@ void test_l1_platform_hal_positive1_getFanSpeed(void)
     UT_LOG("Entering test_l1_platform_hal_positive1_getFanSpeed...");
     UINT fanSpeed = 0;
     int i = 0;
+    /* FanIndex values are configured in platform_profile.yaml under platform/FanIndex */
+    int num_FanIndex = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/FanIndex");
+    if (num_FanIndex == 0)
+    {
+        UT_LOG("No FanIndex entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
 
     for( i = 0;i < num_FanIndex; i++)
     {
-        //FanIndex should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", FanIndex[i]);
-        fanSpeed = platform_hal_getFanSpeed(FanIndex[i]);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/FanIndex/%d", i);
+        int fanIdx = (int)UT_KVP_PROFILE_GET_UINT32(key);
+        UT_LOG("Invoking platform_hal_getFanSpeed with fanIndex = %d.", fanIdx);
+        fanSpeed = platform_hal_getFanSpeed(fanIdx);
 
         UT_LOG("Received fanSpeed = %d", fanSpeed);
         if (fanSpeed >= 0)
@@ -7845,7 +7587,8 @@ void test_l1_platform_hal_positive1_StopMACsec(void)
 void test_l1_platform_hal_positive2_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive2_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort - 1;
 
     UT_LOG("Invoking platform_hal_StopMACsec with valid ethPort = %d", ethPort);
@@ -7878,7 +7621,8 @@ void test_l1_platform_hal_positive2_StopMACsec(void)
 void test_l1_platform_hal_positive3_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_positive3_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = rand() % (MaxEthPort-1);
 
     UT_LOG("Invoking platform_hal_StopMACsec with valid ethPort = %d", ethPort);
@@ -7943,7 +7687,8 @@ void test_l1_platform_hal_negative1_StopMACsec(void)
 void test_l1_platform_hal_negative2_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative2_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort;
 
     UT_LOG("Invoking platform_hal_StopMACsec with invalid ethPort = %d", ethPort);
@@ -7976,7 +7721,8 @@ void test_l1_platform_hal_negative2_StopMACsec(void)
 void test_l1_platform_hal_negative3_StopMACsec(void)
 {
     UT_LOG("Entering test_l1_platform_hal_negative3_StopMACsec...");
-    //MaxEthPort should be configured in platform_config file
+    /* MaxEthPort is configured in platform_profile.yaml under platform/MaxEthPort */
+    int MaxEthPort = (int)UT_KVP_PROFILE_GET_UINT32("platform/MaxEthPort");
     INT ethPort = MaxEthPort + 1;
 
     UT_LOG("Invoking platform_hal_StopMACsec with invalid ethPort = %d", ethPort);
@@ -8012,14 +7758,26 @@ void test_l1_platform_hal_positive1_GetInterfaceStats(void)
     int i = 0;
     INT retStatus = 0;
     PINTF_STATS pIntfStats = (PINTF_STATS)malloc(sizeof(INTF_STATS));
+    /* InterfaceNames are configured in platform_profile.yaml under platform/InterfaceNames */
+    int num_InterfaceNames = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/InterfaceNames");
+    if (num_InterfaceNames == 0)
+    {
+        UT_LOG("No InterfaceNames entries found in platform_profile.yaml - skipping test");
+        free(pIntfStats);
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
+    char ifName[MAX_CONFIG_SIZE];
+
     UT_LOG("Number of InterfaceNames values : %d ", num_InterfaceNames);
     if(pIntfStats != NULL)
     {
         for (i = 0; i < num_InterfaceNames; i++ )
         {
-            //InterfaceNames should be configured in platform_config file
-            UT_LOG("Invoking platform_hal_GetInterfaceStats with valid interface = %s", InterfaceNames[i]);
-            retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
+            snprintf(key, MAX_CONFIG_SIZE, "platform/InterfaceNames/%d", i);
+            UT_KVP_PROFILE_GET_STRING(key, ifName);
+            UT_LOG("Invoking platform_hal_GetInterfaceStats with valid interface = %s", ifName);
+            retStatus = platform_hal_GetInterfaceStats(ifName, pIntfStats);
             UT_LOG("platform_hal_GetInterfaceStats returns: %d", retStatus);
             UT_ASSERT_EQUAL(retStatus, RETURN_OK);
 
@@ -8231,13 +7989,23 @@ void test_l1_platform_hal_negative4_GetInterfaceStats(void)
     PINTF_STATS pIntfStats = NULL;
     INT retStatus = 0;
     int i = 0;
+    /* InterfaceNames are configured in platform_profile.yaml under platform/InterfaceNames */
+    int num_InterfaceNames = (int)UT_KVP_PROFILE_GET_LIST_COUNT("platform/InterfaceNames");
+    if (num_InterfaceNames == 0)
+    {
+        UT_LOG("No InterfaceNames entries found in platform_profile.yaml - skipping test");
+        return;
+    }
+    char key[MAX_CONFIG_SIZE];
+    char ifName[MAX_CONFIG_SIZE];
 
     UT_LOG("Number of InterfaceNames values : %d ", num_InterfaceNames);
     for (i = 0; i < num_InterfaceNames; i++ )
     {
-        //InterfaceNames should be configured in platform_config file
-        UT_LOG("Invoking platform_hal_GetInterfaceStats with pIntfStats as NULL and valid interface = %s",InterfaceNames[i]);
-        retStatus = platform_hal_GetInterfaceStats(InterfaceNames[i], pIntfStats);
+        snprintf(key, MAX_CONFIG_SIZE, "platform/InterfaceNames/%d", i);
+        UT_KVP_PROFILE_GET_STRING(key, ifName);
+        UT_LOG("Invoking platform_hal_GetInterfaceStats with pIntfStats as NULL and valid interface = %s", ifName);
+        retStatus = platform_hal_GetInterfaceStats(ifName, pIntfStats);
         UT_LOG("platform_hal_GetInterfaceStats returns : %d",retStatus);
         UT_ASSERT_EQUAL(retStatus, RETURN_ERR);
     }
