@@ -49,20 +49,24 @@ CFLAGS += -DFEATURE_RDKB_THERMAL_MANAGER -DFEATURE_RDKB_LED_MANAGER
 
 The users of platform hal 3PE test suite can populate appropriate platform specific values for the below parameters in the configuration file platform_profile.yaml before executing the test binary.
 
-1.  Fill the param MaxEthPort with Number of Ethernet ports. MaxEthPort : x , where x is the number of ethernet ports
+1.  Fill the param MaxEthPort with Number of Ethernet ports.
+```
+    MaxEthPort : x
+```
+    - where x is the number of ethernet ports
 
 2.  For PartnerID, fill with Partner ID of the device. Refer the example given below :
-
+```
     PartnerID: comcast
-
+```
 3.  For FactoryCmVariant , fill with supported CM Variant values as a list of strings. Refer the example given below :
-
+```
     FactoryCmVariant:
         - pc20
         - pc20genband
         - pc15sip
         - pc15mgcp
-
+```
 4.  For Supported_CPUS :
 
         a. If only HOST_CPU is supported, fill this param as below:
@@ -99,10 +103,11 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
             - 4
 
     - Platform can support multiple Power Saving Mode States, specify as a dropdown list. Refer the example given below :
+```
     Supported_PSM_STATE:
         - 1
         - 2
-
+```
 6.  For FanIndex:
 
         a. If platform supports only 1 fan , fill this parm as below:
@@ -117,10 +122,11 @@ The users of platform hal 3PE test suite can populate appropriate platform speci
     - The range of FanIndex is from 0 to 1.
 
 7.  For InterfaceNames, fill with supported interfaces on each platform as a list of available network interfaces. Refer the example given below :
-
+```
     InterfaceNames:
         - br106
         - eth0
         - erouter0
         - eth3
         - gretap0
+```
