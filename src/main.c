@@ -21,29 +21,7 @@
 #include <stdlib.h>
 #include "platform_hal.h"
 
-extern int MaxEthPort;
-extern char PartnerID[512] ;
-extern char** factoryCmVariant;
-extern int num_FactoryCmVariant;
-extern RDK_CPUS *supportedCpus;
-extern int num_SupportedCPUs;
-extern PSM_STATE *Supported_PSM_STATE;
-extern int num_Supported_PSM_STATE;
-extern int *FanIndex;
-extern int num_FanIndex;
-extern char** InterfaceNames;
-extern int num_InterfaceNames;
-
 extern int register_hal_l1_tests( void );
-extern int get_MaxEthPort(void);
-extern int get_PartnerID(void);
-extern int get_FactoryCmVariant(void);
-extern int get_SupportedCPUs(void);
-extern int get_LowPowerModeStates(void);
-extern int get_FanIndex(void);
-extern void freeFactoryCmVariant(void);
-extern void freeInterfaceNames(void);
-extern int get_InterfaceNames(void);
 
 int init_platform_hal_init(void)
 {
@@ -96,85 +74,6 @@ int init_platform_hal_init(void)
 int main(int argc, char** argv)
 {
     int registerReturn = 0;
-    int i = 0;
-    if (get_MaxEthPort() == 0)
-    {
-        UT_LOG("Got the MaxEthPort value : %d", MaxEthPort);
-    }
-    else
-    {
-        printf("Failed to get MaxEthPort value\n");
-    }
-
-    if (get_PartnerID() == 0)
-    {
-        UT_LOG("Got the PartnerID value : %s", PartnerID);
-    }
-    else
-    {
-        printf("Failed to get PartnerID value\n");
-    }
-    if (get_FactoryCmVariant() == 0)
-    {
-        UT_LOG("Got the FactoryCmVariant values :\n");
-        for (i = 0;i < num_FactoryCmVariant; i++)
-        {
-            UT_LOG("%s \n", factoryCmVariant[i]);
-        }
-    }
-    else
-    {
-        printf("Failed to get FactoryCmVariant value\n");
-    }
-    if (get_SupportedCPUs() == 0)
-    {
-        UT_LOG("Got the SupportedCPUs values :\n");
-        for (i = 0;i < num_SupportedCPUs; i++)
-        {
-            UT_LOG("%d \n", supportedCpus[i]);
-        }
-    }
-    else
-    {
-        printf("Failed to get SupportedCPUs value\n");
-    }
-    if (get_LowPowerModeStates() == 0)
-    {
-        UT_LOG("Got the LowPowerModeStates values : ");
-        for (i = 0;i < num_Supported_PSM_STATE; i++)
-        {
-            UT_LOG("%d \n", Supported_PSM_STATE[i]);
-        }
-    }
-    else
-    {
-        printf("Failed to get LowPowerModeStates value\n");
-    }
-
-    if (get_FanIndex() == 0)
-    {
-        UT_LOG("Got the FanIndex values : ");
-        for (i = 0;i < num_FanIndex; i++)
-        {
-            UT_LOG("%d \n", FanIndex[i]);
-        }
-    }
-    else
-    {
-        printf("Failed to get FanIndex value\n");
-    }
-    if (get_InterfaceNames() == 0)
-    {
-        UT_LOG("Got the InterfaceNames values :\n");
-        for (i = 0;i < num_InterfaceNames; i++)
-        {
-            UT_LOG("%s \n", InterfaceNames[i]);
-        }
-    }
-    else
-    {
-        printf("Failed to get InterfaceNames value\n");
-    }
 
     /* Register tests as required, then call the UT-main to support switches and triggering */
     UT_init( argc, argv );
@@ -190,12 +89,6 @@ int main(int argc, char** argv)
         return 1;
     }
     UT_run_tests();
-
-    freeFactoryCmVariant();
-    free(supportedCpus);
-    free(Supported_PSM_STATE);
-    free(FanIndex);
-    freeInterfaceNames();
 
     return 0;
 }

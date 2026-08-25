@@ -1,0 +1,13 @@
+platform:
+    MaxEthPort: 
+    PartnerID:
+    FactoryCmVariant:
+        -
+    Supported_CPUS:
+        -
+    Supported_PSM_STATE:
+        -
+    FanIndex:
+        -
+    InterfaceNames:
+        -
