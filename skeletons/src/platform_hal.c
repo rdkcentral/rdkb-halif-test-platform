@@ -16,10 +16,20 @@
 * limitations under the License.
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/mount.h>
 #include "platform_hal.h"
+
+/* Firmware bank information */
+#define RDKB_ACTIVE_VERSION_FILE "/version.txt"
+#define RDKB_INACTIVE_MOUNT_POINT "/tmp/rdkb_inactive_bank"
+#define RDKB_ROOTFS_A "/dev/mmcblk0p4"
+#define RDKB_ROOTFS_B "/dev/mmcblk0p8"
 
 
 INT platform_hal_GetDeviceConfigStatus(CHAR* pValue)
@@ -504,12 +514,195 @@ INT platform_hal_GetCPUSpeed(char* cpuSpeed)
   return (INT)0;
 }
 
+/* Firmware bank helpers */
+static INT rdkb_read_imagename(const char *versionFile, CHAR *fwName, size_t fwNameSize)
+{
+    FILE *fp = NULL;
+    char line[256] = {0};
+    const char *prefix = "imagename:";
+    size_t prefixLen = strlen(prefix);
+
+    if ((versionFile == NULL) || (fwName == NULL) || (fwNameSize == 0))
+        return RETURN_ERR;
+
+    fwName[0] = '\0';
+
+    fp = fopen(versionFile, "r");
+    if (fp == NULL)
+    {
+        printf("RDKB: cannot open %s errno=%d\n", versionFile, errno);
+        return RETURN_ERR;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        if (strncmp(line, prefix, prefixLen) == 0)
+        {
+            char *value = line + prefixLen;
+            size_t len = strcspn(value, "\r\n");
+
+            value[len] = '\0';
+            if (len == 0)
+            {
+                fclose(fp);
+                return RETURN_ERR;
+            }
+
+            if (len >= fwNameSize)
+            {
+                printf("RDKB: imagename length len=%u exceeds bufsize=%u\n",
+                       (unsigned)len, (unsigned)fwNameSize);
+                fclose(fp);
+                return RETURN_ERR;
+            }
+
+            snprintf(fwName, fwNameSize, "%s", value);
+            fclose(fp);
+
+            return RETURN_OK;
+        }
+    }
+
+    fclose(fp);
+    printf("RDKB: imagename not found in %s\n", versionFile);
+    return RETURN_ERR;
+}
+
+static INT rdkb_get_active_rootfs(CHAR *rootfs, size_t rootfsSize)
+{
+    FILE *fp = NULL;
+    char cmdline[1024] = {0};
+    char *root = NULL;
+    char *end = NULL;
+
+    if ((rootfs == NULL) || (rootfsSize == 0))
+        return RETURN_ERR;
+
+    rootfs[0] = '\0';
+
+    fp = fopen("/proc/cmdline", "r");
+    if (fp == NULL)
+        return RETURN_ERR;
+
+    if (fgets(cmdline, sizeof(cmdline), fp) == NULL)
+    {
+        fclose(fp);
+        return RETURN_ERR;
+    }
+    fclose(fp);
+
+    root = strstr(cmdline, "root=");
+    if (root == NULL)
+        return RETURN_ERR;
+
+    root += strlen("root=");
+
+    end = strpbrk(root, " \t\r\n");
+    if (end != NULL)
+        *end = '\0';
+
+    snprintf(rootfs, rootfsSize, "%s", root);
+
+    if ((strcmp(rootfs, RDKB_ROOTFS_A) != 0) &&
+        (strcmp(rootfs, RDKB_ROOTFS_B) != 0))
+    {
+        printf("RDKB: unsupported active rootfs %s\n", rootfs);
+        rootfs[0] = '\0';
+        return RETURN_ERR;
+    }
+
+    return RETURN_OK;
+}
+
+static INT rdkb_read_inactive_imagename(const char *inactiveRootfs, CHAR *fwName, size_t fwNameSize)
+{
+    char versionFile[256] = {0};
+    INT ret = RETURN_ERR;
+
+    if ((inactiveRootfs == NULL) || (fwName == NULL) || (fwNameSize == 0))
+        return RETURN_ERR;
+
+    fwName[0] = '\0';
+
+    if ((mkdir(RDKB_INACTIVE_MOUNT_POINT, 0755) != 0) && (errno != EEXIST))
+    {
+        printf("RDKB: mkdir failed errno=%d\n", errno);
+        return RETURN_ERR;
+    }
+
+    umount(RDKB_INACTIVE_MOUNT_POINT);
+
+    if (mount(inactiveRootfs, RDKB_INACTIVE_MOUNT_POINT, "ext4", MS_RDONLY, NULL) != 0)
+    {
+        printf("RDKB: mount %s failed errno=%d\n", inactiveRootfs, errno);
+        return RETURN_ERR;
+    }
+
+    snprintf(versionFile, sizeof(versionFile), "%s/version.txt", RDKB_INACTIVE_MOUNT_POINT);
+
+    ret = rdkb_read_imagename(versionFile, fwName, fwNameSize);
+
+    umount(RDKB_INACTIVE_MOUNT_POINT);
+
+    return ret;
+}
+
 INT platform_hal_GetFirmwareBankInfo(FW_BANK bankIndex, PFW_BANK_INFO pFW_Bankinfo)
 {
-  /*TODO: Implement Me!*/
-  (void)bankIndex;
-  (void)pFW_Bankinfo;
-  return (INT)0;
+    char activeRootfs[64] = {0};
+    const char *inactiveRootfs = NULL;
+    INT ret = RETURN_ERR;
+
+    if (pFW_Bankinfo == NULL)
+    {
+        printf("RDKB: pFW_Bankinfo is NULL\n");
+        return RETURN_ERR;
+    }
+
+    if ((bankIndex != ACTIVE_BANK) && (bankIndex != INACTIVE_BANK))
+    {
+        printf("RDKB: invalid bankIndex=%d\n", bankIndex);
+        return RETURN_ERR;
+    }
+
+    memset(pFW_Bankinfo, 0, sizeof(FW_BANK_INFO));
+
+    if (rdkb_get_active_rootfs(activeRootfs, sizeof(activeRootfs)) != RETURN_OK)
+        return RETURN_ERR;
+
+    printf("RDKB: bankIndex=%d activeRootfs=%s\n", bankIndex, activeRootfs);
+
+    if (bankIndex == ACTIVE_BANK)
+    {
+        ret = rdkb_read_imagename(RDKB_ACTIVE_VERSION_FILE,
+                                     pFW_Bankinfo->fw_name,
+                                     sizeof(pFW_Bankinfo->fw_name));
+    }
+    else
+    {
+        if (strcmp(activeRootfs, RDKB_ROOTFS_A) == 0)
+            inactiveRootfs = RDKB_ROOTFS_B;
+        else
+            inactiveRootfs = RDKB_ROOTFS_A;
+
+        ret = rdkb_read_inactive_imagename(inactiveRootfs,
+                                              pFW_Bankinfo->fw_name,
+                                              sizeof(pFW_Bankinfo->fw_name));
+    }
+
+    if ((ret != RETURN_OK) || (pFW_Bankinfo->fw_name[0] == '\0'))
+    {
+        printf("RDKB: failed to fetch firmware name for bankIndex=%d\n", bankIndex);
+        memset(pFW_Bankinfo, 0, sizeof(FW_BANK_INFO));
+        return RETURN_ERR;
+    }
+
+    snprintf(pFW_Bankinfo->fw_state, sizeof(pFW_Bankinfo->fw_state), "%s", "Confirmed");
+
+    printf("RDKB: bankIndex=%d fw_name=%s fw_state=%s\n",
+           bankIndex, pFW_Bankinfo->fw_name, pFW_Bankinfo->fw_state);
+
+    return RETURN_OK;
 }
 
 INT platform_hal_GetInterfaceStats(const char* ifname, PINTF_STATS pIntfStats)
