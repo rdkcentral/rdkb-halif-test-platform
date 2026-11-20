@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "vl_generic.h"
-
+#include "platformhal_apis.h"
 
 #include <errno.h>
 #include <signal.h>
@@ -8,6 +8,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+static int command(char *s, char *r, size_t n)
+{
+    return platformhal_dispatch_command(s, r, n);
+}
+
+static int json(char *s, char *r, size_t n)
+{
+    return platformhal_dispatch_json(s, r, n);
+}
+
+const vl_component vl_component_config = {
+    "platform",
+    "--api",
+    "PLATFORM_VL_SOCKET_PATH",
+    "/tmp/platform_vl-run.sock",
+    UINT32_C(0x50564C31),
+    "status: -1\nerror: invalid HAL request payload\n",
+    command,
+    json
+};
 
 static volatile sig_atomic_t stopped;
 

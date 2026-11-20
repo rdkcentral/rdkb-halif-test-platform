@@ -7,21 +7,31 @@ from framework import execution
 
 def create_component(controller_root):
     root = Path(controller_root)
+    dut_root = root
 
     def executable(filename):
-        for directory in (root / "build-run", root / "install-run/bin"):
+        for directory in (dut_root / "build-run", dut_root / "install-run/bin"):
             candidate = directory / filename
             if candidate.is_file() and os.access(candidate, os.X_OK):
                 return candidate
-        return root / "build-run" / filename
+        return dut_root / "build-run" / filename
 
+    profile = root / "configs/platform_hal.json"
     return Component(
-        name="platform", profile=root / "configs/platform_hal.json",
+        name="platform",
+        profile=profile,
         cli=os.environ.get("PLATFORM_VL_DUT_CLI") or str(executable("vl_cli")),
-        server=Path(os.environ.get("PLATFORM_VL_SERVER") or executable("platform_vl")).expanduser(),
-        socket_path=os.environ.get("PLATFORM_VL_SOCKET_PATH") or "/tmp/platform_vl-run.sock",
+        server=Path(
+            os.environ.get("PLATFORM_VL_SERVER") or executable("platform_vl")
+        ).expanduser(),
+        socket_path=(
+            os.environ.get("PLATFORM_VL_SOCKET_PATH")
+            or "/tmp/platform_vl-run.sock"
+        ),
         log=root / "logs/platform/backend.log",
-        command_builder=execution.build_command, readiness=execution.responsive,
-        startup=execution.startup, preflight=execution.preflight,
-        options={"selector": "--platform-api", "magic": 0x50564c31},
+        command_builder=execution.build_command,
+        readiness=execution.responsive,
+        startup=execution.startup,
+        preflight=execution.preflight,
+        options={"selector": "--api", "magic": 0x50564C31},
     )

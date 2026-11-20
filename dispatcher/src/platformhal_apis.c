@@ -1770,7 +1770,7 @@ platform_vl_status_t platformhal_dispatch_command(char *command,char *response,s
                 return invalid_request(response, cap, "multiple commands");
             name = "list";
         } else {
-            /* All HAL APIs use the same --platform-api selector. */
+            /* All HAL APIs use the same --api selector. */
             if (strncmp(token, "--", 2) != 0 || !token[2])
                 return invalid_request(response, cap,
                                        "expected --key=value or --key value");
@@ -1787,7 +1787,7 @@ platform_vl_status_t platformhal_dispatch_command(char *command,char *response,s
             if (!value || !*value || strncmp(value, "--", 2) == 0)
                 return invalid_request(response, cap, "missing option value");
 
-            if (strcmp(key, "platform-api") == 0) {
+            if (strcmp(key, "api") == 0) {
                 if (name)
                     return invalid_request(response, cap, "multiple commands");
                 name = value;

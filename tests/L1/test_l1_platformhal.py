@@ -13,6 +13,29 @@ from framework.execution import assert_equal, field, restore_fields, run
 pytestmark = [pytest.mark.raft, pytest.mark.component("platform"), pytest.mark.L1]
 
 
+@pytest.fixture
+def fan_override_disabled(raft_env):
+    """Reset both overrides for mock/approved thermal tests, not prior state."""
+    def disable_overrides():
+        for fan_index in (0, 1):
+            result = run(
+                "platform", raft_env, "platform_hal_setFanMaxOverride",
+                parameters_json=json.dumps(
+                    {"bOverrideFlag": 0, "fanIndex": fan_index},
+                    separators=(",", ":"),
+                ),
+            )
+            context = f"Disable fan override: fanIndex={fan_index}; result={result}"
+            assert result["returncode"] == 0, context
+            assert field(result["output"], "status") == 0, context
+
+    try:
+        disable_overrides()
+        yield
+    finally:
+        disable_overrides()
+
+
 def string_field(response, name):
     """Read exactly one string field from CLI output."""
     values = re.findall(
@@ -1774,8 +1797,9 @@ def test_36_platform_get_fan_status(
 )
 def test_37_platform_set_fan_max_override(
     raft_env, case_type, override_flag, fan_index, expected_status,
+    fan_override_disabled,
 ):
-    """Validate one JSON override SET without GET readback or cleanup."""
+    """Validate JSON override SET with fixture-managed baseline and cleanup."""
     context = (
         f"{case_type}: bOverrideFlag={override_flag!r}, fanIndex={fan_index!r}"
     )
@@ -2860,12 +2884,13 @@ def test_58_platform_get_memory_paths(
 )
 def test_59_platform_set_fan_speed(
     raft_env, api_name, case_type, fan_index, fan_speed,
-    output_pointer, expected_status,
+    output_pointer, expected_status, fan_override_disabled,
 ):
     """Validate profile cases, including actual HAL NULL rejection.
 
     Default-output cases use JSON; explicit pointer cases use named inputs.
-    Requires override disabled on both fans; changes speeds without restoration.
+    The fixture disables both overrides before and after each case.
+    Fan speeds are changed without restoration.
     Use the mock backend, not an unapproved real-device thermal test.
     """
     parameters = {"fanIndex": fan_index, "fanSpeed": fan_speed}
