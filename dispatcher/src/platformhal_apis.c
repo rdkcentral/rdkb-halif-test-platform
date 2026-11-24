@@ -1,3 +1,21 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2026 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 #define _POSIX_C_SOURCE 200809L
 #include "platformhal_apis.h"
 #include "platform_hal.h"
@@ -1279,8 +1297,8 @@ static INT call_GetMemoryPaths(const struct api_args *a, char *out, size_t cap)
      * The HAL header exposes no array length. Serialize only record zero;
      * confirm allocation/count semantics before linking a vendor backend. */
     rc = platform_hal_GetMemoryPaths((RDK_CPUS)index, output);
-    if (rc == RETURN_OK) {
-        if (output == NULL || !info || !append_text(out, cap, &used,
+    if (rc == RETURN_OK && output != NULL) {
+        if (!info || !append_text(out, cap, &used,
                 "dramPath: %.*s\nemmcPath1: %.*s\nemmcPath2: %.*s\nemmcPath3: %.*s\n",
                 (int)sizeof(info->dramPath), info->dramPath,
                 (int)sizeof(info->emmcPath1), info->emmcPath1,
@@ -1335,7 +1353,7 @@ static INT call_empty_dhcp_options(
         return rc;
 
     if (req_output == NULL || send_output == NULL)
-        return RETURN_ERR;
+        return rc;
 
     /*
      * These mocks always return NULL lists and allocate nothing.

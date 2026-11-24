@@ -1,3 +1,21 @@
+'''
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2026 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+'''
 """Platform L1: common static contracts and profile-driven device cases.
 
 Telnet/SSH/timeout/LED/SNMP SET restores state. LED checks are not visual.
@@ -1773,9 +1791,11 @@ def test_36_platform_get_fan_status(
     ],
 )
 def test_37_platform_set_fan_max_override(
-    raft_env, case_type, override_flag, fan_index, expected_status,
+    raft_env, case_type, override_flag, fan_index, expected_status, request,
 ):
-    """Validate one JSON override SET without GET readback or cleanup."""
+    """Validate JSON override SET and leave valid fans override-disabled."""
+    if fan_index in (0, 1):
+        request.addfinalizer(lambda: disable_fan_override(raft_env, fan_index))
     context = (
         f"{case_type}: bOverrideFlag={override_flag!r}, fanIndex={fan_index!r}"
     )
@@ -2847,6 +2867,22 @@ def test_58_platform_get_memory_paths(
             )
 
 
+def disable_fan_override(raft_env, fan_index):
+    """Establish the override-disabled baseline and report setup/cleanup errors."""
+    result = run(
+        "platform", raft_env, "platform_hal_setFanMaxOverride",
+        parameters_json=json.dumps(
+            {"bOverrideFlag": 0, "fanIndex": fan_index},
+            separators=(",", ":"),
+        ),
+    )
+    context = f"Disable fan override: fanIndex={fan_index!r}; result={result}"
+    assert_equal(result["returncode"], 0, "Override reset CLI exit", context)
+    assert_equal(
+        field(result["output"], "status"), 0, "Override reset status", context,
+    )
+
+
 @pytest.mark.feature(name="fan_speed")
 @pytest.mark.profile(
     section="platform_hal_setFanSpeed",
@@ -2865,9 +2901,11 @@ def test_59_platform_set_fan_speed(
     """Validate profile cases, including actual HAL NULL rejection.
 
     Default-output cases use JSON; explicit pointer cases use named inputs.
-    Requires override disabled on both fans; changes speeds without restoration.
+    Disables override on the selected valid fan; speeds are not restored.
     Use the mock backend, not an unapproved real-device thermal test.
     """
+    if fan_index in (0, 1):
+        disable_fan_override(raft_env, fan_index)
     parameters = {"fanIndex": fan_index, "fanSpeed": fan_speed}
     if output_pointer == "DEFAULT":
         result = run(

@@ -58,3 +58,33 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+# Kavia RLE/shell spill artifacts (auto-generated)
+temp-attachments/.rle-spill/
+
+# Python environments and caches
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Local configuration and secrets
+.env
+/configs/rack.yml
+/configs/*.local.yml
+
+# Generated output
+/artifacts/
+/logs/
+/build-run/
+/install/
+
+# Local runtime state
+.lastlogin
+
+# Third-party dependencies
+/third_party/
+
+# HAL files
+/dispatcher/include/platform_hal.h
+/dispatcher/src/platform_hal.c

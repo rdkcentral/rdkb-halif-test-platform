@@ -1,3 +1,21 @@
+'''
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2026 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+'''
 """Private reports, execution stages, and pytest reporting hooks."""
 from contextlib import redirect_stdout, redirect_stderr
 from contextvars import ContextVar
@@ -49,6 +67,8 @@ def readable_timestamp(value):
 def redact(text):
     text = str(text)
     text = re.sub('(?i)("(?:password|passwd|token|secret|authorization)"\\s*:\\s*)"(?:\\\\.|[^"\\\\])*"', '\\1"[REDACTED]"', text)
+    text = re.sub(r"(?i)(authorization[\x22\x27]?[ \t]*[:=][ \t]*)(?:Bearer|Basic)[ \t]+[^\s,;\x22\x27]+",
+                  r"\1[REDACTED]", text)
     text = re.sub(r"(?i)(password|passwd|token|secret|authorization)([\"\x27]?\s*[:=]\s*)([^\s,;]+)",
                   r"\1\2[REDACTED]", text)
     return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)

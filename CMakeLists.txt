@@ -1,3 +1,21 @@
+#[[
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2026 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+]]
 cmake_minimum_required(VERSION 3.10)
 project(platform_vl LANGUAGES C)
 set(CMAKE_C_STANDARD 11)
@@ -10,11 +28,11 @@ target_include_directories(vl_transport PUBLIC cli)
 target_compile_options(vl_transport PRIVATE -Wall -Wextra -g)
 file(RELATIVE_PATH VL_LIBDIR_FROM_BINDIR
     "${CMAKE_INSTALL_FULL_BINDIR}" "${CMAKE_INSTALL_FULL_LIBDIR}")
-add_executable(vl_cli cli/vl_cli.c)
-target_include_directories(vl_cli PRIVATE dispatcher/include)
-target_link_libraries(vl_cli PRIVATE vl_transport)
-target_compile_options(vl_cli PRIVATE -Wall -Wextra -g)
-install(TARGETS vl_cli RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+add_executable(platform_vl_cli cli/platform_vl_cli.c)
+target_include_directories(platform_vl_cli PRIVATE dispatcher/include)
+target_link_libraries(platform_vl_cli PRIVATE vl_transport)
+target_compile_options(platform_vl_cli PRIVATE -Wall -Wextra -g)
+install(TARGETS platform_vl_cli RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 foreach(component platform)
     string(TOUPPER ${component} component_upper)
@@ -54,16 +72,22 @@ foreach(component platform)
     endif()
     if(component STREQUAL "platform")
         if(PLATFORM_HAL_LIB)
-            target_compile_definitions(platform_hal INTERFACE
-                FEATURE_RDKB_THERMAL_MANAGER FEATURE_RDKB_LED_MANAGER)
+            set(platform_feature_scope INTERFACE)
         else()
-            target_compile_definitions(platform_hal PUBLIC
-                FEATURE_RDKB_THERMAL_MANAGER FEATURE_RDKB_LED_MANAGER)
+            set(platform_feature_scope PUBLIC)
         endif()
+        foreach(feature FEATURE_RDKB_THERMAL_MANAGER FEATURE_RDKB_LED_MANAGER)
+            option(${feature}
+                "Enable ${feature}; must match the supplied HAL build" ON)
+            if(${feature})
+                target_compile_definitions(platform_hal
+                    ${platform_feature_scope} ${feature})
+            endif()
+        endforeach()
     endif()
     add_executable(${component}_vl
-        dispatcher/src/vl_main.c dispatcher/src/vl_server.c
-        ${component_dir}/src/component.c ${component_dir}/src/${component}hal_apis.c)
+        dispatcher/src/platform_vl_main.c dispatcher/src/vl_server.c
+        ${component_dir}/src/${component}hal_apis.c)
     target_compile_definitions(${component}_vl PRIVATE VL_SERVER)
     target_compile_options(${component}_vl PRIVATE -Wall -Wextra -g)
     target_link_libraries(${component}_vl PRIVATE vl_transport ${component}_hal ${COMMON_LIB})
